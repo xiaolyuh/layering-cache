@@ -16,30 +16,31 @@
 
 package com.xiaolyuh.manager;
 
-import org.springframework.cache.Cache;
+import com.xiaolyuh.cache.Cache;
 
 import java.util.Collection;
 
 /**
- * Spring's central cache manager SPI.
- * Allows for retrieving named {@link Cache} regions.
+ * 缓存管理器
+ * 允许通过缓存名称来获的对应的 {@link Cache}.
  *
- * @author Costin Leau
- * @since 3.1
+ * @author yuhao.wang3
  */
 public interface CacheManager {
 
-	/**
-	 * Return the cache associated with the given name.
-	 * @param name the cache identifier (must not be {@code null})
-	 * @return the associated cache, or {@code null} if none found
-	 */
-	Cache getCache(String name);
+    /**
+     * 根据缓存名称返回对应的{@link Cache}.
+     *
+     * @param name 缓存的名称 (不能为 {@code null})
+     * @return 返回对应名称的Cache, 如果没找到返回 {@code null}
+     */
+    Cache getCache(String name);
 
-	/**
-	 * Return a collection of the cache names known by this manager.
-	 * @return the names of all caches known by the cache manager
-	 */
-	Collection<String> getCacheNames();
+    /**
+     * 获取所有缓存名称的集合
+     *
+     * @return 所有缓存名称的集合
+     */
+    Collection<String> getCacheNames();
 
 }

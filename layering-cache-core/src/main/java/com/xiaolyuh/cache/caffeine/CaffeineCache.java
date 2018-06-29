@@ -1,4 +1,4 @@
-package com.xiaolyuh.cache;
+package com.xiaolyuh.cache.caffeine;
 
 import com.github.benmanes.caffeine.cache.LoadingCache;
 import com.xiaolyuh.support.AbstractValueAdaptingCache;
@@ -65,17 +65,8 @@ public class CaffeineCache extends AbstractValueAdaptingCache {
 
     @Override
     public <T> T get(Object key, Callable<T> valueLoader) {
-        Object result = this.cache.get(key, (v) -> loaderValue(key, valueLoader));
+        Object result = this.cache.get(key, (vl) -> loaderValue(key, valueLoader));
         return (T) fromStoreValue(result);
-    }
-
-    private <T> Object loaderValue(Object key, Callable<T> valueLoader) {
-        try {
-            return toStoreValue(valueLoader.call());
-        } catch (Exception e) {
-            logger.error("加载缓存数据异常,{}", e.getMessage(), e);
-            throw new ValueRetrievalException(key, valueLoader, e);
-        }
     }
 
     @Override
@@ -99,4 +90,15 @@ public class CaffeineCache extends AbstractValueAdaptingCache {
         this.cache.invalidateAll();
     }
 
+    /**
+     * 加载数据
+     */
+    private <T> Object loaderValue(Object key, Callable<T> valueLoader) {
+        try {
+            return toStoreValue(valueLoader.call());
+        } catch (Exception e) {
+            logger.error("加载缓存数据异常,{}", e.getMessage(), e);
+            throw new LoaderCacheValueException(key, valueLoader, e);
+        }
+    }
 }

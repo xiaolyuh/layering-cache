@@ -28,7 +28,7 @@ import java.io.Serializable;
  */
 public final class NullValue implements Serializable {
 
-	static final Object INSTANCE = new NullValue();
+	public static final Object INSTANCE = new NullValue();
 
 	private static final long serialVersionUID = 1L;
 

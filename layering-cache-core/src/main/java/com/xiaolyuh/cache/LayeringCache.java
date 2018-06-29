@@ -1,5 +1,7 @@
 package com.xiaolyuh.cache;
 
+import com.xiaolyuh.cache.caffeine.CaffeineCache;
+import com.xiaolyuh.cache.redis.RedisCache;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

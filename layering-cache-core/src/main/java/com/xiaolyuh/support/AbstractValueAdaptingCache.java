@@ -122,16 +122,13 @@ public abstract class AbstractValueAdaptingCache implements Cache {
 
 
     /**
-     * Wrapper exception to be thrown from {@link #get(Object, Callable)}
-     * in case of the value loader callback failing with an exception.
-     *
-     * @since 4.3
+     * {@link #get(Object, Callable)} 方法加载缓存值的包装异常
      */
-    public class ValueRetrievalException extends RuntimeException {
+    public class LoaderCacheValueException extends RuntimeException {
 
         private final Object key;
 
-        public ValueRetrievalException(Object key, Callable<?> loader, Throwable ex) {
+        public LoaderCacheValueException(Object key, Callable<?> loader, Throwable ex) {
             super(String.format("Value for key '%s' could not be loaded using '%s'", key, loader), ex);
             this.key = key;
         }

@@ -43,9 +43,10 @@ public abstract class AbstractValueAdaptingCache implements Cache {
 
 
     /**
-     * 通过构造方法执行配置
+     * 通过构造方法设置缓存配置
      *
      * @param allowNullValues 是否允许为NULL
+     * @param name            缓存名称
      */
     protected AbstractValueAdaptingCache(boolean allowNullValues, String name) {
         Assert.notNull(name, "缓存名称不能为NULL");
@@ -68,29 +69,15 @@ public abstract class AbstractValueAdaptingCache implements Cache {
     }
 
     @Override
-    public Object get(Object key) {
-        Object value = lookup(key);
-        return fromStoreValue(value);
-    }
-
-    @Override
     @SuppressWarnings("unchecked")
     public <T> T get(Object key, Class<T> type) {
-        Object value = fromStoreValue(lookup(key));
-        if (value != null && type != null && !type.isInstance(value)) {
-            throw new IllegalStateException("Cached value is not of required type [" + type.getName() + "]: " + value);
+        Object result = fromStoreValue(get(key));
+        if (result != null && type != null && !type.isInstance(result)) {
+            throw new IllegalStateException("缓存的值不是需要的 [" + type.getName() + "] 类型: " + result);
+
         }
-        return (T) value;
+        return (T) result;
     }
-
-    /**
-     * 底层真正去查询缓存的方法
-     *
-     * @param key 缓存key
-     * @return 缓存key对应的值
-     */
-    protected abstract Object lookup(Object key);
-
 
     /**
      * Convert the given value from the internal store to a user value

@@ -55,12 +55,16 @@ public class CaffeineCache extends AbstractValueAdaptingCache {
     }
 
     @Override
-    protected Object lookup(Object key) {
+    public Object get(Object key) {
         if (this.cache instanceof LoadingCache) {
-            Object value = ((LoadingCache<Object, Object>) this.cache).get(key);
-            return fromStoreValue(value);
+            return ((LoadingCache<Object, Object>) this.cache).get(key);
         }
-        return fromStoreValue(cache.getIfPresent(key));
+        return cache.getIfPresent(key);
+    }
+
+    @Override
+    public <T> T get(Object key, Class<T> type) {
+        return super.get(key, type);
     }
 
     @Override

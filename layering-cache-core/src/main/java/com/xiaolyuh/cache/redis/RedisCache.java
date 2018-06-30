@@ -74,11 +74,9 @@ public class RedisCache extends AbstractValueAdaptingCache {
     }
 
     @Override
-    protected Object lookup(Object key) {
+    public Object get(Object key) {
         RedisCacheKey redisCacheKey = getRedisCacheKey(key);
-
-        Object value = redisTemplate.opsForValue().get(redisCacheKey.getKeyBytes());
-        return fromStoreValue(value);
+        return redisTemplate.opsForValue().get(redisCacheKey.getKeyBytes());
     }
 
     @Override
@@ -175,15 +173,15 @@ public class RedisCache extends AbstractValueAdaptingCache {
     private <T> Object loaderAndPutValue(RedisCacheKey key, Callable<T> valueLoader) {
         try {
             // 加载数据
-            Object value = toStoreValue(valueLoader.call());
+            Object result = toStoreValue(valueLoader.call());
             // redis 缓存不允许直接存NULL，如果结果返回NULL需要删除缓存
-            if (value == null) {
+            if (result == null) {
                 redisTemplate.delete(key.getKey());
             } else {
                 // 缓存值不为NULL，将数据放到缓存
-                redisTemplate.opsForValue().set(key.getKey(), value, expiration, TimeUnit.MILLISECONDS);
+                redisTemplate.opsForValue().set(key.getKey(), result, expiration, TimeUnit.MILLISECONDS);
             }
-            return value;
+            return result;
         } catch (Exception e) {
             logger.error("加载缓存数据异常,{}", e.getMessage(), e);
             throw new LoaderCacheValueException(key, valueLoader, e);

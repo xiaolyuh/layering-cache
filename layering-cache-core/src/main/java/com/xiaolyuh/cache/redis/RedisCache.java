@@ -1,5 +1,6 @@
 package com.xiaolyuh.cache.redis;
 
+import com.xiaolyuh.cache.utils.ThreadTaskUtils;
 import com.xiaolyuh.support.AbstractValueAdaptingCache;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,7 +28,7 @@ public class RedisCache extends AbstractValueAdaptingCache {
     /**
      * 等待线程容器
      */
-    ThreadAwaitContainer container = new ThreadAwaitContainer();
+    private ThreadAwaitContainer container = new ThreadAwaitContainer();
 
     /**
      * redis 客户端
@@ -40,31 +41,48 @@ public class RedisCache extends AbstractValueAdaptingCache {
     private long expiration;
 
     /**
+     * 缓存主动在失效前强制刷新缓存的时间
+     * 单位：毫秒
+     */
+    private long preloadSecondTime = 0;
+
+    /**
      * 是否使用缓存名称作为 redis key 前缀
      */
     private boolean usePrefix;
 
     /**
-     * @param name          缓存名称
-     * @param redisTemplate redis 客户端
-     * @param expiration    key的有效时间
+     * 是否强制刷新（走数据库），默认是false
      */
-    public RedisCache(String name, RedisTemplate<String, Object> redisTemplate, long expiration) {
-        this(name, redisTemplate, expiration, true);
+    private boolean forceRefresh = false;
+
+    /**
+     * @param name              缓存名称
+     * @param redisTemplate     redis 客户端
+     * @param expiration        key的有效时间
+     * @param preloadSecondTime 缓存主动在失效前强制刷新缓存的时间
+     * @param forceRefresh      是否强制刷新（走数据库），默认是false
+     */
+    public RedisCache(String name, RedisTemplate<String, Object> redisTemplate, long expiration, long preloadSecondTime, boolean forceRefresh) {
+        this(name, redisTemplate, expiration, preloadSecondTime, forceRefresh, true);
     }
 
     /**
-     * @param name            缓存名称
-     * @param redisTemplate   redis 客户端
-     * @param expiration      key的有效时间
-     * @param allowNullValues 是否允许存NULL值，模式允许
+     * @param name              缓存名称
+     * @param redisTemplate     redis 客户端
+     * @param expiration        key的有效时间
+     * @param preloadSecondTime 缓存主动在失效前强制刷新缓存的时间
+     * @param forceRefresh      是否强制刷新（走数据库），默认是false
+     * @param allowNullValues   是否允许存NULL值，模式允许
      */
-    public RedisCache(String name, RedisTemplate<String, Object> redisTemplate, long expiration, boolean allowNullValues) {
+    public RedisCache(String name, RedisTemplate<String, Object> redisTemplate, long expiration, long preloadSecondTime, boolean forceRefresh, boolean allowNullValues) {
         super(allowNullValues, name);
 
         Assert.notNull(redisTemplate, "RedisTemplate 不能为NULL");
         this.redisTemplate = redisTemplate;
         this.expiration = expiration;
+        this.preloadSecondTime = preloadSecondTime;
+        this.forceRefresh = forceRefresh;
         this.usePrefix = true;
     }
 
@@ -85,6 +103,8 @@ public class RedisCache extends AbstractValueAdaptingCache {
         // 先获取缓存，如果有直接返回
         Object result = redisTemplate.opsForValue().get(redisCacheKey.getKey());
         if (result != null) {
+            // 刷新缓存
+            refreshCache(redisCacheKey, valueLoader);
             return (T) result;
         }
         // 查库
@@ -188,4 +208,74 @@ public class RedisCache extends AbstractValueAdaptingCache {
         }
     }
 
+    /**
+     * 刷新缓存数据
+     */
+    private <T> void refreshCache(RedisCacheKey redisCacheKey, Callable<T> valueLoader) {
+        Long ttl = redisTemplate.getExpire(redisCacheKey.getKey());
+        if (null != ttl && ttl <= preloadSecondTime) {
+            // 判断是否需要强制刷新在开启刷新线程
+            if (!getForceRefresh()) {
+                softRefresh(redisCacheKey);
+            } else {
+                forceRefresh(redisCacheKey, valueLoader);
+            }
+        }
+    }
+
+    /**
+     * 软刷新，直接修改缓存时间
+     *
+     * @param redisCacheKey {@link RedisCacheKey}
+     */
+    private void softRefresh(RedisCacheKey redisCacheKey) {
+        // 加一个分布式锁，只放一个请求去刷新缓存
+        Lock redisLock = new Lock(redisTemplate, redisCacheKey.getKey() + "_lock");
+        try {
+            if (redisLock.tryLock()) {
+                redisTemplate.expire(redisCacheKey.getKey(), this.expiration, TimeUnit.MILLISECONDS);
+            }
+        } catch (Exception e) {
+            logger.error(e.getMessage(), e);
+        } finally {
+            redisLock.unlock();
+        }
+    }
+
+    /**
+     * 硬刷新（走数据库）
+     *
+     * @param redisCacheKey {@link RedisCacheKey}
+     * @param valueLoader   数据加载器
+     */
+    private <T> void forceRefresh(RedisCacheKey redisCacheKey, Callable<T> valueLoader) {
+        // 尽量少的去开启线程，因为线程池是有限的
+        ThreadTaskUtils.run(() -> {
+            // 加一个分布式锁，只放一个请求去刷新缓存
+            Lock redisLock = new Lock(redisTemplate, redisCacheKey.getKey() + "_lock");
+            try {
+                if (redisLock.lock()) {
+                    // 获取锁之后再判断一下过期时间，看是否需要加载数据
+                    Long ttl = redisTemplate.getExpire(redisCacheKey.getKey());
+                    if (null != ttl && ttl <= this.preloadSecondTime) {
+                        // 加载数据并放到缓存
+                        loaderAndPutValue(redisCacheKey, valueLoader);
+                    }
+                }
+            } catch (Exception e) {
+                logger.info(e.getMessage(), e);
+            } finally {
+                redisLock.unlock();
+            }
+        });
+    }
+
+    /**
+     * 是否强制刷新（走数据库），默认是false
+     *
+     * @return boolean
+     */
+    private boolean getForceRefresh() {
+        return forceRefresh;
+    }
 }

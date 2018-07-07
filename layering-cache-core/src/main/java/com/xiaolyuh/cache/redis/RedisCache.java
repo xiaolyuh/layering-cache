@@ -1,5 +1,6 @@
 package com.xiaolyuh.cache.redis;
 
+import com.alibaba.fastjson.JSON;
 import com.xiaolyuh.cache.utils.ThreadTaskUtils;
 import com.xiaolyuh.support.AbstractValueAdaptingCache;
 import org.slf4j.Logger;
@@ -24,6 +25,11 @@ public class RedisCache extends AbstractValueAdaptingCache {
      * 刷新缓存重试次数
      */
     private static final int RETRY_COUNT = 5;
+
+    /**
+     * 刷新缓存等待时间，单位毫秒
+     */
+    private static final long WAIT_TIME = 20;
 
     /**
      * 等待线程容器
@@ -107,6 +113,7 @@ public class RedisCache extends AbstractValueAdaptingCache {
             refreshCache(redisCacheKey, valueLoader);
             return (T) result;
         }
+        logger.info("缓存key {} 查询redis缓存没有命中，从数据库获取数据", redisCacheKey.getKey());
         // 查库
         return getForDb(redisCacheKey, valueLoader);
     }
@@ -165,25 +172,28 @@ public class RedisCache extends AbstractValueAdaptingCache {
                 // 先取缓存，如果有直接返回，没有再去做拿锁操作
                 Object result = redisTemplate.opsForValue().get(redisCacheKey.getKey());
                 if (result != null) {
+                    logger.info("缓存key {} 获取到锁后查询查询缓存命中，不需要从数据库获取数据", redisCacheKey.getKey());
                     return (T) result;
                 }
 
                 // 获取分布式锁去后台查询数据
                 if (redisLock.lock()) {
                     T t = (T) loaderAndPutValue(redisCacheKey, valueLoader);
+                    logger.info("缓存key {} 从数据库获取数据完毕，唤醒所有等待线程", redisCacheKey.getKey());
                     // 唤醒线程
                     container.signalAll(redisCacheKey.getKey());
                     return t;
                 }
                 // 线程等待
-                container.await(redisCacheKey.getKey(), 20);
+                logger.info("缓存key {} 从数据库获取数据未获取到锁，进入等待状态，等待{}毫秒", redisCacheKey.getKey(), WAIT_TIME);
+                container.await(redisCacheKey.getKey(), WAIT_TIME);
             } catch (Exception e) {
                 logger.error(e.getMessage(), e);
             } finally {
                 redisLock.unlock();
             }
         }
-
+        logger.info("缓存key {} 等待{}次，共{}毫秒，任未获取到缓存，直接走走库获取数据", redisCacheKey.getKey(), RETRY_COUNT, RETRY_COUNT * WAIT_TIME, WAIT_TIME);
         return (T) fromStoreValue(loaderAndPutValue(redisCacheKey, valueLoader));
     }
 
@@ -201,6 +211,7 @@ public class RedisCache extends AbstractValueAdaptingCache {
                 // 缓存值不为NULL，将数据放到缓存
                 redisTemplate.opsForValue().set(key.getKey(), result, expiration, TimeUnit.MILLISECONDS);
             }
+            logger.info("缓存key {} 从数据库获取数据，并将其放入缓存。数据:{}", key.getKey(), JSON.toJSONString(result));
             return result;
         } catch (Exception e) {
             logger.error("加载缓存数据异常,{}", e.getMessage(), e);
@@ -216,8 +227,10 @@ public class RedisCache extends AbstractValueAdaptingCache {
         if (null != ttl && ttl <= preloadSecondTime) {
             // 判断是否需要强制刷新在开启刷新线程
             if (!getForceRefresh()) {
+                logger.info("缓存key {} 软刷新缓存", redisCacheKey.getKey());
                 softRefresh(redisCacheKey);
             } else {
+                logger.info("缓存key {} 强刷新缓存", redisCacheKey.getKey());
                 forceRefresh(redisCacheKey, valueLoader);
             }
         }

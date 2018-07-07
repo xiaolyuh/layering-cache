@@ -100,12 +100,14 @@ public class RedisCache extends AbstractValueAdaptingCache {
     @Override
     public Object get(Object key) {
         RedisCacheKey redisCacheKey = getRedisCacheKey(key);
+        logger.info("redis缓存 key: {} 查询redis缓存", redisCacheKey.getKey());
         return redisTemplate.opsForValue().get(redisCacheKey.getKeyBytes());
     }
 
     @Override
     public <T> T get(Object key, Callable<T> valueLoader) {
         RedisCacheKey redisCacheKey = getRedisCacheKey(key);
+        logger.info("redis缓存 key: {} 查询redis缓存如果没有命中，从数据库获取数据", redisCacheKey.getKey());
         // 先获取缓存，如果有直接返回
         Object result = redisTemplate.opsForValue().get(redisCacheKey.getKey());
         if (result != null) {
@@ -113,7 +115,6 @@ public class RedisCache extends AbstractValueAdaptingCache {
             refreshCache(redisCacheKey, valueLoader);
             return (T) result;
         }
-        logger.info("redis缓存 key: {} 查询redis缓存没有命中，从数据库获取数据", redisCacheKey.getKey());
         // 查库
         return getForDb(redisCacheKey, valueLoader);
     }
@@ -121,12 +122,13 @@ public class RedisCache extends AbstractValueAdaptingCache {
     @Override
     public void put(Object key, Object value) {
         RedisCacheKey redisCacheKey = getRedisCacheKey(key);
-        logger.info("redis缓存 key: {} 放入缓存，缓存值：{}", redisCacheKey.getKey(), JSON.toJSONString(value));
+        logger.info("redis缓存 key: {} put缓存，缓存值：{}", redisCacheKey.getKey(), JSON.toJSONString(value));
         redisTemplate.opsForValue().set(redisCacheKey.getKey(), value, expiration, TimeUnit.MILLISECONDS);
     }
 
     @Override
     public Object putIfAbsent(Object key, Object value) {
+        logger.info("redis缓存 key: {}putIfAbsent缓存，缓存值：{}", getRedisCacheKey(key).getKey(), JSON.toJSONString(value));
         Object reult = get(key);
         if (reult != null) {
             return reult;

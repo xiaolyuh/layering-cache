@@ -120,7 +120,9 @@ public class RedisCache extends AbstractValueAdaptingCache {
 
     @Override
     public void put(Object key, Object value) {
-        redisTemplate.opsForValue().set(getRedisCacheKey(key).getKey(), value, expiration, TimeUnit.MILLISECONDS);
+        RedisCacheKey redisCacheKey = getRedisCacheKey(key);
+        logger.info("redis缓存 key: {} 放入缓存，缓存值：{}", redisCacheKey.getKey(), JSON.toJSONString(value));
+        redisTemplate.opsForValue().set(redisCacheKey.getKey(), value, expiration, TimeUnit.MILLISECONDS);
     }
 
     @Override
@@ -135,13 +137,16 @@ public class RedisCache extends AbstractValueAdaptingCache {
 
     @Override
     public void evict(Object key) {
-        redisTemplate.delete(getRedisCacheKey(key).getKey());
+        RedisCacheKey redisCacheKey = getRedisCacheKey(key);
+        logger.info("redis缓存 key: {} 清除缓存", redisCacheKey.getKey());
+        redisTemplate.delete(redisCacheKey.getKey());
     }
 
     @Override
     public void clear() {
         // 必须开启了使用缓存名称作为前缀，clear才有效
         if (usePrefix) {
+            logger.info("redis缓存 ，除前缀为{}的缓存", getName());
             Set<String> keys = redisTemplate.keys(getName());
             if (!CollectionUtils.isEmpty(keys)) {
                 redisTemplate.delete(keys);

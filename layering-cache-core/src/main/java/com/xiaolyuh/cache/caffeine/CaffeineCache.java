@@ -1,5 +1,6 @@
 package com.xiaolyuh.cache.caffeine;
 
+import com.alibaba.fastjson.JSON;
 import com.github.benmanes.caffeine.cache.LoadingCache;
 import com.xiaolyuh.support.AbstractValueAdaptingCache;
 import org.slf4j.Logger;
@@ -56,6 +57,7 @@ public class CaffeineCache extends AbstractValueAdaptingCache {
 
     @Override
     public Object get(Object key) {
+        logger.info("caffeine缓存 key:{} 获取缓存", JSON.toJSONString(key));
         if (this.cache instanceof LoadingCache) {
             return ((LoadingCache<Object, Object>) this.cache).get(key);
         }
@@ -64,33 +66,39 @@ public class CaffeineCache extends AbstractValueAdaptingCache {
 
     @Override
     public <T> T get(Object key, Class<T> type) {
+        logger.info("caffeine缓存 key:{} 获取缓存", JSON.toJSONString(key));
         return super.get(key, type);
     }
 
     @Override
     public <T> T get(Object key, Callable<T> valueLoader) {
+        logger.info("caffeine缓存 key:{} 获取缓存", JSON.toJSONString(key));
         Object result = this.cache.get(key, (vl) -> loaderValue(key, valueLoader));
         return (T) fromStoreValue(result);
     }
 
     @Override
     public void put(Object key, Object value) {
+        logger.info("caffeine缓存 key:{} put缓存，缓存值：{}", JSON.toJSONString(key), JSON.toJSONString(value));
         this.cache.put(key, value);
     }
 
     @Override
     public Object putIfAbsent(Object key, Object value) {
+        logger.info("caffeine缓存 key:{} putIfAbsent 缓存，缓存值：{}", JSON.toJSONString(key), JSON.toJSONString(value));
         Object result = this.cache.get(key, (v) -> toStoreValue(v));
         return fromStoreValue(result);
     }
 
     @Override
     public void evict(Object key) {
+        logger.info("caffeine缓存 key:{} 清除缓存", JSON.toJSONString(key));
         this.cache.invalidate(key);
     }
 
     @Override
     public void clear() {
+        logger.info("caffeine缓存 key:{} 清空缓存");
         this.cache.invalidateAll();
     }
 
@@ -99,7 +107,9 @@ public class CaffeineCache extends AbstractValueAdaptingCache {
      */
     private <T> Object loaderValue(Object key, Callable<T> valueLoader) {
         try {
-            return toStoreValue(valueLoader.call());
+            T t = valueLoader.call();
+            logger.info("caffeine缓存 key:{} 从库加载缓存", JSON.toJSONString(key), JSON.toJSONString(t));
+            return toStoreValue(t);
         } catch (Exception e) {
             logger.error("加载缓存数据异常,{}", e.getMessage(), e);
             throw new LoaderCacheValueException(key, valueLoader, e);

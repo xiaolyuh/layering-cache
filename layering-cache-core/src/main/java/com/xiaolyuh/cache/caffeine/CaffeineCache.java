@@ -66,13 +66,13 @@ public class CaffeineCache extends AbstractValueAdaptingCache {
 
     @Override
     public <T> T get(Object key, Class<T> type) {
-        logger.info("caffeine缓存 key:{} 获取缓存", JSON.toJSONString(key));
+        logger.info("caffeine缓存 key:{} 获取缓存，并转换成{}类型", JSON.toJSONString(key), type.getName());
         return super.get(key, type);
     }
 
     @Override
     public <T> T get(Object key, Callable<T> valueLoader) {
-        logger.info("caffeine缓存 key:{} 获取缓存", JSON.toJSONString(key));
+        logger.info("caffeine缓存 key:{} 获取缓存， 如果没有命中就走库加载缓存", JSON.toJSONString(key));
         Object result = this.cache.get(key, (vl) -> loaderValue(key, valueLoader));
         return (T) fromStoreValue(result);
     }

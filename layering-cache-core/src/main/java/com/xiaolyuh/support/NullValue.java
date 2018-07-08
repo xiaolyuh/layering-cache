@@ -14,7 +14,9 @@
  * limitations under the License.
  */
 
-package com.xiaolyuh.cache;
+package com.xiaolyuh.support;
+
+import com.xiaolyuh.cache.AbstractValueAdaptingCache;
 
 import java.io.Serializable;
 

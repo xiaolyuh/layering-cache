@@ -16,6 +16,7 @@
 
 package com.xiaolyuh.cache;
 
+import com.xiaolyuh.support.NullValue;
 import org.springframework.util.Assert;
 
 import java.util.concurrent.Callable;

@@ -160,4 +160,12 @@ public class LayeringCache extends AbstractValueAdaptingCache {
         }
     }
 
+    /**
+     * 获取一级缓存
+     *
+     * @return FirstCache
+     */
+    public Cache getFirstCache() {
+        return firstCache;
+    }
 }

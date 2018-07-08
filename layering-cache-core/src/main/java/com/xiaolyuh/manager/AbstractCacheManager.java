@@ -17,7 +17,10 @@
 package com.xiaolyuh.manager;
 
 import com.xiaolyuh.cache.Cache;
-import com.xiaolyuh.manager.CacheManager;
+import com.xiaolyuh.listener.RedisMessageListener;
+import org.springframework.beans.factory.InitializingBean;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.listener.RedisMessageListenerContainer;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -35,11 +38,27 @@ import java.util.concurrent.ConcurrentMap;
  * @author Stephane Nicoll
  * @since 3.1
  */
-public abstract class AbstractCacheManager implements CacheManager {
+public abstract class AbstractCacheManager implements CacheManager, InitializingBean {
+
+    /**
+     * redis pub/sub 容器
+     */
+    private final RedisMessageListenerContainer container = new RedisMessageListenerContainer();
+
+    /**
+     * redis pub/sub 监听器
+     */
+    private RedisMessageListener messageListener = new RedisMessageListener();
 
     private final ConcurrentMap<String, Cache> cacheMap = new ConcurrentHashMap<String, Cache>(16);
 
     private volatile Set<String> cacheNames = Collections.emptySet();
+
+    @Override
+    public void afterPropertiesSet() throws Exception {
+        messageListener.setCacheManager(this);
+        container.setConnectionFactory(getRedisTemplate().getConnectionFactory());
+    }
 
     // Lazy cache initialization on access
     @Override
@@ -125,4 +144,10 @@ public abstract class AbstractCacheManager implements CacheManager {
         return cacheMap;
     }
 
+    /**
+     * 获取redis客户端
+     *
+     * @return {@link RedisTemplate}
+     */
+    protected abstract RedisTemplate<? extends Object, ? extends Object> getRedisTemplate();
 }

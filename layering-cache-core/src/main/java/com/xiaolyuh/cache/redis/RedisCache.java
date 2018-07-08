@@ -53,14 +53,15 @@ public class RedisCache extends AbstractValueAdaptingCache {
     private long preloadSecondTime = 0;
 
     /**
+     * 是否强制刷新（走数据库），默认是false
+     */
+    private boolean forceRefresh = false;
+
+    /**
      * 是否使用缓存名称作为 redis key 前缀
      */
     private boolean usePrefix;
 
-    /**
-     * 是否强制刷新（走数据库），默认是false
-     */
-    private boolean forceRefresh = false;
 
     /**
      * @param name              缓存名称

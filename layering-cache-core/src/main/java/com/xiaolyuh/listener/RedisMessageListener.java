@@ -9,9 +9,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.data.redis.connection.Message;
 import org.springframework.data.redis.listener.adapter.MessageListenerAdapter;
 
-import java.util.HashMap;
-import java.util.Map;
-
 /**
  * redis消息的订阅者
  *
@@ -32,32 +29,30 @@ public class RedisMessageListener extends MessageListenerAdapter {
         // 解析订阅发布的信息，获取缓存的名称和缓存的key
         String ms = new String(message.getBody());
         @SuppressWarnings("unchecked")
-        Map<String, Object> map = JSON.parseObject(ms, HashMap.class);
-        String cacheName = (String) map.get("cacheName");
-        Object key = map.get("key");
+        RedisPubSubMessage redisPubSubMessage = JSON.parseObject(ms, RedisPubSubMessage.class);
 
         // 根据缓存名称获取多级缓存
-        Cache cache = cacheManager.getCache(cacheName);
+        Cache cache = cacheManager.getCache(redisPubSubMessage.getCacheName());
 
         // 判断缓存是否是多级缓存
         if (cache != null && cache instanceof LayeringCache) {
-//            switch (channelTopic) {
-//                case REDIS_CACHE_DELETE_TOPIC:
-//                    // 获取一级缓存，并删除一级缓存数据
-//                    ((LayeringCache) cache).getFirstCache().evict(key);
-//                    log.info("删除一级缓存{}数据,key:{}", cacheName, key.toString().getBytes());
-//                    break;
-//
-//                case REDIS_CACHE_CLEAR_TOPIC:
-//                    // 获取一级缓存，并删除一级缓存数据
-//                    ((LayeringCache) cache).getFirstCache().clear();
-//                    log.info("清除一级缓存{}数据", cacheName);
-//                    break;
-//
-//                default:
-//                    log.info("接收到没有定义的订阅消息频道数据");
-//                    break;
-//            }
+            switch (redisPubSubMessage.getMessageType()) {
+                case EVICT:
+                    // 获取一级缓存，并删除一级缓存数据
+                    ((LayeringCache) cache).getFirstCache().evict(redisPubSubMessage.getKey());
+                    log.info("删除一级缓存{}数据,key:{}", redisPubSubMessage.getCacheName(), redisPubSubMessage.getKey());
+                    break;
+
+                case CLEAR:
+                    // 获取一级缓存，并删除一级缓存数据
+                    ((LayeringCache) cache).getFirstCache().clear();
+                    log.info("清除一级缓存{}数据", redisPubSubMessage.getCacheName());
+                    break;
+
+                default:
+                    log.error("接收到没有定义的订阅消息频道数据");
+                    break;
+            }
 
         }
     }

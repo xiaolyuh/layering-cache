@@ -1,8 +1,13 @@
 package com.xiaolyuh.cache;
 
 import com.alibaba.fastjson.JSON;
+import com.xiaolyuh.listener.RedisPubSubMessage;
+import com.xiaolyuh.listener.RedisPubSubMessageType;
+import com.xiaolyuh.listener.RedisPublisher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.listener.ChannelTopic;
 
 import java.util.concurrent.Callable;
 
@@ -13,6 +18,12 @@ import java.util.concurrent.Callable;
  */
 public class LayeringCache extends AbstractValueAdaptingCache {
     Logger logger = LoggerFactory.getLogger(LayeringCache.class);
+
+    /**
+     * redis 客户端
+     */
+    private RedisTemplate<String, Object> redisTemplate;
+
 
     /**
      * 一级缓存
@@ -35,8 +46,8 @@ public class LayeringCache extends AbstractValueAdaptingCache {
      * @param firstCache  一级缓存
      * @param secondCache 二级缓存
      */
-    public LayeringCache(Cache firstCache, Cache secondCache) {
-        this(firstCache, secondCache, true, secondCache.getName());
+    public LayeringCache(RedisTemplate<String, Object> redisTemplate, Cache firstCache, Cache secondCache) {
+        this(redisTemplate, firstCache, secondCache, true, secondCache.getName());
     }
 
     /**
@@ -47,8 +58,9 @@ public class LayeringCache extends AbstractValueAdaptingCache {
      * @param useFirstCache 是否使用一级缓存，默认是
      * @param name          缓存名称
      */
-    public LayeringCache(Cache firstCache, Cache secondCache, boolean useFirstCache, String name) {
+    public LayeringCache(RedisTemplate<String, Object> redisTemplate, Cache firstCache, Cache secondCache, boolean useFirstCache, String name) {
         super(true, name);
+        this.redisTemplate = redisTemplate;
         this.firstCache = firstCache;
         this.secondCache = secondCache;
         this.useFirstCache = useFirstCache;
@@ -134,14 +146,15 @@ public class LayeringCache extends AbstractValueAdaptingCache {
         secondCache.evict(key);
         // 删除一级缓存
         if (useFirstCache) {
-            // TODO 删除一级缓存需要用到redis的Pub/Sub（订阅/发布）模式，否则集群中其他服服务器节点的一级缓存数据无法删除
-//            Map<String, Object> message = new HashMap<>();
-//            message.put("cacheName", name);
-//            message.put("key", key);
-//            // 创建redis发布者
-//            RedisPublisher redisPublisher = new RedisPublisher(redisOperations, ChannelTopicEnum.REDIS_CACHE_DELETE_TOPIC.getChannelTopic());
-//            // 发布消息
-//            redisPublisher.publisher(message);
+            // 删除一级缓存需要用到redis的Pub/Sub（订阅/发布）模式，否则集群中其他服服务器节点的一级缓存数据无法删除
+            RedisPubSubMessage message = new RedisPubSubMessage();
+            message.setCacheName(getName());
+            message.setKey(key);
+            message.setMessageType(RedisPubSubMessageType.EVICT);
+            // 创建redis发布者
+            RedisPublisher redisPublisher = new RedisPublisher(redisTemplate, new ChannelTopic(getName()));
+            // 发布消息
+            redisPublisher.publisher(message);
         }
     }
 
@@ -150,13 +163,14 @@ public class LayeringCache extends AbstractValueAdaptingCache {
         // 删除的时候要先删除二级缓存再删除一级缓存，否则有并发问题
         secondCache.clear();
         if (useFirstCache) {
-            // TODO 清除一级缓存需要用到redis的订阅/发布模式，否则集群中其他服服务器节点的一级缓存数据无法删除
-//            Map<String, Object> message = new HashMap<>();
-//            message.put("cacheName", name);
-//            // 创建redis发布者
-//            RedisPublisher redisPublisher = new RedisPublisher(redisOperations, ChannelTopicEnum.REDIS_CACHE_CLEAR_TOPIC.getChannelTopic());
-//            // 发布消息
-//            redisPublisher.publisher(message);
+            // 清除一级缓存需要用到redis的订阅/发布模式，否则集群中其他服服务器节点的一级缓存数据无法删除
+            RedisPubSubMessage message = new RedisPubSubMessage();
+            message.setCacheName(getName());
+            message.setMessageType(RedisPubSubMessageType.EVICT);
+            // 创建redis发布者
+            RedisPublisher redisPublisher = new RedisPublisher(redisTemplate, new ChannelTopic(getName()));
+            // 发布消息
+            redisPublisher.publisher(message);
         }
     }
 

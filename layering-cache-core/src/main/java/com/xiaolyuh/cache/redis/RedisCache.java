@@ -50,7 +50,7 @@ public class RedisCache extends AbstractValueAdaptingCache {
      * 缓存主动在失效前强制刷新缓存的时间
      * 单位：毫秒
      */
-    private long preloadSecondTime = 0;
+    private long preloadTime = 0;
 
     /**
      * 是否强制刷新（走数据库），默认是false
@@ -64,31 +64,31 @@ public class RedisCache extends AbstractValueAdaptingCache {
 
 
     /**
-     * @param name              缓存名称
-     * @param redisTemplate     redis 客户端
-     * @param expiration        key的有效时间
-     * @param preloadSecondTime 缓存主动在失效前强制刷新缓存的时间
-     * @param forceRefresh      是否强制刷新（走数据库），默认是false
+     * @param name          缓存名称
+     * @param redisTemplate redis 客户端
+     * @param expiration    key的有效时间
+     * @param preloadTime   缓存主动在失效前强制刷新缓存的时间
+     * @param forceRefresh  是否强制刷新（走数据库），默认是false
      */
-    public RedisCache(String name, RedisTemplate<String, Object> redisTemplate, long expiration, long preloadSecondTime, boolean forceRefresh) {
-        this(name, redisTemplate, expiration, preloadSecondTime, forceRefresh, true);
+    public RedisCache(String name, RedisTemplate<String, Object> redisTemplate, long expiration, long preloadTime, boolean forceRefresh) {
+        this(name, redisTemplate, expiration, preloadTime, forceRefresh, true);
     }
 
     /**
-     * @param name              缓存名称
-     * @param redisTemplate     redis 客户端
-     * @param expiration        key的有效时间
-     * @param preloadSecondTime 缓存主动在失效前强制刷新缓存的时间
-     * @param forceRefresh      是否强制刷新（走数据库），默认是false
-     * @param allowNullValues   是否允许存NULL值，模式允许
+     * @param name            缓存名称
+     * @param redisTemplate   redis 客户端
+     * @param expiration      key的有效时间
+     * @param preloadTime     缓存主动在失效前强制刷新缓存的时间
+     * @param forceRefresh    是否强制刷新（走数据库），默认是false
+     * @param allowNullValues 是否允许存NULL值，模式允许
      */
-    public RedisCache(String name, RedisTemplate<String, Object> redisTemplate, long expiration, long preloadSecondTime, boolean forceRefresh, boolean allowNullValues) {
+    public RedisCache(String name, RedisTemplate<String, Object> redisTemplate, long expiration, long preloadTime, boolean forceRefresh, boolean allowNullValues) {
         super(allowNullValues, name);
 
         Assert.notNull(redisTemplate, "RedisTemplate 不能为NULL");
         this.redisTemplate = redisTemplate;
         this.expiration = expiration;
-        this.preloadSecondTime = preloadSecondTime;
+        this.preloadTime = preloadTime;
         this.forceRefresh = forceRefresh;
         this.usePrefix = true;
     }
@@ -232,7 +232,7 @@ public class RedisCache extends AbstractValueAdaptingCache {
      */
     private <T> void refreshCache(RedisCacheKey redisCacheKey, Callable<T> valueLoader) {
         Long ttl = redisTemplate.getExpire(redisCacheKey.getKey());
-        if (null != ttl && ttl <= preloadSecondTime) {
+        if (null != ttl && ttl <= preloadTime) {
             // 判断是否需要强制刷新在开启刷新线程
             if (!getForceRefresh()) {
                 logger.info("redis缓存 key:{} 软刷新缓存", redisCacheKey.getKey());
@@ -278,7 +278,7 @@ public class RedisCache extends AbstractValueAdaptingCache {
                 if (redisLock.lock()) {
                     // 获取锁之后再判断一下过期时间，看是否需要加载数据
                     Long ttl = redisTemplate.getExpire(redisCacheKey.getKey());
-                    if (null != ttl && ttl <= this.preloadSecondTime) {
+                    if (null != ttl && ttl <= this.preloadTime) {
                         // 加载数据并放到缓存
                         loaderAndPutValue(redisCacheKey, valueLoader);
                     }

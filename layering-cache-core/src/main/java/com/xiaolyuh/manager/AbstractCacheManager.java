@@ -18,25 +18,22 @@ package com.xiaolyuh.manager;
 
 import com.xiaolyuh.cache.Cache;
 import com.xiaolyuh.listener.RedisMessageListener;
+import com.xiaolyuh.setting.LayeringCacheSetting;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.listener.ChannelTopic;
 import org.springframework.data.redis.listener.RedisMessageListenerContainer;
 
 import java.util.Collection;
-import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
 /**
- * Abstract base class implementing the common {@link CacheManager} methods.
- * Useful for 'static' environments where the backing caches do not change.
+ * 公共的抽象 {@link CacheManager} 的实现.
  *
- * @author Costin Leau
- * @author Juergen Hoeller
- * @author Stephane Nicoll
- * @since 3.1
+ * @author yuhao.wang3
  */
 public abstract class AbstractCacheManager implements CacheManager, InitializingBean {
 
@@ -50,9 +47,15 @@ public abstract class AbstractCacheManager implements CacheManager, Initializing
      */
     private RedisMessageListener messageListener = new RedisMessageListener();
 
+    /**
+     * 缓存容器
+     */
     private final ConcurrentMap<String, Cache> cacheMap = new ConcurrentHashMap<String, Cache>(16);
 
-    private volatile Set<String> cacheNames = Collections.emptySet();
+    /**
+     * 缓存名称容器
+     */
+    private volatile Set<String> cacheNames = new LinkedHashSet<>();
 
     @Override
     public void afterPropertiesSet() throws Exception {
@@ -60,9 +63,14 @@ public abstract class AbstractCacheManager implements CacheManager, Initializing
         container.setConnectionFactory(getRedisTemplate().getConnectionFactory());
     }
 
-    // Lazy cache initialization on access
     @Override
     public Cache getCache(String name) {
+        return this.cacheMap.get(name);
+    }
+
+    // Lazy cache initialization on access
+    @Override
+    public Cache getCache(String name, LayeringCacheSetting layeringCacheSetting) {
         Cache cache = this.cacheMap.get(name);
         if (cache != null) {
             return cache;
@@ -71,9 +79,10 @@ public abstract class AbstractCacheManager implements CacheManager, Initializing
             synchronized (this.cacheMap) {
                 cache = this.cacheMap.get(name);
                 if (cache == null) {
-                    cache = getMissingCache(name);
+                    cache = getMissingCache(name, layeringCacheSetting);
                     if (cache != null) {
                         cache = decorateCache(cache);
+                        addMessageListener(name);
                         this.cacheMap.put(name, cache);
                         updateCacheNames(name);
                     }
@@ -89,51 +98,32 @@ public abstract class AbstractCacheManager implements CacheManager, Initializing
     }
 
     /**
-     * Update the exposed {@link #cacheNames} set with the given name.
-     * <p>This will always be called within a full {@link #cacheMap} lock
-     * and effectively behaves like a {@code CopyOnWriteArraySet} with
-     * preserved order but exposed as an unmodifiable reference.
+     * 更新缓存名称容器
      *
-     * @param name the name of the cache to be added
+     * @param name 需要添加的缓存名称
      */
     private void updateCacheNames(String name) {
-        Set<String> cacheNames = new LinkedHashSet<String>(this.cacheNames.size() + 1);
-        cacheNames.addAll(this.cacheNames);
         cacheNames.add(name);
-        this.cacheNames = Collections.unmodifiableSet(cacheNames);
     }
 
 
-    // Overridable template methods for cache initialization
-
     /**
-     * Decorate the given Cache object if necessary.
+     * 获取Cache对象的装饰示例
      *
-     * @param cache the Cache object to be added to this CacheManager
-     * @return the decorated Cache object to be used instead,
-     * or simply the passed-in Cache object by default
+     * @param cache 需要添加到CacheManager的Cache实例
+     * @return 装饰过后的Cache实例
      */
     protected Cache decorateCache(Cache cache) {
         return cache;
     }
 
     /**
-     * Return a missing cache with the specified {@code name} or {@code null} if
-     * such cache does not exist or could not be created on the fly.
-     * <p>Some caches may be created at runtime if the native provider supports
-     * it. If a lookup by name does not yield any result, a subclass gets a chance
-     * to register such a cache at runtime. The returned cache will be automatically
-     * added to this instance.
+     * 根据缓存名称在CacheManager中没有找到对应Cache时，通过该方法新建一个对应的Cache实例
      *
-     * @param name the name of the cache to retrieve
-     * @return the missing cache or {@code null} if no such cache exists or could be
-     * created
-     * @see #getCache(String)
-     * @since 4.1
+     * @param name 缓存名称
+     * @return {@link Cache}
      */
-    protected Cache getMissingCache(String name) {
-        return null;
-    }
+    protected abstract Cache getMissingCache(String name, LayeringCacheSetting layeringCacheSetting);
 
     /**
      * 获取缓存容器
@@ -149,5 +139,14 @@ public abstract class AbstractCacheManager implements CacheManager, Initializing
      *
      * @return {@link RedisTemplate}
      */
-    protected abstract RedisTemplate<? extends Object, ? extends Object> getRedisTemplate();
+    protected abstract RedisTemplate<String, Object> getRedisTemplate();
+
+    /**
+     * 添加消息监听
+     *
+     * @param name 缓存名称
+     */
+    protected void addMessageListener(String name) {
+        container.addMessageListener(messageListener, new ChannelTopic(name));
+    }
 }

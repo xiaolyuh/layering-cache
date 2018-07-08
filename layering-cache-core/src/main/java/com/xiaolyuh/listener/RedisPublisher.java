@@ -13,7 +13,7 @@ import org.springframework.data.redis.listener.ChannelTopic;
 public class RedisPublisher {
     private static final Logger logger = LoggerFactory.getLogger(RedisPublisher.class);
 
-    private RedisTemplate<? extends Object, ? extends Object> redisTemplate;
+    private RedisTemplate<String, Object> redisTemplate;
 
     /**
      * 频道名称
@@ -24,7 +24,7 @@ public class RedisPublisher {
      * @param redisTemplate Redis客户端
      * @param channelTopic  频道名称
      */
-    public RedisPublisher(RedisTemplate<? extends Object, ? extends Object> redisTemplate, ChannelTopic channelTopic) {
+    public RedisPublisher(RedisTemplate<String, Object> redisTemplate, ChannelTopic channelTopic) {
         this.channelTopic = channelTopic;
         this.redisTemplate = redisTemplate;
     }

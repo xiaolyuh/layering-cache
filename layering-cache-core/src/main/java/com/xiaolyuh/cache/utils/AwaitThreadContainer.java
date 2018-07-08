@@ -1,4 +1,4 @@
-package com.xiaolyuh.cache.redis;
+package com.xiaolyuh.cache.utils;
 
 import org.springframework.util.CollectionUtils;
 
@@ -13,7 +13,7 @@ import java.util.concurrent.locks.LockSupport;
  * 等待线程容器
  * @author yuhao.wang
  */
-public class ThreadAwaitContainer {
+public class AwaitThreadContainer {
     private final Map<String, Set<Thread>> threadMap = new ConcurrentHashMap<>();
 
     /**

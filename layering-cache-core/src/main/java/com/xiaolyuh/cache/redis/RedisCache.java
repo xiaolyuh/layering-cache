@@ -1,6 +1,8 @@
 package com.xiaolyuh.cache.redis;
 
 import com.alibaba.fastjson.JSON;
+import com.xiaolyuh.cache.utils.Lock;
+import com.xiaolyuh.cache.utils.AwaitThreadContainer;
 import com.xiaolyuh.cache.utils.ThreadTaskUtils;
 import com.xiaolyuh.support.AbstractValueAdaptingCache;
 import org.slf4j.Logger;
@@ -34,7 +36,7 @@ public class RedisCache extends AbstractValueAdaptingCache {
     /**
      * 等待线程容器
      */
-    private ThreadAwaitContainer container = new ThreadAwaitContainer();
+    private AwaitThreadContainer container = new AwaitThreadContainer();
 
     /**
      * redis 客户端
@@ -65,7 +67,7 @@ public class RedisCache extends AbstractValueAdaptingCache {
 
     /**
      * @param name          缓存名称
-     * @param redisTemplate redis 客户端
+     * @param redisTemplate  redis客户端 redis 客户端
      * @param expiration    key的有效时间
      * @param preloadTime   缓存主动在失效前强制刷新缓存的时间
      * @param forceRefresh  是否强制刷新（走数据库），默认是false
@@ -76,7 +78,7 @@ public class RedisCache extends AbstractValueAdaptingCache {
 
     /**
      * @param name            缓存名称
-     * @param redisTemplate   redis 客户端
+     * @param redisTemplate  redis客户端   redis 客户端
      * @param expiration      key的有效时间
      * @param preloadTime     缓存主动在失效前强制刷新缓存的时间
      * @param forceRefresh    是否强制刷新（走数据库），默认是false

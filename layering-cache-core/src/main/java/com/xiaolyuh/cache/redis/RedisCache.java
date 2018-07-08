@@ -1,10 +1,11 @@
 package com.xiaolyuh.cache.redis;
 
 import com.alibaba.fastjson.JSON;
-import com.xiaolyuh.support.Lock;
-import com.xiaolyuh.support.AwaitThreadContainer;
-import com.xiaolyuh.support.ThreadTaskUtils;
 import com.xiaolyuh.cache.AbstractValueAdaptingCache;
+import com.xiaolyuh.setting.SecondaryCacheSetting;
+import com.xiaolyuh.support.AwaitThreadContainer;
+import com.xiaolyuh.support.Lock;
+import com.xiaolyuh.support.ThreadTaskUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -66,25 +67,28 @@ public class RedisCache extends AbstractValueAdaptingCache {
 
 
     /**
-     * @param name          缓存名称
-     * @param redisTemplate  redis客户端 redis 客户端
-     * @param expiration    key的有效时间
-     * @param preloadTime   缓存主动在失效前强制刷新缓存的时间
-     * @param forceRefresh  是否强制刷新（走数据库），默认是false
+     * @param name                  缓存名称
+     * @param redisTemplate         redis客户端 redis 客户端
+     * @param secondaryCacheSetting 二级缓存配置{@link SecondaryCacheSetting}
      */
-    public RedisCache(String name, RedisTemplate<String, Object> redisTemplate, long expiration, long preloadTime, boolean forceRefresh) {
-        this(name, redisTemplate, expiration, preloadTime, forceRefresh, true);
+    public RedisCache(String name, RedisTemplate<String, Object> redisTemplate, SecondaryCacheSetting secondaryCacheSetting) {
+
+        this(name, redisTemplate, secondaryCacheSetting.getTimeUnit().toMillis(secondaryCacheSetting.getExpiration()),
+                secondaryCacheSetting.getTimeUnit().toMillis(secondaryCacheSetting.getPreloadTime()),
+                secondaryCacheSetting.isForceRefresh(), secondaryCacheSetting.isUsePrefix(),
+                secondaryCacheSetting.isAllowNullValues());
     }
 
     /**
      * @param name            缓存名称
-     * @param redisTemplate  redis客户端   redis 客户端
+     * @param redisTemplate   redis客户端   redis 客户端
      * @param expiration      key的有效时间
      * @param preloadTime     缓存主动在失效前强制刷新缓存的时间
      * @param forceRefresh    是否强制刷新（走数据库），默认是false
      * @param allowNullValues 是否允许存NULL值，模式允许
      */
-    public RedisCache(String name, RedisTemplate<String, Object> redisTemplate, long expiration, long preloadTime, boolean forceRefresh, boolean allowNullValues) {
+    public RedisCache(String name, RedisTemplate<String, Object> redisTemplate, long expiration, long preloadTime,
+                      boolean forceRefresh, boolean usePrefix, boolean allowNullValues) {
         super(allowNullValues, name);
 
         Assert.notNull(redisTemplate, "RedisTemplate 不能为NULL");
@@ -92,7 +96,7 @@ public class RedisCache extends AbstractValueAdaptingCache {
         this.expiration = expiration;
         this.preloadTime = preloadTime;
         this.forceRefresh = forceRefresh;
-        this.usePrefix = true;
+        this.usePrefix = usePrefix;
     }
 
     @Override

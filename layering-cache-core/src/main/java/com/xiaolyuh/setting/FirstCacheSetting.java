@@ -37,6 +37,11 @@ public class FirstCacheSetting {
     private ExpireMode expireMode;
 
     /**
+     * 是否允许存NULL值
+     */
+    private boolean allowNullValues;
+
+    /**
      * @param initialCapacity 缓存初始Size
      * @param maximumSize     缓存最大Size
      * @param expireTime      缓存有效时间
@@ -49,6 +54,7 @@ public class FirstCacheSetting {
         this.expireTime = expireTime;
         this.timeUnit = timeUnit;
         this.expireMode = expireMode;
+        this.allowNullValues = true;
     }
 
     public int getInitialCapacity() {
@@ -69,5 +75,9 @@ public class FirstCacheSetting {
 
     public ExpireMode getExpireMode() {
         return expireMode;
+    }
+
+    public boolean isAllowNullValues() {
+        return allowNullValues;
     }
 }

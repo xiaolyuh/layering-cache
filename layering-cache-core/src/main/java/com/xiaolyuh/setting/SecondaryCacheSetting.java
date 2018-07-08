@@ -34,6 +34,11 @@ public class SecondaryCacheSetting {
     private boolean usePrefix;
 
     /**
+     * 是否允许存NULL值
+     */
+    private boolean allowNullValues;
+
+    /**
      * @param expiration   缓存有效时间
      * @param preloadTime  缓存刷新时间
      * @param timeUnit     时间单位 {@link TimeUnit}
@@ -45,6 +50,7 @@ public class SecondaryCacheSetting {
         this.timeUnit = timeUnit;
         this.forceRefresh = forceRefresh;
         this.usePrefix = true;
+        this.allowNullValues = true;
     }
 
     public long getExpiration() {
@@ -65,5 +71,9 @@ public class SecondaryCacheSetting {
 
     public boolean isUsePrefix() {
         return usePrefix;
+    }
+
+    public boolean isAllowNullValues() {
+        return allowNullValues;
     }
 }

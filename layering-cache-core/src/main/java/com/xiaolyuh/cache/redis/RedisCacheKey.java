@@ -9,6 +9,8 @@ import java.util.Arrays;
 
 /**
  * redis key 生成
+ *
+ * @author yuhao.wang3
  */
 public class RedisCacheKey {
 

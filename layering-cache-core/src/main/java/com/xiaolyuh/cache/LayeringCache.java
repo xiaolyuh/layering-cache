@@ -1,7 +1,6 @@
 package com.xiaolyuh.cache;
 
 import com.alibaba.fastjson.JSON;
-import com.xiaolyuh.support.AbstractValueAdaptingCache;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

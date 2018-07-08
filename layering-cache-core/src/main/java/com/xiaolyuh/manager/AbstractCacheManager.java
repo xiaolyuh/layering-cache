@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.xiaolyuh.support;
+package com.xiaolyuh.manager;
 
 import com.xiaolyuh.cache.Cache;
 import com.xiaolyuh.manager.CacheManager;

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.xiaolyuh.support;
+package com.xiaolyuh.cache;
 
 import java.io.Serializable;
 

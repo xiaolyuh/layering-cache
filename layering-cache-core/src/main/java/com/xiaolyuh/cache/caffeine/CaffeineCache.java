@@ -2,7 +2,7 @@ package com.xiaolyuh.cache.caffeine;
 
 import com.alibaba.fastjson.JSON;
 import com.github.benmanes.caffeine.cache.LoadingCache;
-import com.xiaolyuh.support.AbstractValueAdaptingCache;
+import com.xiaolyuh.cache.AbstractValueAdaptingCache;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.lang.UsesJava8;

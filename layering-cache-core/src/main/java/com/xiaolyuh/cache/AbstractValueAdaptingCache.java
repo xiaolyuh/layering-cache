@@ -14,9 +14,8 @@
  * limitations under the License.
  */
 
-package com.xiaolyuh.support;
+package com.xiaolyuh.cache;
 
-import com.xiaolyuh.cache.Cache;
 import org.springframework.util.Assert;
 
 import java.util.concurrent.Callable;

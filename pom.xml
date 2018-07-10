@@ -30,6 +30,7 @@
         <spring.version>4.3.18.RELEASE</spring.version>
         <slf4j.version>1.7.25</slf4j.version>
         <fastjson.version>1.2.31</fastjson.version>
+        <kryo.version>3.0.3</kryo.version>
 
 
         <spring.boot.version>1.5.3.RELEASE</spring.boot.version>
@@ -75,6 +76,11 @@
                 <version>${fastjson.version}</version>
             </dependency>
 
+            <dependency>
+                <groupId>com.esotericsoftware</groupId>
+                <artifactId>kryo-shaded</artifactId>
+                <version>${kryo.version}</version>
+            </dependency>
 
             <dependency>
                 <groupId>org.springframework.boot</groupId>
@@ -96,11 +102,11 @@
             </dependency>
 
             <dependency>
-                <groupId>org.springframework.boot</groupId>
-                <artifactId>spring-boot-starter-test</artifactId>
-                <version>${spring.boot.version}</version>
-                <scope>test</scope>
-            </dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <version>${spring.boot.version}</version>
+            <scope>test</scope>
+        </dependency>
         </dependencies>
     </dependencyManagement>
 

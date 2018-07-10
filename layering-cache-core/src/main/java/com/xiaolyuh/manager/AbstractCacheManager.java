@@ -19,12 +19,16 @@ package com.xiaolyuh.manager;
 import com.xiaolyuh.cache.Cache;
 import com.xiaolyuh.listener.RedisMessageListener;
 import com.xiaolyuh.setting.LayeringCacheSetting;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.listener.ChannelTopic;
 import org.springframework.data.redis.listener.RedisMessageListenerContainer;
+import org.springframework.util.CollectionUtils;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -36,6 +40,7 @@ import java.util.concurrent.ConcurrentMap;
  * @author yuhao.wang3
  */
 public abstract class AbstractCacheManager implements CacheManager, InitializingBean {
+    private Logger logger = LoggerFactory.getLogger(AbstractCacheManager.class);
 
     /**
      * redis pub/sub 容器
@@ -49,8 +54,11 @@ public abstract class AbstractCacheManager implements CacheManager, Initializing
 
     /**
      * 缓存容器
+     * 外层key是cache_name
+     * 里层key是[一级缓存有效时间-二级缓存有效时间-二级缓存自动刷新时间]
      */
-    private final ConcurrentMap<String, Cache> cacheMap = new ConcurrentHashMap<String, Cache>(16);
+    private final ConcurrentMap<String, ConcurrentMap<String, Cache>> cacheContainer = new ConcurrentHashMap<>(16);
+
 
     /**
      * 缓存名称容器
@@ -64,31 +72,57 @@ public abstract class AbstractCacheManager implements CacheManager, Initializing
     }
 
     @Override
-    public Cache getCache(String name) {
-        return this.cacheMap.get(name);
+    public Collection<Cache> getCache(String name) {
+        ConcurrentMap<String, Cache> cacheMap = this.cacheContainer.get(name);
+        if (CollectionUtils.isEmpty(cacheMap)) {
+            return Collections.emptyList();
+        }
+        return cacheMap.values();
     }
 
     // Lazy cache initialization on access
     @Override
     public Cache getCache(String name, LayeringCacheSetting layeringCacheSetting) {
-        Cache cache = this.cacheMap.get(name);
-        if (cache != null) {
-            return cache;
-        } else {
-            // Fully synchronize now for missing cache creation...
-            synchronized (this.cacheMap) {
-                cache = this.cacheMap.get(name);
-                if (cache == null) {
-                    cache = getMissingCache(name, layeringCacheSetting);
-                    if (cache != null) {
-                        cache = decorateCache(cache);
-                        addMessageListener(name);
-                        this.cacheMap.put(name, cache);
-                        updateCacheNames(name);
-                    }
-                }
+        // 第一次获取缓存Cache，如果有直接返回,如果没有加锁往容器里里面放Cache
+        ConcurrentMap<String, Cache> cacheMap = this.cacheContainer.get(name);
+        if (!CollectionUtils.isEmpty(cacheMap)) {
+            if (cacheMap.size() > 1) {
+                logger.warn("缓存名称为 {} 的缓存,存在两个不同的过期时间配置，请一定注意保证缓存的key唯一性，否则会出现缓存过期时间错乱的情况", name);
+            }
+            Cache cache = cacheMap.get(layeringCacheSetting.getInternalKey());
+            if (cache != null) {
                 return cache;
             }
+        }
+
+        // 第二次获取缓存Cache，加锁往容器里里面放Cache
+        synchronized (this.cacheContainer) {
+            cacheMap = this.cacheContainer.get(name);
+            if (!CollectionUtils.isEmpty(cacheMap)) {
+                // 从容器中获取缓存
+                Cache cache = cacheMap.get(layeringCacheSetting.getInternalKey());
+                if (cache != null) {
+                    return cache;
+                }
+            } else {
+                cacheMap = new ConcurrentHashMap<>(16);
+                cacheContainer.put(name, cacheMap);
+                // 更新缓存名称
+                updateCacheNames(name);
+                // 创建redis监听
+                addMessageListener(name);
+            }
+
+            // 新建一个Cache对象
+            Cache cache = getMissingCache(name, layeringCacheSetting);
+            if (cache != null) {
+                // 装饰Cache对象
+                cache = decorateCache(cache);
+                // 将新的Cache对象放到容器
+                cacheMap.put(name, cache);
+            }
+
+            return cache;
         }
     }
 
@@ -120,7 +154,8 @@ public abstract class AbstractCacheManager implements CacheManager, Initializing
     /**
      * 根据缓存名称在CacheManager中没有找到对应Cache时，通过该方法新建一个对应的Cache实例
      *
-     * @param name 缓存名称
+     * @param name                 缓存名称
+     * @param layeringCacheSetting 缓存配置
      * @return {@link Cache}
      */
     protected abstract Cache getMissingCache(String name, LayeringCacheSetting layeringCacheSetting);
@@ -130,8 +165,8 @@ public abstract class AbstractCacheManager implements CacheManager, Initializing
      *
      * @return 返回缓存容器
      */
-    protected ConcurrentMap<String, Cache> getCacheMap() {
-        return cacheMap;
+    protected ConcurrentMap<String, ConcurrentMap<String, Cache>> getCacheContainer() {
+        return cacheContainer;
     }
 
     /**

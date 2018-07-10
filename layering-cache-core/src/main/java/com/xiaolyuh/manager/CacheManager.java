@@ -20,6 +20,7 @@ import com.xiaolyuh.cache.Cache;
 import com.xiaolyuh.setting.LayeringCacheSetting;
 
 import java.util.Collection;
+import java.util.Set;
 
 /**
  * 缓存管理器
@@ -30,12 +31,12 @@ import java.util.Collection;
 public interface CacheManager {
 
     /**
-     * 根据缓存名称返回对应的{@link Cache}.
+     * 根据缓存名称返回对应的{@link Collection}.
      *
      * @param name 缓存的名称 (不能为 {@code null})
      * @return 返回对应名称的Cache, 如果没找到返回 {@code null}
      */
-    Cache getCache(String name);
+    Collection<Cache> getCache(String name);
 
     /**
      * 根据缓存名称返回对应的{@link Cache}，如果没有找到就新建一个并放到容器

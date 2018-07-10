@@ -26,7 +26,7 @@ public class LayeringCacheManager extends AbstractCacheManager {
         CaffeineCache caffeineCache = new CaffeineCache(name, layeringCacheSetting.getFirstCacheSetting());
         // 创建二级缓存
         RedisCache redisCache = new RedisCache(name, redisTemplate, layeringCacheSetting.getSecondaryCacheSetting());
-        return new LayeringCache(caffeineCache, redisCache);
+        return new LayeringCache(redisTemplate, caffeineCache, redisCache);
     }
 
     @Override

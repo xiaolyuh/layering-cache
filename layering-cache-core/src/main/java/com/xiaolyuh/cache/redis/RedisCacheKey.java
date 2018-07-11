@@ -44,8 +44,8 @@ public class RedisCacheKey {
      */
     public RedisCacheKey(Object keyElement, RedisSerializer serializer) {
 
-        Assert.isNull(keyElement, "缓存key不能为NULL");
-        Assert.isNull(serializer, "key的序列化器不能为NULL");
+        Assert.notNull(keyElement, "缓存key不能为NULL");
+        Assert.notNull(serializer, "key的序列化器不能为NULL");
         this.keyElement = keyElement;
         this.serializer = serializer;
     }

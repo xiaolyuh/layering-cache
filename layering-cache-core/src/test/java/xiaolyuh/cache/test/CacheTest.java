@@ -2,6 +2,8 @@ package xiaolyuh.cache.test;
 
 import com.xiaolyuh.cache.Cache;
 import com.xiaolyuh.cache.LayeringCache;
+import com.xiaolyuh.cache.redis.RedisCache;
+import com.xiaolyuh.cache.redis.RedisCacheKey;
 import com.xiaolyuh.manager.CacheManager;
 import com.xiaolyuh.setting.FirstCacheSetting;
 import com.xiaolyuh.setting.LayeringCacheSetting;
@@ -14,6 +16,7 @@ import org.junit.runner.RunWith;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import xiaolyuh.cache.config.CacheConfig;
@@ -31,14 +34,17 @@ public class CacheTest {
     @Autowired
     private CacheManager cacheManager;
 
+    @Autowired
+    private RedisTemplate<String, Object> redisTemplate;
+
     private LayeringCacheSetting layeringCacheSetting1;
     private LayeringCacheSetting layeringCacheSetting2;
 
     @Before
     public void testGetCache() {
         // 测试 CacheManager getCache方法
-        FirstCacheSetting firstCacheSetting1 = new FirstCacheSetting(10, 1000, 6, TimeUnit.SECONDS, ExpireMode.WRITE);
-        SecondaryCacheSetting secondaryCacheSetting1 = new SecondaryCacheSetting(30, 10, TimeUnit.SECONDS, true);
+        FirstCacheSetting firstCacheSetting1 = new FirstCacheSetting(10, 1000, 4, TimeUnit.SECONDS, ExpireMode.WRITE);
+        SecondaryCacheSetting secondaryCacheSetting1 = new SecondaryCacheSetting(10, 4, TimeUnit.SECONDS, true);
         layeringCacheSetting1 = new LayeringCacheSetting(firstCacheSetting1, secondaryCacheSetting1);
 
         FirstCacheSetting firstCacheSetting2 = new FirstCacheSetting(10, 1000, 5, TimeUnit.SECONDS, ExpireMode.WRITE);
@@ -61,19 +67,37 @@ public class CacheTest {
     public void testCacheExpiration() {
         // 测试 缓存过期时间
         String cacheName = "cache:name";
+        String cacheKey1 = "cache:key1";
         LayeringCache cache1 = (LayeringCache) cacheManager.getCache(cacheName, layeringCacheSetting1);
-        LayeringCache cache2 = (LayeringCache) cacheManager.getCache(cacheName, layeringCacheSetting2);
-        cache1.get("cache:key1", () -> initCache(String.class));
+        cache1.get(cacheKey1, () -> initCache(String.class));
         // 测试一级缓存值及过期时间
-        String str1 = cache1.getFirstCache().get("cache:key1", String.class);
-        String st2 = cache1.getFirstCache().get("cache:key1", () ->initCache(String.class));
+        String str1 = cache1.getFirstCache().get(cacheKey1, String.class);
+        String st2 = cache1.getFirstCache().get(cacheKey1, () -> initCache(String.class));
         logger.info("========================:{}", str1);
         Assert.assertTrue(str1.equals(st2));
         Assert.assertTrue(str1.equals(initCache(String.class)));
-        sleep(6);
-        Assert.assertNull(cache1.getFirstCache().get("cache:key1", String.class));
+        sleep(4);
+        Assert.assertNull(cache1.getFirstCache().get(cacheKey1, String.class));
+        // 看日志是不是走了二级缓存
+        cache1.get(cacheKey1, () -> initCache(String.class));
 
-        cache1.get("cache:key1", () -> initCache(String.class));
+        // 测试二级缓存
+        str1 = cache1.getSecondCache().get(cacheKey1, String.class);
+        st2 = cache1.getSecondCache().get(cacheKey1, () -> initCache(String.class));
+        Assert.assertTrue(st2.equals(str1));
+        Assert.assertTrue(str1.equals(initCache(String.class)));
+        sleep(4);
+        // 看日志是不是走了自动刷新
+        RedisCacheKey redisCacheKey = ((RedisCache) cache1.getSecondCache()).getRedisCacheKey(cacheKey1);
+        cache1.get(cacheKey1, () -> initCache(String.class));
+        sleep(6);
+        Long ttl = redisTemplate.getExpire(redisCacheKey.getKey());
+        logger.info("========================ttl 1:{}", ttl);
+        Assert.assertNotNull(cache1.getSecondCache().get(cacheKey1));
+        sleep(4);
+        ttl = redisTemplate.getExpire(redisCacheKey.getKey());
+        logger.info("========================ttl 2:{}", ttl);
+        Assert.assertNull(cache1.getSecondCache().get(cacheKey1));
     }
 
     private <T> T initCache(Class<T> t) {

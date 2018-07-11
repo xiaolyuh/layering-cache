@@ -108,7 +108,7 @@ public class RedisCache extends AbstractValueAdaptingCache {
     public Object get(Object key) {
         RedisCacheKey redisCacheKey = getRedisCacheKey(key);
         logger.info("redis缓存 key: {} 查询redis缓存", redisCacheKey.getKey());
-        return redisTemplate.opsForValue().get(redisCacheKey.getKeyBytes());
+        return redisTemplate.opsForValue().get(redisCacheKey.getKey());
     }
 
     @Override
@@ -170,7 +170,7 @@ public class RedisCache extends AbstractValueAdaptingCache {
      * @param key 缓存key
      * @return
      */
-    private RedisCacheKey getRedisCacheKey(Object key) {
+    public RedisCacheKey getRedisCacheKey(Object key) {
         return new RedisCacheKey(key, redisTemplate.getKeySerializer())
                 .cacheName(getName()).usePrefix(usePrefix);
     }

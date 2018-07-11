@@ -182,4 +182,13 @@ public class LayeringCache extends AbstractValueAdaptingCache {
     public Cache getFirstCache() {
         return firstCache;
     }
+
+    /**
+     * 获取二级缓存
+     *
+     * @return SecondCache
+     */
+    public Cache getSecondCache() {
+        return secondCache;
+    }
 }

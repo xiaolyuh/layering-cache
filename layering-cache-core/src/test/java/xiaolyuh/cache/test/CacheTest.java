@@ -21,11 +21,9 @@ import xiaolyuh.cache.config.RedisConfig;
 import java.util.concurrent.TimeUnit;
 
 
-// SpringJUnit4ClassRunner再Junit环境下提供Spring TestContext Framework的功能。
 @RunWith(SpringJUnit4ClassRunner.class)
 //// @ContextConfiguration用来加载配置ApplicationContext，其中classes用来加载配置类
 @ContextConfiguration(classes = {RedisConfig.class, CacheConfig.class})
-@PropertySource("classpath:application.properties")
 public class CacheTest {
     private Logger logger = LoggerFactory.getLogger(CacheTest.class);
 
@@ -55,3 +53,4 @@ public class CacheTest {
     }
 
 }
+// SpringJUnit4ClassRunner再Junit环境下提供Spring TestContext Framework的功能。

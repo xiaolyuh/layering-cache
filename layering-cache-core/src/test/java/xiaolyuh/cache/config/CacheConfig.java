@@ -8,6 +8,7 @@ import org.springframework.context.annotation.Import;
 import org.springframework.data.redis.core.RedisTemplate;
 
 @Configuration
+@Import({RedisConfig.class})
 public class CacheConfig {
 
     @Bean

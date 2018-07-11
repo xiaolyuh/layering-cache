@@ -15,17 +15,16 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import xiaolyuh.cache.config.CacheConfig;
-import xiaolyuh.cache.config.RedisConfig;
 
 import java.util.concurrent.TimeUnit;
 
-
+// SpringJUnit4ClassRunner再Junit环境下提供Spring TestContext Framework的功能。
 @RunWith(SpringJUnit4ClassRunner.class)
 //// @ContextConfiguration用来加载配置ApplicationContext，其中classes用来加载配置类
-@ContextConfiguration(classes = {RedisConfig.class, CacheConfig.class})
+@ContextConfiguration(classes = {CacheConfig.class})
 public class CacheTest {
     private Logger logger = LoggerFactory.getLogger(CacheTest.class);
-    
+
     @Autowired
     private CacheManager cacheManager;
 
@@ -38,12 +37,10 @@ public class CacheTest {
         FirstCacheSetting firstCacheSetting = new FirstCacheSetting(10, 1000, 10, TimeUnit.SECONDS, ExpireMode.WRITE);
         SecondaryCacheSetting secondaryCacheSetting = new SecondaryCacheSetting(600, 15, TimeUnit.SECONDS, true);
         LayeringCacheSetting layeringCacheSetting = new LayeringCacheSetting(firstCacheSetting, secondaryCacheSetting);
-        Cache cache = cacheManager.getCache("test:cache:name", layeringCacheSetting);
+        Cache cache = cacheManager.getCache("cache:name", layeringCacheSetting);
 
         cache.get("cache:key", () -> initCache(String.class));
         cache.get("cache:key", () -> initCache(String.class));
-
-
     }
 
     private <T> T initCache(Class<T> t) {
@@ -52,4 +49,4 @@ public class CacheTest {
     }
 
 }
-// SpringJUnit4ClassRunner再Junit环境下提供Spring TestContext Framework的功能。
+

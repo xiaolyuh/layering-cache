@@ -241,10 +241,10 @@ public class RedisCache extends AbstractValueAdaptingCache {
         if (null != ttl && ttl <= preloadTime) {
             // 判断是否需要强制刷新在开启刷新线程
             if (!getForceRefresh()) {
-                logger.info("redis缓存 key:{} 软刷新缓存", redisCacheKey.getKey());
+                logger.info("redis缓存 key:{} 软刷新缓存模式", redisCacheKey.getKey());
                 softRefresh(redisCacheKey);
             } else {
-                logger.info("redis缓存 key:{} 强刷新缓存", redisCacheKey.getKey());
+                logger.info("redis缓存 key:{} 强刷新缓存模式", redisCacheKey.getKey());
                 forceRefresh(redisCacheKey, valueLoader);
             }
         }

@@ -11,15 +11,12 @@ import org.junit.runner.RunWith;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.PropertySource;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-import org.springframework.util.Log4jConfigurer;
 import xiaolyuh.cache.config.CacheConfig;
 import xiaolyuh.cache.config.RedisConfig;
 
-import java.io.FileNotFoundException;
 import java.util.concurrent.TimeUnit;
 
 
@@ -28,16 +25,7 @@ import java.util.concurrent.TimeUnit;
 @ContextConfiguration(classes = {RedisConfig.class, CacheConfig.class})
 public class CacheTest {
     private Logger logger = LoggerFactory.getLogger(CacheTest.class);
-
-    static {
-        try {
-            Log4jConfigurer.initLogging("classpath:log4j.properties");
-        } catch (FileNotFoundException ex) {
-            System.err.println("Cannot Initialize log4j");
-        }
-    }
-
-
+    
     @Autowired
     private CacheManager cacheManager;
 

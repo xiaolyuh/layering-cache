@@ -76,7 +76,7 @@ public class CaffeineCache extends AbstractValueAdaptingCache {
     @Override
     public <T> T get(Object key, Callable<T> valueLoader) {
         logger.info("caffeine缓存 key:{} 获取缓存， 如果没有命中就走库加载缓存", JSON.toJSONString(key));
-        Object result = this.cache.get(key, (vl) -> loaderValue(key, valueLoader));
+        Object result = this.cache.get(key, (k) -> loaderValue(key, valueLoader));
         return (T) fromStoreValue(result);
     }
 
@@ -89,7 +89,7 @@ public class CaffeineCache extends AbstractValueAdaptingCache {
     @Override
     public Object putIfAbsent(Object key, Object value) {
         logger.info("caffeine缓存 key:{} putIfAbsent 缓存，缓存值：{}", JSON.toJSONString(key), JSON.toJSONString(value));
-        Object result = this.cache.get(key, (v) -> toStoreValue(v));
+        Object result = this.cache.get(key, k -> toStoreValue(value));
         return fromStoreValue(result);
     }
 

@@ -119,7 +119,10 @@ public abstract class AbstractCacheManager implements CacheManager, Initializing
                 // 装饰Cache对象
                 cache = decorateCache(cache);
                 // 将新的Cache对象放到容器
-                cacheMap.put(name, cache);
+                cacheMap.put(layeringCacheSetting.getInternalKey(), cache);
+                if (cacheMap.size() > 1) {
+                    logger.warn("缓存名称为 {} 的缓存,存在两个不同的过期时间配置，请一定注意保证缓存的key唯一性，否则会出现缓存过期时间错乱的情况", name);
+                }
             }
 
             return cache;

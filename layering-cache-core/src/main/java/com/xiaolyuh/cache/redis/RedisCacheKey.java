@@ -89,7 +89,7 @@ public class RedisCacheKey {
      * @return
      */
     public byte[] getPrefix() {
-        return prefixSerializer1.serialize((StringUtils.isEmpty(cacheName) ? cacheName.concat(":") : cacheName.concat(cacheName)));
+        return prefixSerializer1.serialize((StringUtils.isEmpty(cacheName) ? cacheName.concat(":") : cacheName.concat(":")));
     }
 
     /**

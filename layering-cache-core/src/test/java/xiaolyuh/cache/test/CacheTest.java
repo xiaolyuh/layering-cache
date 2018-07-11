@@ -15,9 +15,11 @@ import org.springframework.context.annotation.PropertySource;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.util.Log4jConfigurer;
 import xiaolyuh.cache.config.CacheConfig;
 import xiaolyuh.cache.config.RedisConfig;
 
+import java.io.FileNotFoundException;
 import java.util.concurrent.TimeUnit;
 
 
@@ -26,6 +28,15 @@ import java.util.concurrent.TimeUnit;
 @ContextConfiguration(classes = {RedisConfig.class, CacheConfig.class})
 public class CacheTest {
     private Logger logger = LoggerFactory.getLogger(CacheTest.class);
+
+    static {
+        try {
+            Log4jConfigurer.initLogging("classpath:log4j.properties");
+        } catch (FileNotFoundException ex) {
+            System.err.println("Cannot Initialize log4j");
+        }
+    }
+
 
     @Autowired
     private CacheManager cacheManager;
@@ -37,7 +48,7 @@ public class CacheTest {
     public void contextTest() {
 
         FirstCacheSetting firstCacheSetting = new FirstCacheSetting(10, 1000, 10, TimeUnit.SECONDS, ExpireMode.WRITE);
-        SecondaryCacheSetting secondaryCacheSetting = new SecondaryCacheSetting(60, 15, TimeUnit.SECONDS, true);
+        SecondaryCacheSetting secondaryCacheSetting = new SecondaryCacheSetting(600, 15, TimeUnit.SECONDS, true);
         LayeringCacheSetting layeringCacheSetting = new LayeringCacheSetting(firstCacheSetting, secondaryCacheSetting);
         Cache cache = cacheManager.getCache("test:cache:name", layeringCacheSetting);
 

@@ -13,7 +13,7 @@ import org.springframework.data.redis.core.RedisTemplate;
 import redis.clients.jedis.JedisPoolConfig;
 
 @Configuration
-@PropertySource("classpath:application.properties")
+@PropertySource({"classpath:application.properties"})
 public class RedisConfig {
 
     @Value("${spring.redis.database:0}")

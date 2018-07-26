@@ -9,12 +9,12 @@ public enum RedisPubSubMessageType {
     /**
      * 删除缓存
      */
-    EVICT("最后一次写入后到期失效"),
+    EVICT("删除缓存"),
 
     /**
      * 清空缓存
      */
-    CLEAR("最后一次访问后到期失效");
+    CLEAR("清空缓存");
 
     private String label;
 

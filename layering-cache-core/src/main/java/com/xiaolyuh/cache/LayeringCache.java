@@ -151,10 +151,8 @@ public class LayeringCache extends AbstractValueAdaptingCache {
             message.setCacheName(getName());
             message.setKey(key);
             message.setMessageType(RedisPubSubMessageType.EVICT);
-            // 创建redis发布者
-            RedisPublisher redisPublisher = new RedisPublisher(redisTemplate, new ChannelTopic(getName()));
             // 发布消息
-            redisPublisher.publisher(message);
+            RedisPublisher.publisher(redisTemplate, new ChannelTopic(getName()), message);
         }
     }
 
@@ -167,10 +165,8 @@ public class LayeringCache extends AbstractValueAdaptingCache {
             RedisPubSubMessage message = new RedisPubSubMessage();
             message.setCacheName(getName());
             message.setMessageType(RedisPubSubMessageType.EVICT);
-            // 创建redis发布者
-            RedisPublisher redisPublisher = new RedisPublisher(redisTemplate, new ChannelTopic(getName()));
             // 发布消息
-            redisPublisher.publisher(message);
+            RedisPublisher.publisher(redisTemplate, new ChannelTopic(getName()), message);
         }
     }
 

@@ -105,15 +105,49 @@ public class CacheTest {
         // 测试 缓存过期时间
         String cacheName = "cache:name";
         String cacheKey1 = "cache:key1";
+        String cacheKey2 = "cache:key2";
         LayeringCache cache1 = (LayeringCache) cacheManager.getCache(cacheName, layeringCacheSetting1);
         cache1.get(cacheKey1, () -> initCache(String.class));
-        // 测试清除方法
+        cache1.get(cacheKey2, () -> initCache(String.class));
+        // 测试删除方法
         cache1.evict(cacheKey1);
-        Thread.sleep(1000);
+        Thread.sleep(500);
         String str1 = cache1.get(cacheKey1, String.class);
+        String str2 = cache1.get(cacheKey2, String.class);
         Assert.assertNull(str1);
+        Assert.assertNotNull(str2);
+        // 测试删除方法
+        cache1.evict(cacheKey1);
+        Thread.sleep(500);
         str1 = cache1.get(cacheKey1, () -> initCache(String.class));
+        str2 = cache1.get(cacheKey2, String.class);
         Assert.assertNotNull(str1);
+        Assert.assertNotNull(str2);
+    }
+
+    @Test
+    public void testCacheClear() throws Exception {
+        // 测试 缓存过期时间
+        String cacheName = "cache:name";
+        String cacheKey1 = "cache:key1";
+        String cacheKey2 = "cache:key2";
+        LayeringCache cache = (LayeringCache) cacheManager.getCache(cacheName, layeringCacheSetting1);
+        cache.get(cacheKey1, () -> initCache(String.class));
+        cache.get(cacheKey2, () -> initCache(String.class));
+        // 测试清除方法
+        cache.clear();
+        Thread.sleep(500);
+        String str1 = cache.get(cacheKey1, String.class);
+        String str2 = cache.get(cacheKey2, String.class);
+        Assert.assertNull(str1);
+        Assert.assertNull(str2);
+        // 测试清除方法
+        cache.clear();
+        Thread.sleep(500);
+        str1 = cache.get(cacheKey1, () -> initCache(String.class));
+        str2 = cache.get(cacheKey2, () -> initCache(String.class));
+        Assert.assertNotNull(str1);
+        Assert.assertNotNull(str2);
     }
 
     private <T> T initCache(Class<T> t) {

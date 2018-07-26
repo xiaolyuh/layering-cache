@@ -13,28 +13,17 @@ import org.springframework.data.redis.listener.ChannelTopic;
 public class RedisPublisher {
     private static final Logger logger = LoggerFactory.getLogger(RedisPublisher.class);
 
-    private RedisTemplate<String, Object> redisTemplate;
-
-    /**
-     * 频道名称
-     */
-    private ChannelTopic channelTopic;
-
-    /**
-     * @param redisTemplate Redis客户端
-     * @param channelTopic  频道名称
-     */
-    public RedisPublisher(RedisTemplate<String, Object> redisTemplate, ChannelTopic channelTopic) {
-        this.channelTopic = channelTopic;
-        this.redisTemplate = redisTemplate;
+    private RedisPublisher() {
     }
 
     /**
      * 发布消息到频道（Channel）
      *
-     * @param message 消息内容
+     * @param redisTemplate redis客户端
+     * @param channelTopic  发布预订阅的频道
+     * @param message       消息内容
      */
-    public void publisher(Object message) {
+    public static void publisher(RedisTemplate<String, Object> redisTemplate, ChannelTopic channelTopic, Object message) {
         redisTemplate.convertAndSend(channelTopic.toString(), message);
         logger.info("redis消息发布者向频道【{}】发布了【{}】消息", channelTopic.toString(), message.toString());
     }

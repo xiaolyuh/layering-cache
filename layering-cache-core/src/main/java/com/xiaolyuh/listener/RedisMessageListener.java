@@ -27,10 +27,9 @@ public class RedisMessageListener extends MessageListenerAdapter {
     @Override
     public void onMessage(Message message, byte[] pattern) {
         super.onMessage(message, pattern);
-        log.info("redis消息订阅者接收到频道【{}】发布的消息。消息内容：{}", new String(message.getChannel()), message.toString().getBytes());
         // 解析订阅发布的信息，获取缓存的名称和缓存的key
         String ms = new String(message.getBody());
-        @SuppressWarnings("unchecked")
+        log.info("redis消息订阅者接收到频道【{}】发布的消息。消息内容：{}", new String(message.getChannel()), ms);
         RedisPubSubMessage redisPubSubMessage = JSON.parseObject(ms, RedisPubSubMessage.class);
 
         // 根据缓存名称获取多级缓存，可能有多个

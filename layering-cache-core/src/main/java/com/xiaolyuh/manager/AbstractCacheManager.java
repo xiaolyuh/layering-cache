@@ -21,7 +21,10 @@ import com.xiaolyuh.listener.RedisMessageListener;
 import com.xiaolyuh.setting.LayeringCacheSetting;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.BeanNameAware;
+import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
+import org.springframework.context.SmartLifecycle;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.listener.ChannelTopic;
 import org.springframework.data.redis.listener.RedisMessageListenerContainer;
@@ -39,7 +42,7 @@ import java.util.concurrent.ConcurrentMap;
  *
  * @author yuhao.wang3
  */
-public abstract class AbstractCacheManager implements CacheManager, InitializingBean {
+public abstract class AbstractCacheManager implements CacheManager, InitializingBean, DisposableBean, BeanNameAware, SmartLifecycle {
     private Logger logger = LoggerFactory.getLogger(AbstractCacheManager.class);
 
     /**
@@ -50,7 +53,7 @@ public abstract class AbstractCacheManager implements CacheManager, Initializing
     /**
      * redis pub/sub 监听器
      */
-    private RedisMessageListener messageListener = new RedisMessageListener();
+    private final RedisMessageListener messageListener = new RedisMessageListener();
 
     /**
      * 缓存容器
@@ -64,12 +67,6 @@ public abstract class AbstractCacheManager implements CacheManager, Initializing
      * 缓存名称容器
      */
     private volatile Set<String> cacheNames = new LinkedHashSet<>();
-
-    @Override
-    public void afterPropertiesSet() throws Exception {
-        messageListener.setCacheManager(this);
-        container.setConnectionFactory(getRedisTemplate().getConnectionFactory());
-    }
 
     @Override
     public Collection<Cache> getCache(String name) {
@@ -186,5 +183,54 @@ public abstract class AbstractCacheManager implements CacheManager, Initializing
      */
     protected void addMessageListener(String name) {
         container.addMessageListener(messageListener, new ChannelTopic(name));
+    }
+
+
+    @Override
+    public void afterPropertiesSet() throws Exception {
+        messageListener.setCacheManager(this);
+        container.setConnectionFactory(getRedisTemplate().getConnectionFactory());
+        container.afterPropertiesSet();
+        messageListener.afterPropertiesSet();
+    }
+
+    @Override
+    public void setBeanName(String name) {
+        container.setBeanName("redisMessageListenerContainer");
+    }
+
+    @Override
+    public void destroy() throws Exception {
+        container.destroy();
+    }
+
+    @Override
+    public boolean isAutoStartup() {
+        return container.isAutoStartup();
+    }
+
+    @Override
+    public void stop(Runnable callback) {
+        container.stop(callback);
+    }
+
+    @Override
+    public void start() {
+        container.start();
+    }
+
+    @Override
+    public void stop() {
+        container.stop();
+    }
+
+    @Override
+    public boolean isRunning() {
+        return container.isRunning();
+    }
+
+    @Override
+    public int getPhase() {
+        return container.getPhase();
     }
 }

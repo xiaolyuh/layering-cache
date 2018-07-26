@@ -26,7 +26,7 @@ import java.util.concurrent.TimeUnit;
 
 // SpringJUnit4ClassRunner再Junit环境下提供Spring TestContext Framework的功能。
 @RunWith(SpringJUnit4ClassRunner.class)
-//// @ContextConfiguration用来加载配置ApplicationContext，其中classes用来加载配置类
+// @ContextConfiguration用来加载配置ApplicationContext，其中classes用来加载配置类
 @ContextConfiguration(classes = {CacheConfig.class})
 public class CacheTest {
     private Logger logger = LoggerFactory.getLogger(CacheTest.class);
@@ -98,6 +98,22 @@ public class CacheTest {
         ttl = redisTemplate.getExpire(redisCacheKey.getKey());
         logger.info("========================ttl 2:{}", ttl);
         Assert.assertNull(cache1.getSecondCache().get(cacheKey1));
+    }
+
+    @Test
+    public void testCacheEvict() throws Exception {
+        // 测试 缓存过期时间
+        String cacheName = "cache:name";
+        String cacheKey1 = "cache:key1";
+        LayeringCache cache1 = (LayeringCache) cacheManager.getCache(cacheName, layeringCacheSetting1);
+        cache1.get(cacheKey1, () -> initCache(String.class));
+        // 测试清除方法
+        cache1.evict(cacheKey1);
+        Thread.sleep(1000);
+        String str1 = cache1.get(cacheKey1, String.class);
+        Assert.assertNull(str1);
+        str1 = cache1.get(cacheKey1, () -> initCache(String.class));
+        Assert.assertNotNull(str1);
     }
 
     private <T> T initCache(Class<T> t) {

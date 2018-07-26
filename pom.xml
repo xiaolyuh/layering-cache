@@ -20,6 +20,8 @@
     <url>http://www.example.com</url>
 
     <properties>
+        <layering.version>1.0.0</layering.version>
+
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
@@ -31,6 +33,7 @@
         <slf4j.version>1.7.25</slf4j.version>
         <fastjson.version>1.2.31</fastjson.version>
         <kryo.version>3.0.3</kryo.version>
+        <aspectj.version>1.8.10</aspectj.version>
 
         <spring.boot.version>1.5.3.RELEASE</spring.boot.version>
 
@@ -76,6 +79,12 @@
             </dependency>
 
             <dependency>
+                <groupId>org.springframework</groupId>
+                <artifactId>spring-aop</artifactId>
+                <version>${spring.version}</version>
+            </dependency>
+
+            <dependency>
                 <groupId>com.alibaba</groupId>
                 <artifactId>fastjson</artifactId>
                 <version>${fastjson.version}</version>
@@ -85,6 +94,12 @@
                 <groupId>com.esotericsoftware</groupId>
                 <artifactId>kryo-shaded</artifactId>
                 <version>${kryo.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.aspectj</groupId>
+                <artifactId>aspectjweaver</artifactId>
+                <version>${aspectj.version}</version>
             </dependency>
 
             <dependency>

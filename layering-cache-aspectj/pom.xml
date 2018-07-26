@@ -12,4 +12,30 @@
     <artifactId>layering-cache-aspectj</artifactId>
     <packaging>jar</packaging>
 
+    <dependencies>
+        <dependency>
+            <groupId>com.xiaolyuh</groupId>
+            <artifactId>layering-cache-core</artifactId>
+            <version>${layering.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-core</artifactId>
+            <optional>true</optional>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-aop</artifactId>
+            <optional>true</optional>
+        </dependency>
+
+        <dependency>
+            <groupId>org.aspectj</groupId>
+            <artifactId>aspectjweaver</artifactId>
+            <optional>true</optional>
+        </dependency>
+    </dependencies>
+
 </project>

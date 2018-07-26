@@ -135,7 +135,7 @@ public class RedisCache extends AbstractValueAdaptingCache {
 
     @Override
     public Object putIfAbsent(Object key, Object value) {
-        logger.info("redis缓存 key: {}putIfAbsent缓存，缓存值：{}", getRedisCacheKey(key).getKey(), JSON.toJSONString(value));
+        logger.info("redis缓存 key: {} putIfAbsent缓存，缓存值：{}", getRedisCacheKey(key).getKey(), JSON.toJSONString(value));
         Object reult = get(key);
         if (reult != null) {
             return reult;
@@ -156,7 +156,7 @@ public class RedisCache extends AbstractValueAdaptingCache {
         // 必须开启了使用缓存名称作为前缀，clear才有效
         if (usePrefix) {
             logger.info("redis缓存 ，除前缀为{}的缓存", getName());
-            Set<String> keys = redisTemplate.keys(getName());
+            Set<String> keys = redisTemplate.keys(getName() + "*");
             if (!CollectionUtils.isEmpty(keys)) {
                 redisTemplate.delete(keys);
             }

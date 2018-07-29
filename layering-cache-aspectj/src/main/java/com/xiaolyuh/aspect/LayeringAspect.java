@@ -298,7 +298,7 @@ public class LayeringAspect {
      */
     private Class<?> getTargetClass(Object target) {
         Class<?> targetClass = AopProxyUtils.ultimateTargetClass(target);
-        if (targetClass == null && target != null) {
+        if (targetClass == null) {
             targetClass = target.getClass();
         }
         return targetClass;
@@ -334,7 +334,7 @@ public class LayeringAspect {
     @UsesJava8
     private static class OptionalUnwrapper {
 
-        public static Object unwrap(Object optionalObject) {
+        private static Object unwrap(Object optionalObject) {
             Optional<?> optional = (Optional<?>) optionalObject;
             if (!optional.isPresent()) {
                 return null;
@@ -344,7 +344,7 @@ public class LayeringAspect {
             return result;
         }
 
-        public static Object wrap(Object value) {
+        private static Object wrap(Object value) {
             return Optional.ofNullable(value);
         }
     }

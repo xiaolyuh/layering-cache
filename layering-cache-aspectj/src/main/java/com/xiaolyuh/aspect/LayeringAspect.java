@@ -41,6 +41,8 @@ import java.util.Optional;
 public class LayeringAspect {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
+    private static final String CACHE_NAME_ERROR_MESSAGE = "缓存名称不能为NULL";
+
     /**
      * SpEL表达式计算器
      */
@@ -148,7 +150,7 @@ public class LayeringAspect {
 
         // 解析SpEL表达式获取cacheName和key
         String[] cacheNames = cacheable.cacheNames();
-        Assert.notEmpty(cacheable.cacheNames(), "缓存名称不能为NULL");
+        Assert.notEmpty(cacheable.cacheNames(), CACHE_NAME_ERROR_MESSAGE);
         String cacheName = generateValue(cacheNames[0], method, args, target).toString();
         Object key = generateKey(cacheable.key(), method, args, target);
 
@@ -184,12 +186,12 @@ public class LayeringAspect {
 
         // 解析SpEL表达式获取cacheName和key
         String[] cacheNames = cacheEvict.cacheNames();
-        Assert.notEmpty(cacheEvict.cacheNames(), "缓存名称不能为NULL");
+        Assert.notEmpty(cacheEvict.cacheNames(), CACHE_NAME_ERROR_MESSAGE);
         // 判断是否删除所有缓存数据
         if (cacheEvict.allEntries()) {
             // 删除所有缓存数据（清空）
-            for (String cacheName : cacheNames) {
-                cacheName = generateValue(cacheNames[0], method, args, target).toString();
+            for (String cacheNameExpression : cacheNames) {
+                String cacheName = generateValue(cacheNameExpression, method, args, target).toString();
                 Collection<Cache> caches = cacheManager.getCache(cacheName);
                 for (Cache cache : caches) {
                     cache.clear();
@@ -198,8 +200,8 @@ public class LayeringAspect {
         } else {
             // 删除指定key
             Object key = generateKey(cacheEvict.key(), method, args, target);
-            for (String cacheName : cacheNames) {
-                cacheName = generateValue(cacheNames[0], method, args, target).toString();
+            for (String cacheNameExpression : cacheNames) {
+                String cacheName = generateValue(cacheNameExpression, method, args, target).toString();
                 Collection<Cache> caches = cacheManager.getCache(cacheName);
                 for (Cache cache : caches) {
                     cache.evict(key);
@@ -225,7 +227,7 @@ public class LayeringAspect {
 
 
         String[] cacheNames = cachePut.cacheNames();
-        Assert.notEmpty(cachePut.cacheNames(), "缓存名称不能为NULL");
+        Assert.notEmpty(cachePut.cacheNames(), CACHE_NAME_ERROR_MESSAGE);
         // 解析SpEL表达式获取 key
         Object key = generateKey(cachePut.key(), method, args, target);
 
@@ -242,9 +244,9 @@ public class LayeringAspect {
         // 指定调用方法获取缓存值
         Object result = OptionalUnwrapper.unwrap(invoker.invoke());
 
-        for (String value : cacheNames) {
+        for (String cacheNameExpression : cacheNames) {
             // 解析SpEL表达式获取cacheName
-            String cacheName = generateValue(value, method, args, target).toString();
+            String cacheName = generateValue(cacheNameExpression, method, args, target).toString();
             // 通过cacheName和缓存配置获取Cache
             Cache cache = cacheManager.getCache(cacheName, layeringCacheSetting);
             cache.putIfAbsent(key, result);
@@ -275,10 +277,10 @@ public class LayeringAspect {
     /**
      * 解析SpEL表达式，获取注解上的value属性值（cacheNames）
      *
-     * @return
+     * @return cahceName
      */
     private Object generateValue(String value, Method method, Object[] args, Object target) {
-        Assert.isTrue(!StringUtils.isEmpty(value), "缓存名称不能为NULL");
+        Assert.isTrue(!StringUtils.isEmpty(value), CACHE_NAME_ERROR_MESSAGE);
         // 获取注解上的value属性值
         Class<?> targetClass = getTargetClass(target);
         EvaluationContext evaluationContext = evaluator.createEvaluationContext(method, args, target,

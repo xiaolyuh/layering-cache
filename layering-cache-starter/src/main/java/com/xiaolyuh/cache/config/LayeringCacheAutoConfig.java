@@ -21,13 +21,13 @@ import org.springframework.data.redis.core.RedisTemplate;
  */
 @Configuration
 @ConditionalOnBean(RedisTemplate.class)
-@ConditionalOnMissingBean(org.springframework.cache.CacheManager.class)
 @AutoConfigureAfter({RedisAutoConfiguration.class})
 @EnableAutoConfiguration(exclude = {CacheAutoConfiguration.class})
 @EnableAspectJAutoProxy
 public class LayeringCacheAutoConfig {
 
     @Bean
+    @ConditionalOnMissingBean(CacheManager.class)
     public CacheManager cacheManager(RedisTemplate<String, Object> redisTemplate) {
         return new LayeringCacheManager(redisTemplate);
     }

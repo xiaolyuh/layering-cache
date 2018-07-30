@@ -1,5 +1,6 @@
 package com.xiaolyuh.cache.config;
 
+import com.xiaolyuh.aspect.LayeringAspect;
 import com.xiaolyuh.manager.CacheManager;
 import com.xiaolyuh.manager.LayeringCacheManager;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
@@ -10,6 +11,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.EnableAspectJAutoProxy;
 import org.springframework.data.redis.core.RedisTemplate;
 
 /**
@@ -22,11 +24,17 @@ import org.springframework.data.redis.core.RedisTemplate;
 @ConditionalOnMissingBean(org.springframework.cache.CacheManager.class)
 @AutoConfigureAfter({RedisAutoConfiguration.class})
 @EnableAutoConfiguration(exclude = {CacheAutoConfiguration.class})
+@EnableAspectJAutoProxy
 public class LayeringCacheAutoConfig {
 
     @Bean
     public CacheManager cacheManager(RedisTemplate<String, Object> redisTemplate) {
         return new LayeringCacheManager(redisTemplate);
+    }
+
+    @Bean
+    public LayeringAspect layeringAspect() {
+        return new LayeringAspect();
     }
 
 }

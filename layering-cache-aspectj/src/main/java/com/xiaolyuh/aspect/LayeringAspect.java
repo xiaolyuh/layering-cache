@@ -8,6 +8,8 @@ import com.xiaolyuh.setting.FirstCacheSetting;
 import com.xiaolyuh.setting.LayeringCacheSetting;
 import com.xiaolyuh.setting.SecondaryCacheSetting;
 import com.xiaolyuh.support.CacheOperationInvoker;
+import com.xiaolyuh.support.KeyGenerator;
+import com.xiaolyuh.support.SimpleKeyGenerator;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
@@ -17,20 +19,16 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.aop.framework.AopProxyUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cache.interceptor.KeyGenerator;
-import org.springframework.cache.interceptor.SimpleKeyGenerator;
 import org.springframework.context.expression.AnnotatedElementKey;
 import org.springframework.core.BridgeMethodResolver;
 import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.expression.EvaluationContext;
-import org.springframework.lang.UsesJava8;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.StringUtils;
 
 import java.lang.reflect.Method;
 import java.util.Collection;
-import java.util.Optional;
 
 /**
  * 缓存拦截，用于注册方法信息
@@ -168,7 +166,7 @@ public class LayeringAspect {
         Cache cache = cacheManager.getCache(cacheName, layeringCacheSetting);
 
         // 通Cache获取值
-        return OptionalUnwrapper.wrap(cache.get(key, () -> OptionalUnwrapper.unwrap(invoker.invoke())));
+        return cache.get(key, () -> invoker.invoke());
     }
 
     /**
@@ -210,7 +208,7 @@ public class LayeringAspect {
         }
 
         // 执行方法
-        return OptionalUnwrapper.unwrap(invoker.invoke());
+        return invoker.invoke();
     }
 
     /**
@@ -242,7 +240,7 @@ public class LayeringAspect {
         LayeringCacheSetting layeringCacheSetting = new LayeringCacheSetting(firstCacheSetting, secondaryCacheSetting);
 
         // 指定调用方法获取缓存值
-        Object result = OptionalUnwrapper.unwrap(invoker.invoke());
+        Object result = invoker.invoke();
 
         for (String cacheNameExpression : cacheNames) {
             // 解析SpEL表达式获取cacheName
@@ -326,26 +324,5 @@ public class LayeringAspect {
         // original method.
         specificMethod = BridgeMethodResolver.findBridgedMethod(specificMethod);
         return specificMethod;
-    }
-
-    /**
-     * 内部类依赖 jdk 1.8
-     */
-    @UsesJava8
-    private static class OptionalUnwrapper {
-
-        private static Object unwrap(Object optionalObject) {
-            Optional<?> optional = (Optional<?>) optionalObject;
-            if (!optional.isPresent()) {
-                return null;
-            }
-            Object result = optional.get();
-            Assert.isTrue(!(result instanceof Optional), "Multi-level Optional usage not supported");
-            return result;
-        }
-
-        private static Object wrap(Object value) {
-            return Optional.ofNullable(value);
-        }
     }
 }

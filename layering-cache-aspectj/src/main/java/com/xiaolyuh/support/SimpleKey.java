@@ -29,7 +29,6 @@ import java.util.Arrays;
  * @see SimpleKeyGenerator
  * @since 4.0
  */
-@SuppressWarnings("serial")
 public class SimpleKey implements Serializable {
 
     public static final SimpleKey EMPTY = new SimpleKey();
@@ -66,4 +65,7 @@ public class SimpleKey implements Serializable {
         return getClass().getSimpleName() + " [" + StringUtils.arrayToCommaDelimitedString(this.params) + "]";
     }
 
+    public Object[] getParams() {
+        return params;
+    }
 }

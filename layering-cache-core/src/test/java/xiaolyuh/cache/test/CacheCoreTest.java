@@ -28,8 +28,8 @@ import java.util.concurrent.TimeUnit;
 @RunWith(SpringJUnit4ClassRunner.class)
 // @ContextConfiguration用来加载配置ApplicationContext，其中classes用来加载配置类
 @ContextConfiguration(classes = {CacheConfig.class})
-public class CacheTest {
-    private Logger logger = LoggerFactory.getLogger(CacheTest.class);
+public class CacheCoreTest {
+    private Logger logger = LoggerFactory.getLogger(CacheCoreTest.class);
 
     @Autowired
     private CacheManager cacheManager;
@@ -94,7 +94,7 @@ public class CacheTest {
         Long ttl = redisTemplate.getExpire(redisCacheKey.getKey());
         logger.info("========================ttl 1:{}", ttl);
         Assert.assertNotNull(cache1.getSecondCache().get(cacheKey1));
-        sleep(4);
+        sleep(5);
         ttl = redisTemplate.getExpire(redisCacheKey.getKey());
         logger.info("========================ttl 2:{}", ttl);
         Assert.assertNull(cache1.getSecondCache().get(cacheKey1));

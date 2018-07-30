@@ -267,7 +267,7 @@ public class LayeringAspect {
                     targetClass, CacheOperationExpressionEvaluator.NO_RESULT);
 
             AnnotatedElementKey methodCacheKey = new AnnotatedElementKey(method, targetClass);
-            return evaluator.getExpressionValue(key, methodCacheKey, evaluationContext);
+            return evaluator.key(key, methodCacheKey, evaluationContext);
         }
         return this.keyGenerator.generate(target, method, args);
     }
@@ -279,13 +279,19 @@ public class LayeringAspect {
      */
     private Object generateValue(String value, Method method, Object[] args, Object target) {
         Assert.isTrue(!StringUtils.isEmpty(value), CACHE_NAME_ERROR_MESSAGE);
+
+        // 不是SPEL表达式直接返回
+        if (!value.contains("#")) {
+            return value;
+        }
+
         // 获取注解上的value属性值
         Class<?> targetClass = getTargetClass(target);
         EvaluationContext evaluationContext = evaluator.createEvaluationContext(method, args, target,
                 targetClass, CacheOperationExpressionEvaluator.NO_RESULT);
 
         AnnotatedElementKey methodCacheKey = new AnnotatedElementKey(method, targetClass);
-        return evaluator.getExpressionValue(value, methodCacheKey, evaluationContext);
+        return evaluator.cacheName(value, methodCacheKey, evaluationContext);
     }
 
     /**

@@ -41,7 +41,9 @@ public class CacheOperationExpressionEvaluator extends CachedExpressionEvaluator
     public static final String RESULT_VARIABLE = "result";
 
 
-    private final Map<ExpressionKey, Expression> cache = new ConcurrentHashMap<ExpressionKey, Expression>(64);
+    private final Map<ExpressionKey, Expression> keyCache = new ConcurrentHashMap<ExpressionKey, Expression>(64);
+
+    private final Map<ExpressionKey, Expression> cacheNameCache = new ConcurrentHashMap<ExpressionKey, Expression>(64);
 
     private final Map<ExpressionKey, Expression> conditionCache = new ConcurrentHashMap<ExpressionKey, Expression>(64);
 
@@ -88,8 +90,14 @@ public class CacheOperationExpressionEvaluator extends CachedExpressionEvaluator
         return evaluationContext;
     }
 
-    public Object getExpressionValue(String expression, AnnotatedElementKey methodKey, EvaluationContext evalContext) {
-        return getExpression(this.cache, methodKey, expression).getValue(evalContext);
+    public Object key(String expression, AnnotatedElementKey methodKey, EvaluationContext evalContext) {
+
+        return getExpression(this.keyCache, methodKey, expression).getValue(evalContext);
+    }
+
+    public Object cacheName(String expression, AnnotatedElementKey methodKey, EvaluationContext evalContext) {
+
+        return getExpression(this.cacheNameCache, methodKey, expression).getValue(evalContext);
     }
 
     public boolean condition(String conditionExpression, AnnotatedElementKey methodKey, EvaluationContext evalContext) {
@@ -104,7 +112,7 @@ public class CacheOperationExpressionEvaluator extends CachedExpressionEvaluator
      * Clear all caches.
      */
     void clear() {
-        this.cache.clear();
+        this.keyCache.clear();
         this.conditionCache.clear();
         this.unlessCache.clear();
         this.targetMethodCache.clear();

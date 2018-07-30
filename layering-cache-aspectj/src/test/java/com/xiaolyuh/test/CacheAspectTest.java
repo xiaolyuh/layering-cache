@@ -1,5 +1,6 @@
 package com.xiaolyuh.test;
 
+import com.alibaba.fastjson.JSON;
 import com.xiaolyuh.config.CacheConfig;
 import com.xiaolyuh.domain.User;
 import org.junit.Test;
@@ -24,14 +25,14 @@ public class CacheAspectTest {
     public void testGetUserName1() {
         long userId = 123;
 
-        testService.getUserName(userId);
-        testService.getUserName(userId);
+        testService.getUser(userId);
+        testService.getUser(userId);
         sleep(4);
-        testService.getUserName(userId);
+        testService.getUser(userId);
         sleep(4);
-        testService.getUserName(userId);
+        testService.getUser(userId);
         sleep(10);
-        testService.getUserName(userId);
+        testService.getUser(userId);
     }
 
     @Test
@@ -39,14 +40,14 @@ public class CacheAspectTest {
         String[] lastName = {"w", "y", "h"};
         long userId = 122;
 
-        testService.getUserName(userId, lastName);
-        testService.getUserName(userId, lastName);
+        testService.getUser(userId, lastName);
+        testService.getUser(userId, lastName);
         sleep(4);
-        testService.getUserName(userId, lastName);
+        testService.getUser(userId, lastName);
         sleep(4);
-        testService.getUserName(userId, lastName);
+        testService.getUser(userId, lastName);
         sleep(10);
-        testService.getUserName(userId, lastName);
+        testService.getUser(userId, lastName);
     }
 
     @Test
@@ -56,14 +57,14 @@ public class CacheAspectTest {
         user.setAge(31);
         user.setLastName(new String[]{"w", "y", "h"});
 
-        testService.getUserName(user);
-        testService.getUserName(user);
+        testService.getUser(user);
+        testService.getUser(user);
         sleep(4);
-        testService.getUserName(user);
+        testService.getUser(user);
         sleep(4);
-        testService.getUserName(user);
+        testService.getUser(user);
         sleep(10);
-        testService.getUserName(user);
+        testService.getUser(user);
     }
 
     @Test
@@ -73,19 +74,41 @@ public class CacheAspectTest {
         user.setAge(31);
         user.setLastName(new String[]{"w", "y", "h"});
 
-        testService.getUserName(user, user.getAge());
-        testService.getUserName(user, user.getAge());
+        testService.getUser(user, user.getAge());
+        testService.getUser(user, user.getAge());
         sleep(4);
-        testService.getUserName(user, user.getAge());
+        testService.getUser(user, user.getAge());
         sleep(4);
-        testService.getUserName(user, user.getAge());
+        testService.getUser(user, user.getAge());
         sleep(10);
-        testService.getUserName(user, user.getAge());
+        testService.getUser(user, user.getAge());
     }
 
-    private <T> T initCache(Class<T> t) {
-        logger.info("加载缓存");
-        return (T) "test";
+    @Test
+    public void testPutUser() {
+        long userId = 122;
+        testService.putUser(userId);
+        User user = testService.getUser(userId);
+        logger.info(JSON.toJSONString(user));
+    }
+
+    @Test
+    public void testEvictUser() {
+        long userId = 122;
+        testService.putUser(userId);
+        sleep(2);
+        testService.evictUser(userId);
+        sleep(2);
+    }
+
+    @Test
+    public void testEvictAllUser() {
+        testService.putUserById(122);
+        testService.putUserById(123);
+        testService.putUserById(124);
+        sleep(5);
+        testService.evictAllUser();
+        sleep(2);
     }
 
     private void sleep(int time) {

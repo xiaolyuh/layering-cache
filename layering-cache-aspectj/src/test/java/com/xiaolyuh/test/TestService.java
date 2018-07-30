@@ -1,8 +1,6 @@
 package com.xiaolyuh.test;
 
-import com.xiaolyuh.annotation.Cacheable;
-import com.xiaolyuh.annotation.FirstCache;
-import com.xiaolyuh.annotation.SecondaryCache;
+import com.xiaolyuh.annotation.*;
 import com.xiaolyuh.domain.User;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -17,33 +15,74 @@ public class TestService {
     @Cacheable(value = "'user:info' + ':' + #userId", key = "#userId",
             firstCache = @FirstCache(expireTime = 4, timeUnit = TimeUnit.SECONDS),
             secondaryCache = @SecondaryCache(expiration = 10, preloadTime = 3, forceRefresh = true, timeUnit = TimeUnit.SECONDS))
-    public Object getUserName(long userId) {
+    public User getUser(long userId) {
         logger.info("调用方法获取用户名称");
-        return "xiaolyuh";
+        User user = new User();
+        user.setUserId(userId);
+        user.setAge(31);
+        user.setLastName(new String[]{"w", "y", "h"});
+        return user;
     }
 
     @Cacheable(value = "'user:info' + ':' + #userId",
             firstCache = @FirstCache(expireTime = 4, timeUnit = TimeUnit.SECONDS),
             secondaryCache = @SecondaryCache(expiration = 10, preloadTime = 3, forceRefresh = true, timeUnit = TimeUnit.SECONDS))
-    public Object getUserName(long userId, String[] lastName) {
+    public User getUser(long userId, String[] lastName) {
         logger.info("调用方法获取用户名称");
-        return "xiaolyuh";
+        User user = new User();
+        user.setUserId(userId);
+        user.setAge(31);
+        user.setLastName(lastName);
+        return user;
     }
 
     @Cacheable(value = "'user:info' + ':' + #user.userId",
             firstCache = @FirstCache(expireTime = 4, timeUnit = TimeUnit.SECONDS),
             secondaryCache = @SecondaryCache(expiration = 10, preloadTime = 3, forceRefresh = true, timeUnit = TimeUnit.SECONDS))
-    public Object getUserName(User user) {
+    public User getUser(User user) {
         logger.info("调用方法获取用户名称");
-        return "xiaolyuh";
+        return user;
     }
 
     @Cacheable(value = "'user:info' + ':' + #user.userId",
             firstCache = @FirstCache(expireTime = 4, timeUnit = TimeUnit.SECONDS),
             secondaryCache = @SecondaryCache(expiration = 10, preloadTime = 3, forceRefresh = true, timeUnit = TimeUnit.SECONDS))
-    public Object getUserName(User user, int age) {
+    public User getUser(User user, int age) {
         logger.info("调用方法获取用户名称");
-        return "xiaolyuh";
+        user.setAge(age);
+        return user;
     }
 
+    @CachePut(value = "'user:info' + ':' + #userId", key = "#userId",
+            firstCache = @FirstCache(expireTime = 4, timeUnit = TimeUnit.SECONDS),
+            secondaryCache = @SecondaryCache(expiration = 10, preloadTime = 3, forceRefresh = true, timeUnit = TimeUnit.SECONDS))
+    public User putUser(long userId) {
+        User user = new User();
+        user.setUserId(userId);
+        user.setAge(31);
+        user.setLastName(new String[]{"w", "y", "h"});
+
+        return user;
+    }
+
+    @CachePut(value = "user:info", key = "#userId",
+            firstCache = @FirstCache(expireTime = 4, timeUnit = TimeUnit.SECONDS),
+            secondaryCache = @SecondaryCache(expiration = 10, preloadTime = 3, forceRefresh = true, timeUnit = TimeUnit.SECONDS))
+    public User putUserById(long userId) {
+        User user = new User();
+        user.setUserId(userId);
+        user.setAge(311);
+        user.setLastName(new String[]{"w", "y", "h"});
+
+        return user;
+    }
+
+    @CacheEvict(value = "'user:info' + ':' + #userId", key = "#userId")
+    public void evictUser(long userId) {
+
+    }
+
+    @CacheEvict(value = "user:info", allEntries = true)
+    public void evictAllUser() {
+    }
 }

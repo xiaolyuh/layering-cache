@@ -247,7 +247,7 @@ public class LayeringAspect {
             String cacheName = generateValue(cacheNameExpression, method, args, target).toString();
             // 通过cacheName和缓存配置获取Cache
             Cache cache = cacheManager.getCache(cacheName, layeringCacheSetting);
-            cache.putIfAbsent(key, result);
+            cache.put(key, result);
         }
 
         return result;

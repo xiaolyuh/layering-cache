@@ -73,7 +73,7 @@ public class CacheCoreTest {
         // 测试一级缓存值及过期时间
         String str1 = cache1.getFirstCache().get(cacheKey1, String.class);
         String st2 = cache1.getFirstCache().get(cacheKey1, () -> initCache(String.class));
-        logger.info("========================:{}", str1);
+        logger.debug("========================:{}", str1);
         Assert.assertTrue(str1.equals(st2));
         Assert.assertTrue(str1.equals(initCache(String.class)));
         sleep(4);
@@ -92,11 +92,11 @@ public class CacheCoreTest {
         cache1.get(cacheKey1, () -> initCache(String.class));
         sleep(6);
         Long ttl = redisTemplate.getExpire(redisCacheKey.getKey());
-        logger.info("========================ttl 1:{}", ttl);
+        logger.debug("========================ttl 1:{}", ttl);
         Assert.assertNotNull(cache1.getSecondCache().get(cacheKey1));
         sleep(5);
         ttl = redisTemplate.getExpire(redisCacheKey.getKey());
-        logger.info("========================ttl 2:{}", ttl);
+        logger.debug("========================ttl 2:{}", ttl);
         Assert.assertNull(cache1.getSecondCache().get(cacheKey1));
     }
 
@@ -184,7 +184,7 @@ public class CacheCoreTest {
     }
 
     private <T> T initCache(Class<T> t) {
-        logger.info("加载缓存");
+        logger.debug("加载缓存");
         return (T) "test";
     }
 

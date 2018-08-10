@@ -89,7 +89,7 @@ public class CacheAspectTest {
         long userId = 122;
         testService.putUser(userId);
         User user = testService.getUser(userId);
-        logger.info(JSON.toJSONString(user));
+        logger.debug(JSON.toJSONString(user));
     }
 
     @Test

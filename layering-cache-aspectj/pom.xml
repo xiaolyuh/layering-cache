@@ -28,7 +28,6 @@
         <dependency>
             <groupId>com.github.ben-manes.caffeine</groupId>
             <artifactId>caffeine</artifactId>
-            <optional>true</optional>
         </dependency>
 
         <dependency>

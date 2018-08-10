@@ -16,7 +16,7 @@ public class TestService {
             firstCache = @FirstCache(expireTime = 4, timeUnit = TimeUnit.SECONDS),
             secondaryCache = @SecondaryCache(expiration = 10, preloadTime = 3, forceRefresh = true, timeUnit = TimeUnit.SECONDS))
     public User getUser(long userId) {
-        logger.info("调用方法获取用户名称");
+        logger.debug("调用方法获取用户名称");
         User user = new User();
         user.setUserId(userId);
         user.setAge(31);
@@ -28,7 +28,7 @@ public class TestService {
             firstCache = @FirstCache(expireTime = 4, timeUnit = TimeUnit.SECONDS),
             secondaryCache = @SecondaryCache(expiration = 10, preloadTime = 3, forceRefresh = true, timeUnit = TimeUnit.SECONDS))
     public User getUser(long userId, String[] lastName) {
-        logger.info("调用方法获取用户名称");
+        logger.debug("调用方法获取用户名称");
         User user = new User();
         user.setUserId(userId);
         user.setAge(31);
@@ -40,7 +40,7 @@ public class TestService {
             firstCache = @FirstCache(expireTime = 4, timeUnit = TimeUnit.SECONDS),
             secondaryCache = @SecondaryCache(expiration = 10, preloadTime = 3, forceRefresh = true, timeUnit = TimeUnit.SECONDS))
     public User getUser(User user) {
-        logger.info("调用方法获取用户名称");
+        logger.debug("调用方法获取用户名称");
         return user;
     }
 
@@ -48,7 +48,7 @@ public class TestService {
             firstCache = @FirstCache(expireTime = 4, timeUnit = TimeUnit.SECONDS),
             secondaryCache = @SecondaryCache(expiration = 10, preloadTime = 3, forceRefresh = true, timeUnit = TimeUnit.SECONDS))
     public User getUser(User user, int age) {
-        logger.info("调用方法获取用户名称");
+        logger.debug("调用方法获取用户名称");
         user.setAge(age);
         return user;
     }

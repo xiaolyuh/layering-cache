@@ -107,14 +107,14 @@ public class RedisCache extends AbstractValueAdaptingCache {
     @Override
     public Object get(Object key) {
         RedisCacheKey redisCacheKey = getRedisCacheKey(key);
-        logger.info("redis缓存 key: {} 查询redis缓存", redisCacheKey.getKey());
+        logger.debug("redis缓存 key: {} 查询redis缓存", redisCacheKey.getKey());
         return redisTemplate.opsForValue().get(redisCacheKey.getKey());
     }
 
     @Override
     public <T> T get(Object key, Callable<T> valueLoader) {
         RedisCacheKey redisCacheKey = getRedisCacheKey(key);
-        logger.info("redis缓存 key: {} 查询redis缓存如果没有命中，从数据库获取数据", redisCacheKey.getKey());
+        logger.debug("redis缓存 key: {} 查询redis缓存如果没有命中，从数据库获取数据", redisCacheKey.getKey());
         // 先获取缓存，如果有直接返回
         Object result = redisTemplate.opsForValue().get(redisCacheKey.getKey());
         if (result != null) {
@@ -129,13 +129,13 @@ public class RedisCache extends AbstractValueAdaptingCache {
     @Override
     public void put(Object key, Object value) {
         RedisCacheKey redisCacheKey = getRedisCacheKey(key);
-        logger.info("redis缓存 key: {} put缓存，缓存值：{}", redisCacheKey.getKey(), JSON.toJSONString(value));
+        logger.debug("redis缓存 key: {} put缓存，缓存值：{}", redisCacheKey.getKey(), JSON.toJSONString(value));
         redisTemplate.opsForValue().set(redisCacheKey.getKey(), value, expiration, TimeUnit.MILLISECONDS);
     }
 
     @Override
     public Object putIfAbsent(Object key, Object value) {
-        logger.info("redis缓存 key: {} putIfAbsent缓存，缓存值：{}", getRedisCacheKey(key).getKey(), JSON.toJSONString(value));
+        logger.debug("redis缓存 key: {} putIfAbsent缓存，缓存值：{}", getRedisCacheKey(key).getKey(), JSON.toJSONString(value));
         Object reult = get(key);
         if (reult != null) {
             return reult;
@@ -147,7 +147,7 @@ public class RedisCache extends AbstractValueAdaptingCache {
     @Override
     public void evict(Object key) {
         RedisCacheKey redisCacheKey = getRedisCacheKey(key);
-        logger.info("redis缓存 key: {} 清除缓存", redisCacheKey.getKey());
+        logger.debug("redis缓存 key: {} 清除缓存", redisCacheKey.getKey());
         redisTemplate.delete(redisCacheKey.getKey());
     }
 
@@ -155,7 +155,7 @@ public class RedisCache extends AbstractValueAdaptingCache {
     public void clear() {
         // 必须开启了使用缓存名称作为前缀，clear才有效
         if (usePrefix) {
-            logger.info("redis缓存 ，除前缀为{}的缓存", getName());
+            logger.debug("redis缓存 ，除前缀为{}的缓存", getName());
             Set<String> keys = redisTemplate.keys(getName() + "*");
             if (!CollectionUtils.isEmpty(keys)) {
                 redisTemplate.delete(keys);
@@ -186,20 +186,20 @@ public class RedisCache extends AbstractValueAdaptingCache {
                 // 先取缓存，如果有直接返回，没有再去做拿锁操作
                 Object result = redisTemplate.opsForValue().get(redisCacheKey.getKey());
                 if (result != null) {
-                    logger.info("redis缓存 key: {} 获取到锁后查询查询缓存命中，不需要从数据库获取数据", redisCacheKey.getKey());
+                    logger.debug("redis缓存 key: {} 获取到锁后查询查询缓存命中，不需要从数据库获取数据", redisCacheKey.getKey());
                     return (T) result;
                 }
 
                 // 获取分布式锁去后台查询数据
                 if (redisLock.lock()) {
                     T t = (T) loaderAndPutValue(redisCacheKey, valueLoader);
-                    logger.info("redis缓存 key: {} 从数据库获取数据完毕，唤醒所有等待线程", redisCacheKey.getKey());
+                    logger.debug("redis缓存 key: {} 从数据库获取数据完毕，唤醒所有等待线程", redisCacheKey.getKey());
                     // 唤醒线程
                     container.signalAll(redisCacheKey.getKey());
                     return t;
                 }
                 // 线程等待
-                logger.info("redis缓存 key: {} 从数据库获取数据未获取到锁，进入等待状态，等待{}毫秒", redisCacheKey.getKey(), WAIT_TIME);
+                logger.debug("redis缓存 key: {} 从数据库获取数据未获取到锁，进入等待状态，等待{}毫秒", redisCacheKey.getKey(), WAIT_TIME);
                 container.await(redisCacheKey.getKey(), WAIT_TIME);
             } catch (Exception e) {
                 logger.error(e.getMessage(), e);
@@ -207,7 +207,7 @@ public class RedisCache extends AbstractValueAdaptingCache {
                 redisLock.unlock();
             }
         }
-        logger.info("redis缓存 key:{} 等待{}次，共{}毫秒，任未获取到缓存，直接走走库获取数据", redisCacheKey.getKey(), RETRY_COUNT, RETRY_COUNT * WAIT_TIME, WAIT_TIME);
+        logger.debug("redis缓存 key:{} 等待{}次，共{}毫秒，任未获取到缓存，直接走走库获取数据", redisCacheKey.getKey(), RETRY_COUNT, RETRY_COUNT * WAIT_TIME, WAIT_TIME);
         return (T) fromStoreValue(loaderAndPutValue(redisCacheKey, valueLoader));
     }
 
@@ -225,7 +225,7 @@ public class RedisCache extends AbstractValueAdaptingCache {
                 // 缓存值不为NULL，将数据放到缓存
                 redisTemplate.opsForValue().set(key.getKey(), result, expiration, TimeUnit.MILLISECONDS);
             }
-            logger.info("redis缓存 key:{} 从数据库获取数据，并将其放入缓存。数据:{}", key.getKey(), JSON.toJSONString(result));
+            logger.debug("redis缓存 key:{} 从数据库获取数据，并将其放入缓存。数据:{}", key.getKey(), JSON.toJSONString(result));
             return result;
         } catch (Exception e) {
             logger.error("加载缓存数据异常,{}", e.getMessage(), e);
@@ -241,10 +241,10 @@ public class RedisCache extends AbstractValueAdaptingCache {
         if (null != ttl && ttl <= preloadTime) {
             // 判断是否需要强制刷新在开启刷新线程
             if (!getForceRefresh()) {
-                logger.info("redis缓存 key:{} 软刷新缓存模式", redisCacheKey.getKey());
+                logger.debug("redis缓存 key:{} 软刷新缓存模式", redisCacheKey.getKey());
                 softRefresh(redisCacheKey);
             } else {
-                logger.info("redis缓存 key:{} 强刷新缓存模式", redisCacheKey.getKey());
+                logger.debug("redis缓存 key:{} 强刷新缓存模式", redisCacheKey.getKey());
                 forceRefresh(redisCacheKey, valueLoader);
             }
         }
@@ -290,7 +290,7 @@ public class RedisCache extends AbstractValueAdaptingCache {
                     }
                 }
             } catch (Exception e) {
-                logger.info(e.getMessage(), e);
+                logger.debug(e.getMessage(), e);
             } finally {
                 redisLock.unlock();
             }

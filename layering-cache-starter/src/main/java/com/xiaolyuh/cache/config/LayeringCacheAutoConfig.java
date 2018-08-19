@@ -22,7 +22,6 @@ import org.springframework.data.redis.core.RedisTemplate;
 @Configuration
 @ConditionalOnBean(RedisTemplate.class)
 @AutoConfigureAfter({RedisAutoConfiguration.class})
-@EnableAutoConfiguration(exclude = {CacheAutoConfiguration.class})
 @EnableAspectJAutoProxy
 public class LayeringCacheAutoConfig {
 

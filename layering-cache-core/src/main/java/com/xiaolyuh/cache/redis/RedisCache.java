@@ -120,10 +120,10 @@ public class RedisCache extends AbstractValueAdaptingCache {
         if (result != null) {
             // 刷新缓存
             refreshCache(redisCacheKey, valueLoader);
-            return (T) result;
+            return (T) fromStoreValue(result);
         }
-        // 查库
-        return getForDb(redisCacheKey, valueLoader);
+        // 执行缓存方法
+        return executeCacheMethod(redisCacheKey, valueLoader);
     }
 
     @Override
@@ -178,7 +178,7 @@ public class RedisCache extends AbstractValueAdaptingCache {
     /**
      * 同一个线程循环5次查询缓存，每次等待20毫秒，如果还是没有数据直接去库查询数据
      */
-    private <T> T getForDb(RedisCacheKey redisCacheKey, Callable<T> valueLoader) {
+    private <T> T executeCacheMethod(RedisCacheKey redisCacheKey, Callable<T> valueLoader) {
         Lock redisLock = new Lock(redisTemplate, redisCacheKey.getKey() + "_sync_lock");
         // 同一个线程循环5次查询缓存，每次等待20毫秒，如果还是没有数据直接去库查询数据
         for (int i = 0; i < RETRY_COUNT; i++) {
@@ -187,12 +187,12 @@ public class RedisCache extends AbstractValueAdaptingCache {
                 Object result = redisTemplate.opsForValue().get(redisCacheKey.getKey());
                 if (result != null) {
                     logger.debug("redis缓存 key: {} 获取到锁后查询查询缓存命中，不需要从数据库获取数据", redisCacheKey.getKey());
-                    return (T) result;
+                    return (T) fromStoreValue(result);
                 }
 
                 // 获取分布式锁去后台查询数据
                 if (redisLock.lock()) {
-                    T t = (T) loaderAndPutValue(redisCacheKey, valueLoader);
+                    T t = loaderAndPutValue(redisCacheKey, valueLoader);
                     logger.debug("redis缓存 key: {} 从数据库获取数据完毕，唤醒所有等待线程", redisCacheKey.getKey());
                     // 唤醒线程
                     container.signalAll(redisCacheKey.getKey());
@@ -208,13 +208,13 @@ public class RedisCache extends AbstractValueAdaptingCache {
             }
         }
         logger.debug("redis缓存 key:{} 等待{}次，共{}毫秒，任未获取到缓存，直接走走库获取数据", redisCacheKey.getKey(), RETRY_COUNT, RETRY_COUNT * WAIT_TIME, WAIT_TIME);
-        return (T) fromStoreValue(loaderAndPutValue(redisCacheKey, valueLoader));
+        return loaderAndPutValue(redisCacheKey, valueLoader);
     }
 
     /**
      * 加载并将数据放到redis缓存
      */
-    private <T> Object loaderAndPutValue(RedisCacheKey key, Callable<T> valueLoader) {
+    private <T> T loaderAndPutValue(RedisCacheKey key, Callable<T> valueLoader) {
         try {
             // 加载数据
             Object result = toStoreValue(valueLoader.call());
@@ -226,7 +226,7 @@ public class RedisCache extends AbstractValueAdaptingCache {
                 redisTemplate.opsForValue().set(key.getKey(), result, expiration, TimeUnit.MILLISECONDS);
             }
             logger.debug("redis缓存 key:{} 从数据库获取数据，并将其放入缓存。数据:{}", key.getKey(), JSON.toJSONString(result));
-            return result;
+            return (T) fromStoreValue(result);
         } catch (Exception e) {
             logger.error("加载缓存数据异常,{}", e.getMessage(), e);
             throw new LoaderCacheValueException(key, valueLoader, e);

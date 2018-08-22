@@ -14,7 +14,7 @@ public class TestService {
 
     @Cacheable(value = "'user:info' + ':' + #userId", key = "#userId",
             firstCache = @FirstCache(expireTime = 4, timeUnit = TimeUnit.SECONDS),
-            secondaryCache = @SecondaryCache(expiration = 10, preloadTime = 3, forceRefresh = true, timeUnit = TimeUnit.SECONDS))
+            secondaryCache = @SecondaryCache(expireTime = 10, preloadTime = 3, forceRefresh = true, timeUnit = TimeUnit.SECONDS))
     public User getUser(long userId) {
         logger.debug("调用方法获取用户名称");
         User user = new User();
@@ -26,7 +26,7 @@ public class TestService {
 
     @Cacheable(value = "'user:info' + ':' + #userId",
             firstCache = @FirstCache(expireTime = 4, timeUnit = TimeUnit.SECONDS),
-            secondaryCache = @SecondaryCache(expiration = 10, preloadTime = 3, forceRefresh = true, timeUnit = TimeUnit.SECONDS))
+            secondaryCache = @SecondaryCache(expireTime = 10, preloadTime = 3, forceRefresh = true, timeUnit = TimeUnit.SECONDS))
     public User getUser(long userId, String[] lastName) {
         logger.debug("调用方法获取用户名称");
         User user = new User();
@@ -38,7 +38,7 @@ public class TestService {
 
     @Cacheable(value = "'user:info' + ':' + #user.userId",
             firstCache = @FirstCache(expireTime = 4, timeUnit = TimeUnit.SECONDS),
-            secondaryCache = @SecondaryCache(expiration = 10, preloadTime = 3, forceRefresh = true, timeUnit = TimeUnit.SECONDS))
+            secondaryCache = @SecondaryCache(expireTime = 10, preloadTime = 3, forceRefresh = true, timeUnit = TimeUnit.SECONDS))
     public User getUser(User user) {
         logger.debug("调用方法获取用户名称");
         return user;
@@ -46,7 +46,7 @@ public class TestService {
 
     @Cacheable(value = "'user:info' + ':' + #user.userId",
             firstCache = @FirstCache(expireTime = 4, timeUnit = TimeUnit.SECONDS),
-            secondaryCache = @SecondaryCache(expiration = 10, preloadTime = 3, forceRefresh = true, timeUnit = TimeUnit.SECONDS))
+            secondaryCache = @SecondaryCache(expireTime = 10, preloadTime = 3, forceRefresh = true, timeUnit = TimeUnit.SECONDS))
     public User getUser(User user, int age) {
         logger.debug("调用方法获取用户名称");
         user.setAge(age);
@@ -55,7 +55,7 @@ public class TestService {
 
     @Cacheable(value = "'user:info' + ':' + #userId",
             firstCache = @FirstCache(expireTime = 4, timeUnit = TimeUnit.SECONDS),
-            secondaryCache = @SecondaryCache(expiration = 10, preloadTime = 3, forceRefresh = true, timeUnit = TimeUnit.SECONDS))
+            secondaryCache = @SecondaryCache(expireTime = 10, preloadTime = 3, forceRefresh = true, timeUnit = TimeUnit.SECONDS))
     public User getNullUser(long userId) {
         logger.debug("调用方法获取用户名称返回NULL");
         return null;
@@ -63,7 +63,7 @@ public class TestService {
 
     @CachePut(value = "'user:info' + ':' + #userId", key = "#userId",
             firstCache = @FirstCache(expireTime = 4, timeUnit = TimeUnit.SECONDS),
-            secondaryCache = @SecondaryCache(expiration = 10, preloadTime = 3, forceRefresh = true, timeUnit = TimeUnit.SECONDS))
+            secondaryCache = @SecondaryCache(expireTime = 10, preloadTime = 3, forceRefresh = true, timeUnit = TimeUnit.SECONDS))
     public User putUser(long userId) {
         User user = new User();
         user.setUserId(userId);
@@ -73,9 +73,17 @@ public class TestService {
         return user;
     }
 
+    @CachePut(value = "'user:info' + ':' + #userId", key = "#userId",
+            firstCache = @FirstCache(expireTime = 4, timeUnit = TimeUnit.SECONDS),
+            secondaryCache = @SecondaryCache(expireTime = 10, preloadTime = 3, forceRefresh = true, timeUnit = TimeUnit.SECONDS))
+    public User putNullUser(long userId) {
+
+        return null;
+    }
+
     @CachePut(value = "user:info", key = "#userId",
             firstCache = @FirstCache(expireTime = 4, timeUnit = TimeUnit.SECONDS),
-            secondaryCache = @SecondaryCache(expiration = 10, preloadTime = 3, forceRefresh = true, timeUnit = TimeUnit.SECONDS))
+            secondaryCache = @SecondaryCache(expireTime = 10, preloadTime = 3, forceRefresh = true, timeUnit = TimeUnit.SECONDS))
     public User putUserById(long userId) {
         User user = new User();
         user.setUserId(userId);

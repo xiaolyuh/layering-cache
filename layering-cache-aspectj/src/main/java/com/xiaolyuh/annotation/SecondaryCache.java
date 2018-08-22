@@ -16,11 +16,11 @@ public @interface SecondaryCache {
     /**
      * 缓存有效时间
      */
-    long expiration() default 5;
+    long expireTime() default 5;
 
     /**
      * 缓存主动在失效前强制刷新缓存的时间
-     * 建议是： preloadTime = expiration * 0.2
+     * 建议是： preloadTime = expireTime * 0.2
      */
     long preloadTime() default 1;
 

@@ -119,7 +119,7 @@ public class LayeringCache extends AbstractValueAdaptingCache {
         }
 
         T result = secondCache.get(key, valueLoader);
-        firstCache.putIfAbsent(key, toStoreValue(result));
+        firstCache.putIfAbsent(key, result);
         logger.debug("查询二级缓存,并将数据放到一级缓存。 key:{},返回值是:{}", key, JSON.toJSONString(result));
         return result;
     }

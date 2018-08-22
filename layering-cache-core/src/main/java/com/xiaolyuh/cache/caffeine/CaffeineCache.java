@@ -83,7 +83,7 @@ public class CaffeineCache extends AbstractValueAdaptingCache {
     @Override
     public void put(Object key, Object value) {
         logger.debug("caffeine缓存 key:{} put缓存，缓存值：{}", JSON.toJSONString(key), JSON.toJSONString(value));
-        this.cache.put(key, value);
+        this.cache.put(key, toStoreValue(value));
     }
 
     @Override

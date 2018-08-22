@@ -158,7 +158,7 @@ public class LayeringAspect {
         FirstCacheSetting firstCacheSetting = new FirstCacheSetting(firstCache.initialCapacity(), firstCache.maximumSize(),
                 firstCache.expireTime(), firstCache.timeUnit(), firstCache.expireMode());
 
-        SecondaryCacheSetting secondaryCacheSetting = new SecondaryCacheSetting(secondaryCache.expiration(),
+        SecondaryCacheSetting secondaryCacheSetting = new SecondaryCacheSetting(secondaryCache.expireTime(),
                 secondaryCache.preloadTime(), secondaryCache.timeUnit(), secondaryCache.forceRefresh());
         LayeringCacheSetting layeringCacheSetting = new LayeringCacheSetting(firstCacheSetting, secondaryCacheSetting);
 
@@ -235,7 +235,7 @@ public class LayeringAspect {
         FirstCacheSetting firstCacheSetting = new FirstCacheSetting(firstCache.initialCapacity(), firstCache.maximumSize(),
                 firstCache.expireTime(), firstCache.timeUnit(), firstCache.expireMode());
 
-        SecondaryCacheSetting secondaryCacheSetting = new SecondaryCacheSetting(secondaryCache.expiration(),
+        SecondaryCacheSetting secondaryCacheSetting = new SecondaryCacheSetting(secondaryCache.expireTime(),
                 secondaryCache.preloadTime(), secondaryCache.timeUnit(), secondaryCache.forceRefresh());
         LayeringCacheSetting layeringCacheSetting = new LayeringCacheSetting(firstCacheSetting, secondaryCacheSetting);
 

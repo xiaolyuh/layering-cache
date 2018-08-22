@@ -130,7 +130,7 @@ public class RedisCache extends AbstractValueAdaptingCache {
     public void put(Object key, Object value) {
         RedisCacheKey redisCacheKey = getRedisCacheKey(key);
         logger.debug("redis缓存 key: {} put缓存，缓存值：{}", redisCacheKey.getKey(), JSON.toJSONString(value));
-        redisTemplate.opsForValue().set(redisCacheKey.getKey(), value, expiration, TimeUnit.MILLISECONDS);
+        redisTemplate.opsForValue().set(redisCacheKey.getKey(), toStoreValue(value), expiration, TimeUnit.MILLISECONDS);
     }
 
     @Override

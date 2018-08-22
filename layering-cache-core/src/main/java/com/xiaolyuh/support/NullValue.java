@@ -25,21 +25,20 @@ import java.io.Serializable;
  * for cache stores which otherwise do not support {@code null} values.
  *
  * @author Juergen Hoeller
- * @since 4.2.2
  * @see AbstractValueAdaptingCache
+ * @since 4.2.2
  */
 public final class NullValue implements Serializable {
 
-	public static final Object INSTANCE = new NullValue();
+    public static final Object INSTANCE = new NullValue();
 
-	private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
 
-	private NullValue() {
-	}
+    private NullValue() {
+    }
 
-	private Object readResolve() {
-		return INSTANCE;
-	}
-
+    private Object readResolve() {
+        return INSTANCE;
+    }
 }

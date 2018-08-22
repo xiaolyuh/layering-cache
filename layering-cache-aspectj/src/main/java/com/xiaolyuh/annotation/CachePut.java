@@ -1,5 +1,6 @@
 package com.xiaolyuh.annotation;
 
+import com.xiaolyuh.support.CacheMode;
 import org.springframework.core.annotation.AliasFor;
 
 import java.lang.annotation.*;
@@ -52,6 +53,11 @@ public @interface CachePut {
      */
     @Deprecated
     String keyGenerator() default "";
+
+    /**
+     * 是否使用一级缓存
+     */
+    boolean useFirstCache() default true;
 
     /**
      * 一级缓存配置

@@ -36,7 +36,9 @@ public @interface FirstCache {
     TimeUnit timeUnit() default TimeUnit.MINUTES;
 
     /**
-     * 缓存失效模式{@link ExpireMode}
+     * 缓存失效模式
+     *
+     * @see ExpireMode
      */
     ExpireMode expireMode() default ExpireMode.WRITE;
 }

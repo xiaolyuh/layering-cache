@@ -55,6 +55,11 @@ public @interface Cacheable {
     String keyGenerator() default "";
 
     /**
+     * 是否使用一级缓存
+     */
+    boolean useFirstCache() default true;
+
+    /**
      * 一级缓存配置
      */
     FirstCache firstCache() default @FirstCache();

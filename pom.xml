@@ -7,7 +7,7 @@
     <groupId>com.xiaolyuh</groupId>
     <artifactId>layering-cache</artifactId>
     <packaging>pom</packaging>
-    <version>1.0.1-SNAPSHOT</version>
+    <version>1.0.0-RELEASE</version>
 
     <modules>
         <module>layering-cache-core</module>
@@ -19,9 +19,8 @@
     <!-- FIXME change it to the project's website -->
     <url>http://www.example.com</url>
 
-
     <properties>
-        <layering.version>1.0.1-SNAPSHOT</layering.version>
+        <layering.version>1.0.0-SNAPSHOT</layering.version>
 
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.compiler.source>1.8</maven.compiler.source>

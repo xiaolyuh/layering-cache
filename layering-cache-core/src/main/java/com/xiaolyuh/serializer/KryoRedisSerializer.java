@@ -16,9 +16,6 @@ import java.io.ByteArrayOutputStream;
  */
 public class KryoRedisSerializer<T> implements RedisSerializer<T> {
     Logger logger = LoggerFactory.getLogger(KryoRedisSerializer.class);
-
-    public static final byte[] EMPTY_BYTE_ARRAY = new byte[0];
-
     private static final ThreadLocal<Kryo> kryos = ThreadLocal.withInitial(Kryo::new);
 
     private Class<T> clazz;
@@ -31,7 +28,7 @@ public class KryoRedisSerializer<T> implements RedisSerializer<T> {
     @Override
     public byte[] serialize(T t) throws SerializationException {
         if (t == null) {
-            return EMPTY_BYTE_ARRAY;
+            return SerializationUtils.EMPTY_ARRAY;
         }
 
         Kryo kryo = kryos.get();
@@ -45,14 +42,13 @@ public class KryoRedisSerializer<T> implements RedisSerializer<T> {
             return baos.toByteArray();
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
+            throw new SerializationException("KryoRedisSerializer 序列化异常: " + e.getMessage(), e);
         }
-
-        return EMPTY_BYTE_ARRAY;
     }
 
     @Override
     public T deserialize(byte[] bytes) throws SerializationException {
-        if (bytes == null || bytes.length <= 0) {
+        if (SerializationUtils.isEmpty(bytes)) {
             return null;
         }
 
@@ -64,8 +60,7 @@ public class KryoRedisSerializer<T> implements RedisSerializer<T> {
             return (T) kryo.readClassAndObject(input);
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
+            throw new SerializationException("KryoRedisSerializer 反序列化异常: " + e.getMessage(), e);
         }
-
-        return null;
     }
 }

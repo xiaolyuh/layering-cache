@@ -53,6 +53,14 @@ public class TestService {
         return user;
     }
 
+    @Cacheable(value = "'user:info' + ':' + #userId",
+            firstCache = @FirstCache(expireTime = 4, timeUnit = TimeUnit.SECONDS),
+            secondaryCache = @SecondaryCache(expiration = 10, preloadTime = 3, forceRefresh = true, timeUnit = TimeUnit.SECONDS))
+    public User getNullUser(long userId) {
+        logger.debug("调用方法获取用户名称返回NULL");
+        return null;
+    }
+
     @CachePut(value = "'user:info' + ':' + #userId", key = "#userId",
             firstCache = @FirstCache(expireTime = 4, timeUnit = TimeUnit.SECONDS),
             secondaryCache = @SecondaryCache(expiration = 10, preloadTime = 3, forceRefresh = true, timeUnit = TimeUnit.SECONDS))

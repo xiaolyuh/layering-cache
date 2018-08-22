@@ -85,6 +85,23 @@ public class CacheAspectTest {
     }
 
     @Test
+    public void testGetUserName5() {
+        User user = new User();
+        user.setUserId(111);
+        user.setAge(31);
+        user.setLastName(new String[]{"w", "y", "h"});
+
+        testService.getNullUser(user.getUserId());
+        testService.getNullUser(user.getUserId());
+        sleep(4);
+        testService.getNullUser(user.getUserId());
+        sleep(4);
+        testService.getNullUser(user.getUserId());
+        sleep(10);
+        testService.getNullUser(user.getUserId());
+    }
+
+    @Test
     public void testPutUser() {
         long userId = 122;
         testService.putUser(userId);

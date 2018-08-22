@@ -67,7 +67,7 @@ public class RedisConfig {
         // 全局开启AutoType，不建议使用
         // ParserConfig.getGlobalInstance().setAutoTypeSupport(true);
         // 建议使用这种方式，小范围指定白名单
-        ParserConfig.getGlobalInstance().addAccept("com.xiaolyuh.");
+        ParserConfig.getGlobalInstance().addAccept("com.xxx.");
 
         // 设置值（value）的序列化采用FastJsonRedisSerializer。
         redisTemplate.setHashValueSerializer(fastJsonRedisSerializer);

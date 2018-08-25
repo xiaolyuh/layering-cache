@@ -15,7 +15,7 @@ public class LayeringCacheSetting {
     /**
      * 是否使用一级缓存
      */
-    boolean useFirstCache;
+    boolean useFirstCache = true;
 
     /**
      * 一级缓存配置
@@ -27,10 +27,9 @@ public class LayeringCacheSetting {
      */
     private SecondaryCacheSetting secondaryCacheSetting;
 
-    public LayeringCacheSetting(FirstCacheSetting firstCacheSetting, SecondaryCacheSetting secondaryCacheSetting, boolean useFirstCache) {
+    public LayeringCacheSetting(FirstCacheSetting firstCacheSetting, SecondaryCacheSetting secondaryCacheSetting) {
         this.firstCacheSetting = firstCacheSetting;
         this.secondaryCacheSetting = secondaryCacheSetting;
-        this.useFirstCache = useFirstCache;
         setInternalKey();
     }
 

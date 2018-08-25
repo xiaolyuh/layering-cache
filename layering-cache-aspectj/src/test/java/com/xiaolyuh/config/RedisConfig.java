@@ -63,7 +63,7 @@ public class RedisConfig {
         RedisTemplate<String, Object> redisTemplate = new RedisTemplate<>();
         redisTemplate.setConnectionFactory(redisConnectionFactory);
 
-        FastJsonRedisSerializer<Object> fastJsonRedisSerializer = new FastJsonRedisSerializer<>(Object.class);
+        FastJsonRedisSerializer<Object> fastJsonRedisSerializer = new FastJsonRedisSerializer<>(Object.class, "com.xxx.");
         // 全局开启AutoType，不建议使用
         // ParserConfig.getGlobalInstance().setAutoTypeSupport(true);
         // 建议使用这种方式，小范围指定白名单

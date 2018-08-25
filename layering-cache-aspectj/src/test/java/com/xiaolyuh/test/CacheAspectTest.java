@@ -128,10 +128,36 @@ public class CacheAspectTest {
     }
 
     @Test
+    public void testGetUserNoParam() {
+        User user = testService.getUserNoParam();
+        Assert.assertNotNull(user);
+        user = testService.getUserNoParam();
+        Assert.assertNotNull(user);
+
+        sleep(4);
+        testService.getUserNoParam();
+        sleep(4);
+        testService.getUserNoParam();
+        sleep(11);
+        Object result = redisTemplate.opsForValue().get("user:info:{params:[]}");
+        Assert.assertNull(result);
+
+        user = testService.getUserNoParam();
+        Assert.assertNotNull(user);
+    }
+
+    @Test
     public void testPutUser() {
         long userId = 116;
         testService.putUser(userId);
         User user = testService.getUser(userId);
+        logger.debug(JSON.toJSONString(user));
+        Assert.assertNotNull(user);
+    }
+
+    @Test
+    public void testPutUserNoParam() {
+        User user = testService.putUserNoParam();
         logger.debug(JSON.toJSONString(user));
         Assert.assertNotNull(user);
     }
@@ -168,6 +194,29 @@ public class CacheAspectTest {
         Object result2 = redisTemplate.opsForValue().get("user:info:121:121");
         Assert.assertNull(result1);
         Assert.assertNull(result2);
+    }
+
+    @Test
+    public void testGetNullPram() {
+        try {
+            User user = testService.getNullUser(null);
+        } catch (Exception e) {
+            logger.info(e.getMessage(), e);
+            Assert.assertNotNull(e);
+            return;
+        }
+        Assert.assertTrue(false);
+    }
+
+    @Test
+    public void testGetNullObjectPram() {
+        try {
+            User user = testService.getUser(null);
+        } catch (Exception e) {
+            logger.info(e.getMessage(), e);
+            return;
+        }
+        Assert.assertTrue(false);
     }
 
     private void sleep(int time) {

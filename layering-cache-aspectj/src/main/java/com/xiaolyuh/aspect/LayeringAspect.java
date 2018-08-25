@@ -39,6 +39,7 @@ import java.util.Collection;
 public class LayeringAspect {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
+    private static final String CACHE_KEY_ERROR_MESSAGE = "缓存Key %s 不能为NULL";
     private static final String CACHE_NAME_ERROR_MESSAGE = "缓存名称不能为NULL";
 
     /**
@@ -151,6 +152,7 @@ public class LayeringAspect {
         Assert.notEmpty(cacheable.cacheNames(), CACHE_NAME_ERROR_MESSAGE);
         String cacheName = generateValue(cacheNames[0], method, args, target).toString();
         Object key = generateKey(cacheable.key(), method, args, target);
+        Assert.notNull(key, String.format(CACHE_KEY_ERROR_MESSAGE, cacheable.key()));
 
         // 从解决中获取缓存配置
         FirstCache firstCache = cacheable.firstCache();
@@ -160,7 +162,7 @@ public class LayeringAspect {
 
         SecondaryCacheSetting secondaryCacheSetting = new SecondaryCacheSetting(secondaryCache.expireTime(),
                 secondaryCache.preloadTime(), secondaryCache.timeUnit(), secondaryCache.forceRefresh());
-        LayeringCacheSetting layeringCacheSetting = new LayeringCacheSetting(firstCacheSetting, secondaryCacheSetting, cacheable.useFirstCache());
+        LayeringCacheSetting layeringCacheSetting = new LayeringCacheSetting(firstCacheSetting, secondaryCacheSetting);
 
         // 通过cacheName和缓存配置获取Cache
         Cache cache = cacheManager.getCache(cacheName, layeringCacheSetting);
@@ -198,6 +200,7 @@ public class LayeringAspect {
         } else {
             // 删除指定key
             Object key = generateKey(cacheEvict.key(), method, args, target);
+            Assert.notNull(key, String.format(CACHE_KEY_ERROR_MESSAGE, cacheEvict.key()));
             for (String cacheNameExpression : cacheNames) {
                 String cacheName = generateValue(cacheNameExpression, method, args, target).toString();
                 Collection<Cache> caches = cacheManager.getCache(cacheName);
@@ -228,6 +231,7 @@ public class LayeringAspect {
         Assert.notEmpty(cachePut.cacheNames(), CACHE_NAME_ERROR_MESSAGE);
         // 解析SpEL表达式获取 key
         Object key = generateKey(cachePut.key(), method, args, target);
+        Assert.notNull(key, String.format(CACHE_KEY_ERROR_MESSAGE, cachePut.key()));
 
         // 从解决中获取缓存配置
         FirstCache firstCache = cachePut.firstCache();
@@ -237,7 +241,7 @@ public class LayeringAspect {
 
         SecondaryCacheSetting secondaryCacheSetting = new SecondaryCacheSetting(secondaryCache.expireTime(),
                 secondaryCache.preloadTime(), secondaryCache.timeUnit(), secondaryCache.forceRefresh());
-        LayeringCacheSetting layeringCacheSetting = new LayeringCacheSetting(firstCacheSetting, secondaryCacheSetting, cachePut.useFirstCache());
+        LayeringCacheSetting layeringCacheSetting = new LayeringCacheSetting(firstCacheSetting, secondaryCacheSetting);
 
         // 指定调用方法获取缓存值
         Object result = invoker.invoke();

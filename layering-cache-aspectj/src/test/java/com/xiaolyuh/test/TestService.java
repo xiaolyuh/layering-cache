@@ -53,10 +53,22 @@ public class TestService {
         return user;
     }
 
-    @Cacheable(value = "'user:info' + ':' + #userId",
+    @Cacheable(value = "user:info",
             firstCache = @FirstCache(expireTime = 4, timeUnit = TimeUnit.SECONDS),
             secondaryCache = @SecondaryCache(expireTime = 10, preloadTime = 3, forceRefresh = true, timeUnit = TimeUnit.SECONDS))
-    public User getNullUser(long userId) {
+    public User getUserNoParam() {
+        logger.debug("调用方法获取用户名称");
+        User user = new User();
+        user.setUserId(223);
+        user.setAge(31);
+        user.setLastName(new String[]{"w", "y", "h"});
+        return user;
+    }
+
+    @Cacheable(value = "'user:info' + ':' + #userId", key = "#userId",
+            firstCache = @FirstCache(expireTime = 4, timeUnit = TimeUnit.SECONDS),
+            secondaryCache = @SecondaryCache(expireTime = 10, preloadTime = 3, forceRefresh = true, timeUnit = TimeUnit.SECONDS))
+    public User getNullUser(Long userId) {
         logger.debug("调用方法获取用户名称返回NULL");
         return null;
     }
@@ -67,6 +79,18 @@ public class TestService {
     public User putUser(long userId) {
         User user = new User();
         user.setUserId(userId);
+        user.setAge(31);
+        user.setLastName(new String[]{"w", "y", "h"});
+
+        return user;
+    }
+
+    @CachePut(value = "user:info",
+            firstCache = @FirstCache(expireTime = 4, timeUnit = TimeUnit.SECONDS),
+            secondaryCache = @SecondaryCache(expireTime = 10, preloadTime = 3, forceRefresh = true, timeUnit = TimeUnit.SECONDS))
+    public User putUserNoParam() {
+        User user = new User();
+        user.setUserId(222);
         user.setAge(31);
         user.setLastName(new String[]{"w", "y", "h"});
 

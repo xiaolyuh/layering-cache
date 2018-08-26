@@ -67,13 +67,7 @@ public class LayeringAspect {
 
     @Around("cacheablePointcut()")
     public Object cacheablePointcut(ProceedingJoinPoint joinPoint) throws Throwable {
-        CacheOperationInvoker aopAllianceInvoker = () -> {
-            try {
-                return joinPoint.proceed();
-            } catch (Throwable ex) {
-                throw new CacheOperationInvoker.ThrowableWrapperException(ex);
-            }
-        };
+        CacheOperationInvoker aopAllianceInvoker = getCacheOperationInvoker(joinPoint);
 
         try {
             // 获取method
@@ -90,13 +84,7 @@ public class LayeringAspect {
 
     @Around("cacheEvictPointcut()")
     public Object cacheEvictPointcut(ProceedingJoinPoint joinPoint) throws Throwable {
-        CacheOperationInvoker aopAllianceInvoker = () -> {
-            try {
-                return joinPoint.proceed();
-            } catch (Throwable ex) {
-                throw new CacheOperationInvoker.ThrowableWrapperException(ex);
-            }
-        };
+        CacheOperationInvoker aopAllianceInvoker = getCacheOperationInvoker(joinPoint);
 
         try {
             // 获取method
@@ -113,13 +101,7 @@ public class LayeringAspect {
 
     @Around("cachePutPointcut()")
     public Object cachePutPointcut(ProceedingJoinPoint joinPoint) throws Throwable {
-        CacheOperationInvoker aopAllianceInvoker = () -> {
-            try {
-                return joinPoint.proceed();
-            } catch (Throwable ex) {
-                throw new CacheOperationInvoker.ThrowableWrapperException(ex);
-            }
-        };
+        CacheOperationInvoker aopAllianceInvoker = getCacheOperationInvoker(joinPoint);
 
         try {
             // 获取method
@@ -255,6 +237,17 @@ public class LayeringAspect {
         }
 
         return result;
+    }
+
+    private CacheOperationInvoker getCacheOperationInvoker(ProceedingJoinPoint joinPoint) {
+        return () -> {
+            try {
+                return joinPoint.proceed();
+            } catch (Throwable ex) {
+                logger.error(ex.getMessage(), ex);
+                throw new CacheOperationInvoker.ThrowableWrapperException(ex);
+            }
+        };
     }
 
     /**

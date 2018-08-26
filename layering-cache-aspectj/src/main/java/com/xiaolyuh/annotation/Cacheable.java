@@ -5,8 +5,8 @@ import org.springframework.core.annotation.AliasFor;
 import java.lang.annotation.*;
 
 /**
- * 标示调用的方法（或类中的所有方法）的结果是可以被缓存的。
- * 当该方法被调用时先检查缓存是否命中，如果没有在调用方法，并将返回值放到缓存中。
+ * 表示调用的方法（或类中的所有方法）的结果是可以被缓存的。
+ * 当该方法被调用时先检查缓存是否命中，如果没有命中再调用被缓存的方法，并将其返回值放到缓存中。
  * 这里的value和key都支持SpEL 表达式
  */
 @Target({ElementType.METHOD, ElementType.TYPE})

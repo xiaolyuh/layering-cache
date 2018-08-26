@@ -30,7 +30,7 @@ public @interface SecondaryCache {
     TimeUnit timeUnit() default TimeUnit.HOURS;
 
     /**
-     * 是否强制刷新（走数据库），默认是false
+     * 是否强制刷新（直接执行被缓存方法），默认是false
      */
     boolean forceRefresh() default false;
 }

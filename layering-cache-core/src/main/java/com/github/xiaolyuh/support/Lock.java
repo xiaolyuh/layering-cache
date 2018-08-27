@@ -237,32 +237,42 @@ public class Lock {
         // 只有加锁成功并且锁还有效才去释放锁
         // 只有加锁成功并且锁还有效才去释放锁
         if (locked) {
-            return redisTemplate.execute((RedisConnection connection) -> {
-                Object nativeConnection = connection.getNativeConnection();
-                Long result = 0L;
+            try {
+                return redisTemplate.execute((RedisConnection connection) -> {
+                    Object nativeConnection = connection.getNativeConnection();
+                    Long result = 0L;
 
-                List<String> keys = new ArrayList<>();
-                keys.add(lockKey);
-                List<String> values = new ArrayList<>();
-                values.add(lockValue);
+                    List<String> keys = new ArrayList<>();
+                    keys.add(lockKey);
+                    List<String> values = new ArrayList<>();
+                    values.add(lockValue);
 
-                // 集群模式
-                if (nativeConnection instanceof JedisCluster) {
-                    result = (Long) ((JedisCluster) nativeConnection).eval(UNLOCK_LUA, keys, values);
+                    // 集群模式
+                    if (nativeConnection instanceof JedisCluster) {
+                        result = (Long) ((JedisCluster) nativeConnection).eval(UNLOCK_LUA, keys, values);
+                    }
+
+                    // 单机模式
+                    if (nativeConnection instanceof Jedis) {
+                        result = (Long) ((Jedis) nativeConnection).eval(UNLOCK_LUA, keys, values);
+                    }
+
+                    if (result == 0 && !StringUtils.isEmpty(lockKeyLog)) {
+                        logger.debug("Redis分布式锁，解锁{}失败！解锁时间：{}", lockKeyLog, System.currentTimeMillis());
+                    }
+
+                    locked = result == 0;
+                    return result == 1;
+                });
+            } catch (Throwable e) {
+                logger.warn(e.getMessage(), e);
+                String value = (String) redisTemplate.opsForValue().get(lockKey);
+                if (lockValue.equals(value)) {
+                    redisTemplate.delete(lockKey);
+                    return true;
                 }
-
-                // 单机模式
-                if (nativeConnection instanceof Jedis) {
-                    result = (Long) ((Jedis) nativeConnection).eval(UNLOCK_LUA, keys, values);
-                }
-
-                if (result == 0 && !StringUtils.isEmpty(lockKeyLog)) {
-                    logger.debug("Redis分布式锁，解锁{}失败！解锁时间：{}", lockKeyLog, System.currentTimeMillis());
-                }
-
-                locked = result == 0;
-                return result == 1;
-            });
+                return false;
+            }
         }
 
         return true;

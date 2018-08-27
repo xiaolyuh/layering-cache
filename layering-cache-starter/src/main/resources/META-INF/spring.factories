@@ -1,2 +1,2 @@
 org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
-com.xiaolyuh.cache.config.LayeringCacheAutoConfig
+com.github.xiaolyuh.cache.config.LayeringCacheAutoConfig

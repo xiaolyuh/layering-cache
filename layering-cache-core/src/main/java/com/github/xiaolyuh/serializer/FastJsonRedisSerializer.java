@@ -3,6 +3,7 @@ package com.github.xiaolyuh.serializer;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.parser.ParserConfig;
 import com.alibaba.fastjson.serializer.SerializerFeature;
+import com.github.xiaolyuh.support.NullValue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.redis.serializer.RedisSerializer;
@@ -68,7 +69,7 @@ public class FastJsonRedisSerializer<T> implements RedisSerializer<T> {
         try {
             return JSON.toJSONString(t, SerializerFeature.WriteClassName).getBytes(DEFAULT_CHARSET);
         } catch (Exception e) {
-            logger.error(e.getMessage(), e);
+            logger.error("FastJsonRedisSerializer 序列化异常: {}", e.getMessage(), e);
             throw new SerializationException("FastJsonRedisSerializer 序列化异常: " + e.getMessage(), e);
         }
 
@@ -82,9 +83,14 @@ public class FastJsonRedisSerializer<T> implements RedisSerializer<T> {
 
         try {
             String str = new String(bytes, DEFAULT_CHARSET);
-            return JSON.parseObject(str, clazz);
+            Object result = JSON.parse(str);
+            if (result instanceof NullValue) {
+                return null;
+            }
+
+            return (T) result;
         } catch (Exception e) {
-            logger.error(e.getMessage(), e);
+            logger.error("FastJsonRedisSerializer 反序列化异常:{}", e.getMessage(), e);
             throw new SerializationException("FastJsonRedisSerializer 反序列化异常: " + e.getMessage(), e);
         }
     }

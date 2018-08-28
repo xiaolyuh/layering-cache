@@ -32,7 +32,7 @@ public class CacheAspectTest {
 
         User user = testService.getUser(userId);
         user = testService.getUser(userId);
-        sleep(4);
+        sleep(5);
         user = testService.getUser(userId);
         sleep(4);
         user = testService.getUser(userId);
@@ -52,7 +52,7 @@ public class CacheAspectTest {
 
         User user = testService.getUser(userId, lastName);
         user = testService.getUser(userId, lastName);
-        sleep(4);
+        sleep(5);
         user = testService.getUser(userId, lastName);
         sleep(4);
         user = testService.getUser(userId, lastName);
@@ -73,11 +73,11 @@ public class CacheAspectTest {
 
         user = testService.getUser(user);
         user = testService.getUser(user);
-        sleep(4);
+        sleep(5);
         user = testService.getUser(user);
         sleep(4);
         user = testService.getUser(user);
-        sleep(10);
+        sleep(11);
         Object result = redisTemplate.opsForValue().get("user:info:113:113");
         Assert.assertNull(result);
 
@@ -95,11 +95,11 @@ public class CacheAspectTest {
         testService.getUser(user, user.getAge());
         user = testService.getUser(user, user.getAge());
         Assert.assertNotNull(user);
-        sleep(4);
+        sleep(5);
         user = testService.getUser(user, user.getAge());
         sleep(4);
         user = testService.getUser(user, user.getAge());
-        sleep(10);
+        sleep(11);
         Object result = redisTemplate.opsForValue().get("user:info:114:114");
         Assert.assertNull(result);
 
@@ -115,11 +115,11 @@ public class CacheAspectTest {
         User user = testService.getNullUser(userId);
         Assert.assertNull(user);
 
-        sleep(4);
+        sleep(5);
         user = testService.getNullUser(userId);
         sleep(4);
         user = testService.getNullUser(userId);
-        sleep(11);
+       sleep(11);
         Object result = redisTemplate.opsForValue().get("user:info:115:115");
         Assert.assertNull(result);
 
@@ -134,7 +134,7 @@ public class CacheAspectTest {
         user = testService.getUserNoParam();
         Assert.assertNotNull(user);
 
-        sleep(4);
+        sleep(5);
         testService.getUserNoParam();
         sleep(4);
         testService.getUserNoParam();
@@ -175,9 +175,9 @@ public class CacheAspectTest {
     public void testEvictUser() {
         long userId = 118;
         User user = testService.putUser(userId);
-        sleep(2);
+        sleep(3);
         testService.evictUser(userId);
-        sleep(2);
+        sleep(3);
         Object result = redisTemplate.opsForValue().get("user:info:118:118");
         Assert.assertNull(result);
     }
@@ -189,7 +189,7 @@ public class CacheAspectTest {
         testService.putUserById(121);
         sleep(5);
         testService.evictAllUser();
-        sleep(2);
+        sleep(3);
         Object result1 = redisTemplate.opsForValue().get("user:info:119:119");
         Object result2 = redisTemplate.opsForValue().get("user:info:121:121");
         Assert.assertNull(result1);

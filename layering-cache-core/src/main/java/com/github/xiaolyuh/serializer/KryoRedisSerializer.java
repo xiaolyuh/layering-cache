@@ -3,6 +3,7 @@ package com.github.xiaolyuh.serializer;
 import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryo.io.Input;
 import com.esotericsoftware.kryo.io.Output;
+import com.github.xiaolyuh.support.NullValue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.redis.serializer.RedisSerializer;
@@ -41,7 +42,7 @@ public class KryoRedisSerializer<T> implements RedisSerializer<T> {
             output.flush();
             return baos.toByteArray();
         } catch (Exception e) {
-            logger.error(e.getMessage(), e);
+            logger.error("KryoRedisSerializer 序列化异常: {}", e.getMessage(), e);
             throw new SerializationException("KryoRedisSerializer 序列化异常: " + e.getMessage(), e);
         }
     }
@@ -57,9 +58,14 @@ public class KryoRedisSerializer<T> implements RedisSerializer<T> {
         kryo.register(clazz);
 
         try (Input input = new Input(bytes)) {
-            return (T) kryo.readClassAndObject(input);
+
+            Object result = kryo.readClassAndObject(input);
+            if (result instanceof NullValue) {
+                return null;
+            }
+            return (T) result;
         } catch (Exception e) {
-            logger.error(e.getMessage(), e);
+            logger.error("KryoRedisSerializer 反序列化异常: {}", e.getMessage(), e);
             throw new SerializationException("KryoRedisSerializer 反序列化异常: " + e.getMessage(), e);
         }
     }

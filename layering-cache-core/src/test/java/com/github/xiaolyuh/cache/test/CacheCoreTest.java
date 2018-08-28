@@ -76,7 +76,7 @@ public class CacheCoreTest {
         logger.debug("========================:{}", str1);
         Assert.assertTrue(str1.equals(st2));
         Assert.assertTrue(str1.equals(initCache(String.class)));
-        sleep(4);
+        sleep(5);
         Assert.assertNull(cache1.getFirstCache().get(cacheKey1, String.class));
         // 看日志是不是走了二级缓存
         cache1.get(cacheKey1, () -> initCache(String.class));
@@ -86,7 +86,7 @@ public class CacheCoreTest {
         st2 = cache1.getSecondCache().get(cacheKey1, () -> initCache(String.class));
         Assert.assertTrue(st2.equals(str1));
         Assert.assertTrue(str1.equals(initCache(String.class)));
-        sleep(4);
+        sleep(5);
         // 看日志是不是走了自动刷新
         RedisCacheKey redisCacheKey = ((RedisCache) cache1.getSecondCache()).getRedisCacheKey(cacheKey1);
         cache1.get(cacheKey1, () -> initCache(String.class));

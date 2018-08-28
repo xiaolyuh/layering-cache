@@ -83,12 +83,16 @@ public class FastJsonRedisSerializer<T> implements RedisSerializer<T> {
 
         try {
             String str = new String(bytes, DEFAULT_CHARSET);
-            Object result = JSON.parse(str);
-            if (result instanceof NullValue) {
-                return null;
+            if (str.contains("@type")) {
+                Object result = JSON.parse(str);
+                if (result instanceof NullValue) {
+                    return null;
+                }
+
+                return (T) result;
             }
 
-            return (T) result;
+            return (T)str;
         } catch (Exception e) {
             logger.error("FastJsonRedisSerializer 反序列化异常:{}", e.getMessage(), e);
             throw new SerializationException("FastJsonRedisSerializer 反序列化异常: " + e.getMessage(), e);

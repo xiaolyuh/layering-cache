@@ -79,7 +79,8 @@ public class LayeringAspect {
             return executeCacheable(aopAllianceInvoker, cacheable, method, joinPoint.getArgs(), joinPoint.getTarget());
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
-            throw e;
+//            throw e;
+            return aopAllianceInvoker.invoke();
         }
     }
 
@@ -96,7 +97,8 @@ public class LayeringAspect {
             return executeEvict(aopAllianceInvoker, cacheEvict, method, joinPoint.getArgs(), joinPoint.getTarget());
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
-            throw e;
+//            throw e;
+            return aopAllianceInvoker.invoke();
         }
     }
 
@@ -113,7 +115,8 @@ public class LayeringAspect {
             return executePut(aopAllianceInvoker, cacheEvict, method, joinPoint.getArgs(), joinPoint.getTarget());
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
-            throw e;
+//            throw e;
+            return aopAllianceInvoker.invoke();
         }
     }
 

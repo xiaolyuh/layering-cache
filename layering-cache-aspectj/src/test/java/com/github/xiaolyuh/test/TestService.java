@@ -84,9 +84,17 @@ public class TestService {
     @Cacheable(value = "'user:info' + ':' + #userId",
             firstCache = @FirstCache(expireTime = 4, timeUnit = TimeUnit.SECONDS),
             secondaryCache = @SecondaryCache(expireTime = 10, preloadTime = 3, forceRefresh = true, timeUnit = TimeUnit.SECONDS))
-    public double getInt(long userId) {
+    public int getInt(long userId) {
         logger.debug("调用方法获取用户名称");
-        return 11.1;
+        return 111;
+    }
+
+    @Cacheable(value = "'user:info' + ':' + #userId",
+            firstCache = @FirstCache(expireTime = 4, timeUnit = TimeUnit.SECONDS),
+            secondaryCache = @SecondaryCache(expireTime = 10, preloadTime = 3, forceRefresh = true, timeUnit = TimeUnit.SECONDS))
+    public Long getLong(long userId) {
+        logger.debug("调用方法获取用户名称");
+        return 1111L;
     }
 
 

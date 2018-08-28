@@ -156,9 +156,17 @@ public class CacheAspectTest {
 
     @Test
     public void testGetInt() {
-        double user = testService.getInt(212);
+        Integer user = testService.getInt(212);
         Assert.assertNotNull(user);
         user = testService.getInt(212);
+        Assert.assertNotNull(user);
+    }
+
+    @Test
+    public void testGetLong() {
+        Long user = testService.getLong(212);
+        Assert.assertNotNull(user);
+        user = testService.getLong(212);
         Assert.assertNotNull(user);
     }
 

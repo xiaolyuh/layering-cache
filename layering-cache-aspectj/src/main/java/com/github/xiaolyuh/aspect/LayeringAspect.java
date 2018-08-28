@@ -29,6 +29,7 @@ import org.springframework.util.StringUtils;
 
 import java.lang.reflect.Method;
 import java.util.Collection;
+import java.util.Objects;
 
 /**
  * 缓存拦截，用于注册方法信息
@@ -264,7 +265,9 @@ public class LayeringAspect {
                     targetClass, CacheOperationExpressionEvaluator.NO_RESULT);
 
             AnnotatedElementKey methodCacheKey = new AnnotatedElementKey(method, targetClass);
-            return evaluator.key(key, methodCacheKey, evaluationContext);
+            // 兼容传null值得情况
+            Object keyValue = evaluator.key(key, methodCacheKey, evaluationContext);
+            return Objects.isNull(keyValue) ? "null" : keyValue;
         }
         return this.keyGenerator.generate(target, method, args);
     }

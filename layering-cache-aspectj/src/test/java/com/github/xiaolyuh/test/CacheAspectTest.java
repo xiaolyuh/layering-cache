@@ -198,14 +198,12 @@ public class CacheAspectTest {
 
     @Test
     public void testGetNullPram() {
-        try {
-            User user = testService.getNullUser(null);
-        } catch (Exception e) {
-            logger.info(e.getMessage(), e);
-            Assert.assertNotNull(e);
-            return;
-        }
-        Assert.assertTrue(false);
+        User user = testService.getNullUser(null);
+        user = testService.getNullUser(null);
+        sleep(5);
+        user = testService.getNullUser(null);
+
+        Assert.assertNull(user);
     }
 
     @Test

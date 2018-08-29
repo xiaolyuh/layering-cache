@@ -155,7 +155,8 @@ public class CacheAspectTest {
         user = testService.getString(211);
         Assert.assertNotNull(user);
         sleep(5);
-        testService.getString(211);
+        user = testService.getString(211);
+        Assert.assertNotNull(user);
     }
 
     @Test
@@ -165,7 +166,8 @@ public class CacheAspectTest {
         user = testService.getInt(212);
         Assert.assertNotNull(user);
         sleep(5);
-        testService.getInt(212);
+        user = testService.getInt(212);
+        Assert.assertNotNull(user);
     }
 
     @Test

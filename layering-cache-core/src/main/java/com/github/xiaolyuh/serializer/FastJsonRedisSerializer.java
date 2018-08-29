@@ -72,6 +72,7 @@ public class FastJsonRedisSerializer<T> implements RedisSerializer<T> {
         }
 
         try {
+            JSON.toJSONBytes(t, SerializerFeature.WriteClassName);
             return JSON.toJSONString(t, SerializerFeature.WriteClassName).getBytes(DEFAULT_CHARSET);
         } catch (Exception e) {
             logger.error("FastJsonRedisSerializer 序列化异常: {}", e.getMessage(), e);

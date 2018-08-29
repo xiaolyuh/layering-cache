@@ -216,6 +216,19 @@ public class CacheAspectTest {
     }
 
     @Test
+    public void testGetException() {
+        List<User> list = null;
+        try {
+            list = testService.getException(217);
+        } catch (Exception e) {
+            Assert.assertNotNull(e);
+            return;
+        }
+        Assert.assertTrue(false);
+
+    }
+
+    @Test
     public void testPutUser() {
         long userId = 116;
         testService.putUser(userId);
@@ -277,7 +290,18 @@ public class CacheAspectTest {
 
     @Test
     public void testGetNullObjectPram() {
-        User user = testService.getUser(null);
+        try {
+            User user = testService.getNullObjectPram(null);
+        } catch (Exception e) {
+            Assert.assertNotNull(e);
+            return;
+        }
+        Assert.assertTrue(false);
+    }
+
+    @Test
+    public void testGetNullObjectPramIgnoreException() {
+        User user = testService.getNullObjectPramIgnoreException(null);
         Assert.assertNull(user);
     }
 

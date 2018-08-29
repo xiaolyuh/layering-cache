@@ -70,17 +70,23 @@ public class LayeringAspect {
     public Object cacheablePointcut(ProceedingJoinPoint joinPoint) throws Throwable {
         CacheOperationInvoker aopAllianceInvoker = getCacheOperationInvoker(joinPoint);
 
+        // 获取method
+        Method method = this.getSpecificmethod(joinPoint);
+        // 获取注解
+        Cacheable cacheable = AnnotationUtils.findAnnotation(method, Cacheable.class);
+
         try {
-            // 获取method
-            Method method = this.getSpecificmethod(joinPoint);
-            // 获取注解
-            Cacheable cacheable = AnnotationUtils.findAnnotation(method, Cacheable.class);
             // 执行查询缓存方法
             return executeCacheable(aopAllianceInvoker, cacheable, method, joinPoint.getArgs(), joinPoint.getTarget());
         } catch (Exception e) {
+            // 忽略操作缓存过程中遇到的异常
+            if (cacheable.ignoreException()) {
+                logger.warn(e.getMessage(), e);
+                return aopAllianceInvoker.invoke();
+            }
+
             logger.error(e.getMessage(), e);
-//            throw e;
-            return aopAllianceInvoker.invoke();
+            throw e;
         }
     }
 
@@ -88,17 +94,23 @@ public class LayeringAspect {
     public Object cacheEvictPointcut(ProceedingJoinPoint joinPoint) throws Throwable {
         CacheOperationInvoker aopAllianceInvoker = getCacheOperationInvoker(joinPoint);
 
+        // 获取method
+        Method method = this.getSpecificmethod(joinPoint);
+        // 获取注解
+        CacheEvict cacheEvict = AnnotationUtils.findAnnotation(method, CacheEvict.class);
+
         try {
-            // 获取method
-            Method method = this.getSpecificmethod(joinPoint);
-            // 获取注解
-            CacheEvict cacheEvict = AnnotationUtils.findAnnotation(method, CacheEvict.class);
             // 执行查询缓存方法
             return executeEvict(aopAllianceInvoker, cacheEvict, method, joinPoint.getArgs(), joinPoint.getTarget());
         } catch (Exception e) {
+            // 忽略操作缓存过程中遇到的异常
+            if (cacheEvict.ignoreException()) {
+                logger.warn(e.getMessage(), e);
+                return aopAllianceInvoker.invoke();
+            }
+
             logger.error(e.getMessage(), e);
-//            throw e;
-            return aopAllianceInvoker.invoke();
+            throw e;
         }
     }
 
@@ -106,17 +118,23 @@ public class LayeringAspect {
     public Object cachePutPointcut(ProceedingJoinPoint joinPoint) throws Throwable {
         CacheOperationInvoker aopAllianceInvoker = getCacheOperationInvoker(joinPoint);
 
+        // 获取method
+        Method method = this.getSpecificmethod(joinPoint);
+        // 获取注解
+        CachePut cacheEvict = AnnotationUtils.findAnnotation(method, CachePut.class);
+
         try {
-            // 获取method
-            Method method = this.getSpecificmethod(joinPoint);
-            // 获取注解
-            CachePut cacheEvict = AnnotationUtils.findAnnotation(method, CachePut.class);
             // 执行查询缓存方法
             return executePut(aopAllianceInvoker, cacheEvict, method, joinPoint.getArgs(), joinPoint.getTarget());
         } catch (Exception e) {
+            // 忽略操作缓存过程中遇到的异常
+            if (cacheEvict.ignoreException()) {
+                logger.warn(e.getMessage(), e);
+                return aopAllianceInvoker.invoke();
+            }
+
             logger.error(e.getMessage(), e);
-//            throw e;
-            return aopAllianceInvoker.invoke();
+            throw e;
         }
     }
 

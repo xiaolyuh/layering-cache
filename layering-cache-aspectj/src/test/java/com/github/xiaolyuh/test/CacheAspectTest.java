@@ -13,6 +13,8 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
+import java.util.List;
+
 // SpringJUnit4ClassRunner再Junit环境下提供Spring TestContext Framework的功能。
 @RunWith(SpringJUnit4ClassRunner.class)
 // @ContextConfiguration用来加载配置ApplicationContext，其中classes用来加载配置类
@@ -119,7 +121,7 @@ public class CacheAspectTest {
         user = testService.getNullUser(userId);
         sleep(4);
         user = testService.getNullUser(userId);
-       sleep(11);
+        sleep(11);
         Object result = redisTemplate.opsForValue().get("user:info:115:115");
         Assert.assertNull(result);
 
@@ -152,6 +154,8 @@ public class CacheAspectTest {
         Assert.assertNotNull(user);
         user = testService.getString(211);
         Assert.assertNotNull(user);
+        sleep(5);
+        testService.getString(211);
     }
 
     @Test
@@ -160,14 +164,53 @@ public class CacheAspectTest {
         Assert.assertNotNull(user);
         user = testService.getInt(212);
         Assert.assertNotNull(user);
+        sleep(5);
+        testService.getInt(212);
     }
 
     @Test
     public void testGetLong() {
-        Long user = testService.getLong(212);
+        Long user = testService.getLong(213);
         Assert.assertNotNull(user);
-        user = testService.getLong(212);
+        user = testService.getLong(213);
         Assert.assertNotNull(user);
+        sleep(5);
+        testService.getLong(213);
+    }
+
+    @Test
+    public void testGetArray() {
+        long[] array = testService.getArray(214);
+        Assert.assertNotNull(array);
+        array = testService.getArray(214);
+        Assert.assertEquals(array.length, 3);
+        sleep(5);
+        array = testService.getArray(214);
+        Assert.assertEquals(array.length, 3);
+    }
+
+    @Test
+    public void testGetList() {
+        List<String> list = testService.getList(215);
+        Assert.assertNotNull(list);
+        list = testService.getList(215);
+        Assert.assertEquals(list.size(), 3);
+        sleep(5);
+        list = testService.getList(215);
+        Assert.assertEquals(list.size(), 3);
+
+    }
+
+    @Test
+    public void testGetListObject() {
+        List<User> list = testService.getListObject(216);
+        Assert.assertNotNull(list);
+        list = testService.getListObject(216);
+        Assert.assertEquals(list.size(), 3);
+        sleep(5);
+        list = testService.getListObject(216);
+        Assert.assertEquals(list.size(), 3);
+
     }
 
     @Test

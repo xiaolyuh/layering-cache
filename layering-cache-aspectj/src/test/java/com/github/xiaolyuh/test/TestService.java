@@ -6,6 +6,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 @Service
@@ -95,6 +97,45 @@ public class TestService {
     public Long getLong(long userId) {
         logger.debug("调用方法获取用户名称");
         return 1111L;
+    }
+
+    @Cacheable(value = "'user:info' + ':' + #userId",
+            firstCache = @FirstCache(expireTime = 4, timeUnit = TimeUnit.SECONDS),
+            secondaryCache = @SecondaryCache(expireTime = 10, preloadTime = 3, forceRefresh = true, timeUnit = TimeUnit.SECONDS))
+    public long[] getArray(long userId) {
+        logger.debug("调用方法获取数组");
+        return new long[]{111,222,333};
+    }
+
+    @Cacheable(value = "'user:info' + ':' + #userId",
+            firstCache = @FirstCache(expireTime = 4, timeUnit = TimeUnit.SECONDS),
+            secondaryCache = @SecondaryCache(expireTime = 10, preloadTime = 3, forceRefresh = true, timeUnit = TimeUnit.SECONDS))
+    public List<String> getList(long userId) {
+        logger.debug("调用方法获取数组");
+        List<String> list = new ArrayList<>();
+        list.add("111");
+        list.add("112");
+        list.add("113");
+
+        return list;
+    }
+
+    @Cacheable(value = "'user:info' + ':' + #userId",
+            firstCache = @FirstCache(expireTime = 4, timeUnit = TimeUnit.SECONDS),
+            secondaryCache = @SecondaryCache(expireTime = 10, preloadTime = 3, forceRefresh = true, timeUnit = TimeUnit.SECONDS))
+    public List<User> getListObject(long userId) {
+        logger.debug("调用方法获取数组");
+        List<User> list = new ArrayList<>();
+        User user = new User();
+        user.setUserId(223);
+        user.setAge(31);
+        user.setLastName(new String[]{"w", "y", "h"});
+
+        list.add(user);
+        list.add(user);
+        list.add(user);
+
+        return list;
     }
 
 

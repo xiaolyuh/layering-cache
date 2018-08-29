@@ -1,6 +1,7 @@
 package com.github.xiaolyuh.serializer;
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.parser.ParserConfig;
 import com.alibaba.fastjson.serializer.SerializerFeature;
 import com.github.xiaolyuh.support.NullValue;
@@ -10,6 +11,7 @@ import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.data.redis.serializer.SerializationException;
 
 import java.nio.charset.Charset;
+import java.util.regex.Pattern;
 
 /**
  * @param <T>
@@ -86,6 +88,14 @@ public class FastJsonRedisSerializer<T> implements RedisSerializer<T> {
 
         try {
             String str = new String(bytes, DEFAULT_CHARSET);
+
+            boolean isMatch = Pattern.matches("^\\[.*\\]$", str);
+
+            if (isMatch) {
+                JSONArray array = JSON.parseArray(str);
+                return (T) array.toJavaList(clazz);
+            }
+
             if (str.contains("@type")) {
                 Object result = JSON.parse(str);
                 if (result instanceof NullValue) {
@@ -95,7 +105,7 @@ public class FastJsonRedisSerializer<T> implements RedisSerializer<T> {
                 return (T) result;
             }
 
-            return (T)str;
+            return (T) str;
         } catch (Exception e) {
             logger.error("FastJsonRedisSerializer 反序列化异常:{}", e.getMessage(), e);
             throw new SerializationException("FastJsonRedisSerializer 反序列化异常: " + e.getMessage(), e);

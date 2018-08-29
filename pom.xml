@@ -7,7 +7,7 @@
     <groupId>com.github.xiaolyuh</groupId>
     <artifactId>layering-cache</artifactId>
     <packaging>pom</packaging>
-    <version>1.0.5-SNAPSHOT</version>
+    <version>1.0.6-SNAPSHOT</version>
 
     <modules>
         <module>layering-cache-core</module>
@@ -18,19 +18,6 @@
     <name>layering-cache</name>
     <!-- FIXME change it to the project's website -->
     <url>http://www.example.com</url>
-
-    <distributionManagement>
-        <repository>
-            <id>wlqq-releases</id>
-            <name>Nexus Release Repository</name>
-            <url>http://nexus.56qq.cn:81/content/repositories/wlqq-releases</url>
-        </repository>
-        <snapshotRepository>
-            <id>wlqq-snapshots</id>
-            <name>Nexus Snapshot Repository</name>
-            <url>http://nexus.56qq.cn:81/content/repositories/wlqq-snapshots</url>
-        </snapshotRepository>
-    </distributionManagement>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>

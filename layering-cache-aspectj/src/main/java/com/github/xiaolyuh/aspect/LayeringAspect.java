@@ -10,6 +10,7 @@ import com.github.xiaolyuh.setting.SecondaryCacheSetting;
 import com.github.xiaolyuh.support.CacheOperationInvoker;
 import com.github.xiaolyuh.support.KeyGenerator;
 import com.github.xiaolyuh.support.SimpleKeyGenerator;
+import com.sun.xml.internal.ws.encoding.soap.SerializationException;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
@@ -78,6 +79,20 @@ public class LayeringAspect {
         try {
             // 执行查询缓存方法
             return executeCacheable(aopAllianceInvoker, cacheable, method, joinPoint.getArgs(), joinPoint.getTarget());
+        } catch (SerializationException e) {
+            // 如果是序列化异常需要先删除原有缓存
+            String[] cacheNames = cacheable.cacheNames();
+            // 删除缓存
+            delete(cacheNames, cacheable.key(), method, joinPoint.getArgs(), joinPoint.getTarget());
+
+            // 忽略操作缓存过程中遇到的异常
+            if (cacheable.ignoreException()) {
+                logger.warn(e.getMessage(), e);
+                return aopAllianceInvoker.invoke();
+            }
+
+            logger.error(e.getMessage(), e);
+            throw e;
         } catch (Exception e) {
             // 忽略操作缓存过程中遇到的异常
             if (cacheable.ignoreException()) {
@@ -203,19 +218,32 @@ public class LayeringAspect {
             }
         } else {
             // 删除指定key
-            Object key = generateKey(cacheEvict.key(), method, args, target);
-            Assert.notNull(key, String.format(CACHE_KEY_ERROR_MESSAGE, cacheEvict.key()));
-            for (String cacheNameExpression : cacheNames) {
-                String cacheName = generateValue(cacheNameExpression, method, args, target).toString();
-                Collection<Cache> caches = cacheManager.getCache(cacheName);
-                for (Cache cache : caches) {
-                    cache.evict(key);
-                }
-            }
+            delete(cacheNames, cacheEvict.key(), method, args, target);
         }
 
         // 执行方法
         return invoker.invoke();
+    }
+
+    /**
+     * 删除执行缓存名称上的指定key
+     *
+     * @param cacheNames 缓存名称
+     * @param keySpEL    key的SpEL表达式
+     * @param method     {@link Method}
+     * @param args       参数列表
+     * @param target     目标类
+     */
+    private void delete(String[] cacheNames, String keySpEL, Method method, Object[] args, Object target) {
+        Object key = generateKey(keySpEL, method, args, target);
+        Assert.notNull(key, String.format(CACHE_KEY_ERROR_MESSAGE, keySpEL));
+        for (String cacheNameExpression : cacheNames) {
+            String cacheName = generateValue(cacheNameExpression, method, args, target).toString();
+            Collection<Cache> caches = cacheManager.getCache(cacheName);
+            for (Cache cache : caches) {
+                cache.evict(key);
+            }
+        }
     }
 
     /**
@@ -277,17 +305,17 @@ public class LayeringAspect {
      *
      * @return Object
      */
-    private Object generateKey(String key, Method method, Object[] args, Object target) {
+    private Object generateKey(String keySpEl, Method method, Object[] args, Object target) {
 
         // 获取注解上的key属性值
         Class<?> targetClass = getTargetClass(target);
-        if (StringUtils.hasText(key)) {
+        if (StringUtils.hasText(keySpEl)) {
             EvaluationContext evaluationContext = evaluator.createEvaluationContext(method, args, target,
                     targetClass, CacheOperationExpressionEvaluator.NO_RESULT);
 
             AnnotatedElementKey methodCacheKey = new AnnotatedElementKey(method, targetClass);
             // 兼容传null值得情况
-            Object keyValue = evaluator.key(key, methodCacheKey, evaluationContext);
+            Object keyValue = evaluator.key(keySpEl, methodCacheKey, evaluationContext);
             return Objects.isNull(keyValue) ? "null" : keyValue;
         }
         return this.keyGenerator.generate(target, method, args);
@@ -298,12 +326,12 @@ public class LayeringAspect {
      *
      * @return cahceName
      */
-    private Object generateValue(String value, Method method, Object[] args, Object target) {
-        Assert.isTrue(!StringUtils.isEmpty(value), CACHE_NAME_ERROR_MESSAGE);
+    private Object generateValue(String valueSpEl, Method method, Object[] args, Object target) {
+        Assert.isTrue(!StringUtils.isEmpty(valueSpEl), CACHE_NAME_ERROR_MESSAGE);
 
         // 不是SPEL表达式直接返回
-        if (!value.contains("#")) {
-            return value;
+        if (!valueSpEl.contains("#")) {
+            return valueSpEl;
         }
 
         // 获取注解上的value属性值
@@ -312,7 +340,7 @@ public class LayeringAspect {
                 targetClass, CacheOperationExpressionEvaluator.NO_RESULT);
 
         AnnotatedElementKey methodCacheKey = new AnnotatedElementKey(method, targetClass);
-        return evaluator.cacheName(value, methodCacheKey, evaluationContext);
+        return evaluator.cacheName(valueSpEl, methodCacheKey, evaluationContext);
     }
 
     /**

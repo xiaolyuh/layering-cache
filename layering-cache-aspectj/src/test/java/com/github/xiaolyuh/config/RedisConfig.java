@@ -78,8 +78,8 @@ public class RedisConfig {
         jackson2JsonRedisSerializer.setObjectMapper(om);
 
         // 设置值（value）的序列化采用FastJsonRedisSerializer。
-        redisTemplate.setHashValueSerializer(kryoRedisSerializer);
-        redisTemplate.setValueSerializer(kryoRedisSerializer);
+        redisTemplate.setHashValueSerializer(fastJsonRedisSerializer);
+        redisTemplate.setValueSerializer(fastJsonRedisSerializer);
         // 设置键（key）的序列化采用StringRedisSerializer。
         redisTemplate.setKeySerializer(new StringRedisSerializer());
         redisTemplate.setHashKeySerializer(new StringRedisSerializer());

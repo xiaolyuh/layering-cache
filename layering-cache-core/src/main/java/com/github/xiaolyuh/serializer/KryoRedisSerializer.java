@@ -33,6 +33,7 @@ public class KryoRedisSerializer<T> implements RedisSerializer<T> {
         }
 
         Kryo kryo = kryos.get();
+        // 设置成false 序列化速度更快，但是遇到循环应用序列化器会报栈内存溢出
         kryo.setReferences(false);
         kryo.register(clazz);
 
@@ -44,6 +45,8 @@ public class KryoRedisSerializer<T> implements RedisSerializer<T> {
         } catch (Exception e) {
             logger.error("KryoRedisSerializer 序列化异常: {}", e.getMessage(), e);
             throw new SerializationException("KryoRedisSerializer 序列化异常: " + e.getMessage(), e);
+        } finally {
+            kryos.remove();
         }
     }
 
@@ -54,6 +57,7 @@ public class KryoRedisSerializer<T> implements RedisSerializer<T> {
         }
 
         Kryo kryo = kryos.get();
+        // 设置成false 序列化速度更快，但是遇到循环应用序列化器会报栈内存溢出
         kryo.setReferences(false);
         kryo.register(clazz);
 
@@ -67,6 +71,8 @@ public class KryoRedisSerializer<T> implements RedisSerializer<T> {
         } catch (Exception e) {
             logger.error("KryoRedisSerializer 反序列化异常: {}", e.getMessage(), e);
             throw new SerializationException("KryoRedisSerializer 反序列化异常: " + e.getMessage(), e);
+        } finally {
+            kryos.remove();
         }
     }
 }

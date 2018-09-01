@@ -3,6 +3,7 @@ package com.github.xiaolyuh.test;
 import com.alibaba.fastjson.JSON;
 import com.github.xiaolyuh.config.CacheConfig;
 import com.github.xiaolyuh.domain.User;
+import com.github.xiaolyuh.support.CacheMode;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -13,7 +14,10 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
+import java.math.BigDecimal;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 
 // SpringJUnit4ClassRunner再Junit环境下提供Spring TestContext Framework的功能。
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -32,18 +36,18 @@ public class CacheAspectTest {
     public void testGetUserNameLongParam() {
         long userId = 111;
 
-        User user = testService.getUser(userId);
-        user = testService.getUser(userId);
+        User user = testService.getUserById(userId);
+        user = testService.getUserById(userId);
         sleep(5);
-        user = testService.getUser(userId);
+        user = testService.getUserById(userId);
         sleep(4);
-        user = testService.getUser(userId);
+        user = testService.getUserById(userId);
         sleep(10);
 
         Object result = redisTemplate.opsForValue().get("user:info:113:113");
         Assert.assertNull(result);
 
-        user = testService.getUser(userId);
+        user = testService.getUserById(userId);
         Assert.assertNotNull(user);
     }
 
@@ -52,17 +56,17 @@ public class CacheAspectTest {
         String[] lastName = {"w", "y", "h"};
         long userId = 122;
 
-        User user = testService.getUser(userId, lastName);
-        user = testService.getUser(userId, lastName);
+        User user = testService.getUserNoKey(userId, lastName);
+        user = testService.getUserNoKey(userId, lastName);
         sleep(5);
-        user = testService.getUser(userId, lastName);
+        user = testService.getUserNoKey(userId, lastName);
         sleep(4);
-        user = testService.getUser(userId, lastName);
+        user = testService.getUserNoKey(userId, lastName);
         sleep(10);
         Object result = redisTemplate.opsForValue().get("user:info:113:113");
         Assert.assertNull(result);
 
-        user = testService.getUser(userId, lastName);
+        user = testService.getUserNoKey(userId, lastName);
         Assert.assertNotNull(user);
     }
 
@@ -73,17 +77,17 @@ public class CacheAspectTest {
         user.setAge(31);
         user.setLastName(new String[]{"w", "y", "h"});
 
-        user = testService.getUser(user);
-        user = testService.getUser(user);
+        user = testService.getUserObjectPram(user);
+        user = testService.getUserObjectPram(user);
         sleep(5);
-        user = testService.getUser(user);
+        user = testService.getUserObjectPram(user);
         sleep(4);
-        user = testService.getUser(user);
+        user = testService.getUserObjectPram(user);
         sleep(11);
         Object result = redisTemplate.opsForValue().get("user:info:113:113");
         Assert.assertNull(result);
 
-        user = testService.getUser(user);
+        user = testService.getUserObjectPram(user);
         Assert.assertNotNull(user);
     }
 
@@ -150,34 +154,75 @@ public class CacheAspectTest {
 
     @Test
     public void testGetString() {
-        String user = testService.getString(211);
-        Assert.assertNotNull(user);
-        user = testService.getString(211);
-        Assert.assertNotNull(user);
+        String string = testService.getString(211);
+        Assert.assertNotNull(string);
+        string = testService.getString(211);
+        Assert.assertNotNull(string);
         sleep(5);
-        user = testService.getString(211);
-        Assert.assertNotNull(user);
+        string = testService.getString(211);
+        Assert.assertNotNull(string);
     }
 
     @Test
     public void testGetInt() {
-        Integer user = testService.getInt(212);
-        Assert.assertNotNull(user);
-        user = testService.getInt(212);
-        Assert.assertNotNull(user);
+        Integer anInt = testService.getInt(212);
+        Assert.assertNotNull(anInt);
+        anInt = testService.getInt(212);
+        Assert.assertNotNull(anInt);
         sleep(5);
-        user = testService.getInt(212);
-        Assert.assertNotNull(user);
+        anInt = testService.getInt(212);
+        Assert.assertNotNull(anInt);
     }
 
     @Test
     public void testGetLong() {
-        Long user = testService.getLong(213);
-        Assert.assertNotNull(user);
-        user = testService.getLong(213);
-        Assert.assertNotNull(user);
+        Long aLong = testService.getLong(213);
+        Assert.assertNotNull(aLong);
+        aLong = testService.getLong(213);
+        Assert.assertNotNull(aLong);
         sleep(5);
         testService.getLong(213);
+    }
+
+    @Test
+    public void testGetDouble() {
+        double aDouble = testService.getDouble(223);
+        Assert.assertNotNull(aDouble);
+        aDouble = testService.getDouble(223);
+        Assert.assertNotNull(aDouble);
+        sleep(5);
+        testService.getDouble(223);
+    }
+
+    @Test
+    public void testGetFloat() {
+        float aFloat = testService.getFloat(224);
+        Assert.assertNotNull(aFloat);
+        aFloat = testService.getFloat(224);
+        Assert.assertNotNull(aFloat);
+        sleep(5);
+        testService.getFloat(224);
+    }
+
+    @Test
+    public void testGetBigDecimal() {
+        BigDecimal bigDecimal = testService.getBigDecimal(225);
+        Assert.assertNotNull(bigDecimal);
+        bigDecimal = testService.getBigDecimal(225);
+        Assert.assertNotNull(bigDecimal);
+        sleep(5);
+        testService.getBigDecimal(225);
+    }
+
+    @Test
+    public void testGetEnum() {
+        CacheMode cacheMode = testService.getEnum(214);
+        Assert.assertNotNull(cacheMode);
+        cacheMode = testService.getEnum(214);
+        Assert.assertEquals(cacheMode, CacheMode.ONLY_FIRST);
+        sleep(5);
+        cacheMode = testService.getEnum(214);
+        Assert.assertEquals(cacheMode, CacheMode.ONLY_FIRST);
     }
 
     @Test
@@ -192,6 +237,17 @@ public class CacheAspectTest {
     }
 
     @Test
+    public void testGetObjectArray() {
+        User[] array = testService.getObjectArray(214);
+        Assert.assertNotNull(array);
+        array = testService.getObjectArray(214);
+        Assert.assertEquals(array.length, 3);
+        sleep(5);
+        array = testService.getObjectArray(214);
+        Assert.assertEquals(array.length, 3);
+    }
+
+    @Test
     public void testGetList() {
         List<String> list = testService.getList(215);
         Assert.assertNotNull(list);
@@ -199,6 +255,18 @@ public class CacheAspectTest {
         Assert.assertEquals(list.size(), 3);
         sleep(5);
         list = testService.getList(215);
+        Assert.assertEquals(list.size(), 3);
+
+    }
+
+    @Test
+    public void testGetLinkList() {
+        LinkedList<String> list = testService.getLinkedList(215);
+        Assert.assertNotNull(list);
+        list = testService.getLinkedList(215);
+        Assert.assertEquals(list.size(), 3);
+        sleep(5);
+        list = testService.getLinkedList(215);
         Assert.assertEquals(list.size(), 3);
 
     }
@@ -216,10 +284,34 @@ public class CacheAspectTest {
     }
 
     @Test
+    public void testGetSet() {
+        Set<String> set = testService.getSet(217);
+        Assert.assertNotNull(set);
+        set = testService.getSet(217);
+        Assert.assertEquals(set.size(), 3);
+        sleep(5);
+        set = testService.getSet(217);
+        Assert.assertEquals(set.size(), 3);
+
+    }
+
+    @Test
+    public void testGetSetObject() {
+        Set<User> set = testService.getSetObject(218);
+        Assert.assertNotNull(set);
+        set = testService.getSetObject(218);
+        Assert.assertEquals(set.size(), 1);
+        sleep(5);
+        set = testService.getSetObject(218);
+        Assert.assertEquals(set.size(), 1);
+
+    }
+
+    @Test
     public void testGetException() {
         List<User> list = null;
         try {
-            list = testService.getException(217);
+            list = testService.getException(219);
         } catch (Exception e) {
             Assert.assertNotNull(e);
             return;
@@ -232,7 +324,7 @@ public class CacheAspectTest {
     public void testPutUser() {
         long userId = 116;
         testService.putUser(userId);
-        User user = testService.getUser(userId);
+        User user = testService.getUserById(userId);
         logger.debug(JSON.toJSONString(user));
         Assert.assertNotNull(user);
     }
@@ -248,7 +340,7 @@ public class CacheAspectTest {
     public void testPutNullUser() {
         long userId = 117;
         testService.putNullUser(userId);
-        User user = testService.getUser(userId);
+        User user = testService.getUserById(userId);
         logger.debug(JSON.toJSONString(user));
         Assert.assertNull(user);
     }

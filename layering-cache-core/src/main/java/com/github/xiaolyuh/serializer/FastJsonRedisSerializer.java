@@ -5,13 +5,13 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.parser.ParserConfig;
 import com.alibaba.fastjson.serializer.SerializerFeature;
 import com.github.xiaolyuh.support.NullValue;
+import com.github.xiaolyuh.support.Type;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.data.redis.serializer.SerializationException;
 
 import java.nio.charset.Charset;
-import java.util.regex.Pattern;
 
 /**
  * @param <T>
@@ -64,16 +64,8 @@ public class FastJsonRedisSerializer<T> implements RedisSerializer<T> {
 
     @Override
     public byte[] serialize(T t) throws SerializationException {
-        if (t == null) {
-            return SerializationUtils.EMPTY_ARRAY;
-        }
-        if (t instanceof String) {
-            return ((String) t).getBytes(DEFAULT_CHARSET);
-        }
-
         try {
-            JSON.toJSONBytes(t, SerializerFeature.WriteClassName);
-            return JSON.toJSONString(t, SerializerFeature.WriteClassName).getBytes(DEFAULT_CHARSET);
+            return JSON.toJSONString(new FastJsonSerializerWrapper(t), SerializerFeature.WriteClassName).getBytes(DEFAULT_CHARSET);
         } catch (Exception e) {
             logger.error("FastJsonRedisSerializer 序列化异常: {}", e.getMessage(), e);
             throw new SerializationException("FastJsonRedisSerializer 序列化异常: " + e.getMessage(), e);
@@ -89,28 +81,32 @@ public class FastJsonRedisSerializer<T> implements RedisSerializer<T> {
 
         try {
             String str = new String(bytes, DEFAULT_CHARSET);
+            FastJsonSerializerWrapper wrapper = JSON.parseObject(str, FastJsonSerializerWrapper.class);
+            switch (Type.parse(wrapper.getType())) {
+                case STRING:
+                    return (T) wrapper.getContent();
+                case OBJECT:
+                case SET:
 
-            boolean isMatch = Pattern.matches("^\\[.*\\]$", str);
+                    if (wrapper.getContent() instanceof NullValue) {
+                        return null;
+                    }
 
-            if (isMatch) {
-                JSONArray array = JSON.parseArray(str);
-                return (T) array.toJavaList(clazz);
-            }
+                    return (T) wrapper.getContent();
 
-            if (str.contains("@type")) {
-                Object result = JSON.parse(str);
-                if (result instanceof NullValue) {
+                case LIST:
+
+                    return (T) ((JSONArray) wrapper.getContent()).toJavaList(clazz);
+
+                case NULL:
+
                     return null;
-                }
-
-                return (T) result;
+                default:
+                    throw new SerializationException("不支持反序列化的对象类型: " + wrapper.getType());
             }
-
-            return (T) str;
         } catch (Exception e) {
             logger.error("FastJsonRedisSerializer 反序列化异常:{}", e.getMessage(), e);
             throw new SerializationException("FastJsonRedisSerializer 反序列化异常: " + e.getMessage(), e);
         }
     }
-
 }

@@ -9,8 +9,8 @@ import com.github.xiaolyuh.setting.LayeringCacheSetting;
 import com.github.xiaolyuh.setting.SecondaryCacheSetting;
 import com.github.xiaolyuh.support.CacheOperationInvoker;
 import com.github.xiaolyuh.support.KeyGenerator;
+import com.github.xiaolyuh.support.SerializationException;
 import com.github.xiaolyuh.support.SimpleKeyGenerator;
-import com.sun.xml.internal.ws.encoding.soap.SerializationException;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
@@ -181,7 +181,7 @@ public class LayeringAspect {
 
         SecondaryCacheSetting secondaryCacheSetting = new SecondaryCacheSetting(secondaryCache.expireTime(),
                 secondaryCache.preloadTime(), secondaryCache.timeUnit(), secondaryCache.forceRefresh());
-        LayeringCacheSetting layeringCacheSetting = new LayeringCacheSetting(firstCacheSetting, secondaryCacheSetting);
+        LayeringCacheSetting layeringCacheSetting = new LayeringCacheSetting(firstCacheSetting, secondaryCacheSetting, cacheable.depict());
 
         // 通过cacheName和缓存配置获取Cache
         Cache cache = cacheManager.getCache(cacheName, layeringCacheSetting);
@@ -273,7 +273,7 @@ public class LayeringAspect {
 
         SecondaryCacheSetting secondaryCacheSetting = new SecondaryCacheSetting(secondaryCache.expireTime(),
                 secondaryCache.preloadTime(), secondaryCache.timeUnit(), secondaryCache.forceRefresh());
-        LayeringCacheSetting layeringCacheSetting = new LayeringCacheSetting(firstCacheSetting, secondaryCacheSetting);
+        LayeringCacheSetting layeringCacheSetting = new LayeringCacheSetting(firstCacheSetting, secondaryCacheSetting, cachePut.depict());
 
         // 指定调用方法获取缓存值
         Object result = invoker.invoke();

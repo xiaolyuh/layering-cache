@@ -1,5 +1,6 @@
 package com.github.xiaolyuh.setting;
 
+import java.io.Serializable;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -7,7 +8,7 @@ import java.util.concurrent.TimeUnit;
  *
  * @author yuhao.wang
  */
-public class SecondaryCacheSetting {
+public class SecondaryCacheSetting implements Serializable {
     /**
      * 缓存有效时间
      */
@@ -38,6 +39,9 @@ public class SecondaryCacheSetting {
      */
     private boolean allowNullValues;
 
+    public SecondaryCacheSetting() {
+    }
+
     /**
      * @param expiration   缓存有效时间
      * @param preloadTime  缓存刷新时间
@@ -57,23 +61,47 @@ public class SecondaryCacheSetting {
         return expiration;
     }
 
+    public void setExpiration(long expiration) {
+        this.expiration = expiration;
+    }
+
     public long getPreloadTime() {
         return preloadTime;
+    }
+
+    public void setPreloadTime(long preloadTime) {
+        this.preloadTime = preloadTime;
     }
 
     public TimeUnit getTimeUnit() {
         return timeUnit;
     }
 
+    public void setTimeUnit(TimeUnit timeUnit) {
+        this.timeUnit = timeUnit;
+    }
+
     public boolean isForceRefresh() {
         return forceRefresh;
+    }
+
+    public void setForceRefresh(boolean forceRefresh) {
+        this.forceRefresh = forceRefresh;
     }
 
     public boolean isUsePrefix() {
         return usePrefix;
     }
 
+    public void setUsePrefix(boolean usePrefix) {
+        this.usePrefix = usePrefix;
+    }
+
     public boolean isAllowNullValues() {
         return allowNullValues;
+    }
+
+    public void setAllowNullValues(boolean allowNullValues) {
+        this.allowNullValues = allowNullValues;
     }
 }

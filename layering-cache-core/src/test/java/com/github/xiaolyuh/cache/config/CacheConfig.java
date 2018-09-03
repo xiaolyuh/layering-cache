@@ -13,7 +13,10 @@ public class CacheConfig {
 
     @Bean
     public CacheManager cacheManager(RedisTemplate<String, Object> redisTemplate) {
-        return new LayeringCacheManager(redisTemplate);
+        LayeringCacheManager layeringCacheManager = new LayeringCacheManager(redisTemplate);
+        // 开启统计功能
+        layeringCacheManager.setStats(true);
+        return layeringCacheManager;
     }
 
 }

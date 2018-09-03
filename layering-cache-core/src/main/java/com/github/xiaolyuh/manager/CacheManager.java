@@ -1,7 +1,8 @@
 package com.github.xiaolyuh.manager;
 
-import com.github.xiaolyuh.setting.LayeringCacheSetting;
 import com.github.xiaolyuh.cache.Cache;
+import com.github.xiaolyuh.setting.LayeringCacheSetting;
+import org.springframework.data.redis.core.RedisTemplate;
 
 import java.util.Collection;
 
@@ -37,4 +38,10 @@ public interface CacheManager {
      */
     Collection<String> getCacheNames();
 
+    /**
+     * 获取redis客户端
+     *
+     * @return {@link RedisTemplate}
+     */
+    RedisTemplate<String, Object> getRedisTemplate();
 }

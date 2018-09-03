@@ -1,15 +1,14 @@
 package com.github.xiaolyuh.manager;
 
-import com.github.xiaolyuh.setting.LayeringCacheSetting;
 import com.github.xiaolyuh.cache.Cache;
 import com.github.xiaolyuh.listener.RedisMessageListener;
+import com.github.xiaolyuh.setting.LayeringCacheSetting;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.BeanNameAware;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.SmartLifecycle;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.listener.ChannelTopic;
 import org.springframework.data.redis.listener.RedisMessageListenerContainer;
 import org.springframework.util.CollectionUtils;
@@ -51,6 +50,20 @@ public abstract class AbstractCacheManager implements CacheManager, Initializing
      * 缓存名称容器
      */
     private volatile Set<String> cacheNames = new LinkedHashSet<>();
+
+    /**
+     * CacheManager 容器
+     */
+    static Set<AbstractCacheManager> cacheManagers = new LinkedHashSet<>();
+
+    /**
+     * 是否开启统计
+     */
+    private boolean stats = false;
+
+    public static Set<AbstractCacheManager> getCacheManager() {
+        return cacheManagers;
+    }
 
     @Override
     public Collection<Cache> getCache(String name) {
@@ -154,13 +167,6 @@ public abstract class AbstractCacheManager implements CacheManager, Initializing
     }
 
     /**
-     * 获取redis客户端
-     *
-     * @return {@link RedisTemplate}
-     */
-    protected abstract RedisTemplate<String, Object> getRedisTemplate();
-
-    /**
      * 添加消息监听
      *
      * @param name 缓存名称
@@ -216,5 +222,23 @@ public abstract class AbstractCacheManager implements CacheManager, Initializing
     @Override
     public int getPhase() {
         return container.getPhase();
+    }
+
+    public boolean getStats() {
+        return stats;
+    }
+
+    public void setStats(boolean stats) {
+        this.stats = stats;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        return super.equals(o);
+    }
+
+    @Override
+    public int hashCode() {
+        return super.hashCode();
     }
 }

@@ -2,6 +2,7 @@ package com.github.xiaolyuh.setting;
 
 import com.github.xiaolyuh.support.ExpireMode;
 
+import java.io.Serializable;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -9,7 +10,7 @@ import java.util.concurrent.TimeUnit;
  *
  * @author yuhao.wang
  */
-public class FirstCacheSetting {
+public class FirstCacheSetting implements Serializable {
 
     /**
      * 缓存初始Size
@@ -41,6 +42,9 @@ public class FirstCacheSetting {
      */
     private boolean allowNullValues;
 
+    public FirstCacheSetting() {
+    }
+
     /**
      * @param initialCapacity 缓存初始Size
      * @param maximumSize     缓存最大Size
@@ -61,23 +65,47 @@ public class FirstCacheSetting {
         return initialCapacity;
     }
 
+    public void setInitialCapacity(int initialCapacity) {
+        this.initialCapacity = initialCapacity;
+    }
+
     public int getMaximumSize() {
         return maximumSize;
+    }
+
+    public void setMaximumSize(int maximumSize) {
+        this.maximumSize = maximumSize;
     }
 
     public int getExpireTime() {
         return expireTime;
     }
 
+    public void setExpireTime(int expireTime) {
+        this.expireTime = expireTime;
+    }
+
     public TimeUnit getTimeUnit() {
         return timeUnit;
+    }
+
+    public void setTimeUnit(TimeUnit timeUnit) {
+        this.timeUnit = timeUnit;
     }
 
     public ExpireMode getExpireMode() {
         return expireMode;
     }
 
+    public void setExpireMode(ExpireMode expireMode) {
+        this.expireMode = expireMode;
+    }
+
     public boolean isAllowNullValues() {
         return allowNullValues;
+    }
+
+    public void setAllowNullValues(boolean allowNullValues) {
+        this.allowNullValues = allowNullValues;
     }
 }

@@ -1,10 +1,7 @@
 package com.github.xiaolyuh.domain;
 
 import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 public class User {
 
@@ -22,6 +19,7 @@ public class User {
         this.age = 122;
         this.height = 18.2;
         this.income = new BigDecimal(22.22);
+        this.birthday = new Date();
     }
 
     private long userId;
@@ -41,6 +39,8 @@ public class User {
     private double height;
 
     private BigDecimal income;
+
+    private Date birthday;
 
     public long getUserId() {
         return userId;
@@ -128,5 +128,13 @@ public class User {
         public void setAddredd(String addredd) {
             this.addredd = addredd;
         }
+    }
+
+    public Date getBirthday() {
+        return birthday;
+    }
+
+    public void setBirthday(Date birthday) {
+        this.birthday = birthday;
     }
 }

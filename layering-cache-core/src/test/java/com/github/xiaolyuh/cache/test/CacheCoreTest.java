@@ -2,6 +2,7 @@ package com.github.xiaolyuh.cache.test;
 
 import com.github.xiaolyuh.cache.Cache;
 import com.github.xiaolyuh.cache.LayeringCache;
+import com.github.xiaolyuh.cache.config.CacheConfig;
 import com.github.xiaolyuh.cache.redis.RedisCache;
 import com.github.xiaolyuh.cache.redis.RedisCacheKey;
 import com.github.xiaolyuh.manager.CacheManager;
@@ -19,7 +20,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-import com.github.xiaolyuh.cache.config.CacheConfig;
 
 import java.util.Collection;
 import java.util.concurrent.TimeUnit;
@@ -98,6 +98,22 @@ public class CacheCoreTest {
         ttl = redisTemplate.getExpire(redisCacheKey.getKey());
         logger.debug("========================ttl 2:{}", ttl);
         Assert.assertNull(cache1.getSecondCache().get(cacheKey1));
+    }
+
+    @Test
+    public void testGetType() throws Exception {
+        // 测试 缓存过期时间
+        String cacheName = "cache:name";
+        String cacheKey1 = "cache:key:22";
+        LayeringCache cache1 = (LayeringCache) cacheManager.getCache(cacheName, layeringCacheSetting1);
+        cache1.get(cacheKey1, () -> null);
+        String str1 = cache1.get(cacheKey1, String.class);
+        Assert.assertNull(str1);
+        sleep(11);
+        cache1.get(cacheKey1, () -> initCache(String.class));
+
+        str1 = cache1.get(cacheKey1, String.class);
+        Assert.assertEquals(str1, initCache(String.class));
     }
 
     @Test
@@ -181,6 +197,33 @@ public class CacheCoreTest {
         cache.putIfAbsent(cacheKey1, "test2");
         str1 = cache.get(cacheKey1, String.class);
         Assert.assertEquals(str1, "test1");
+    }
+
+
+    /**
+     * 测试统计
+     */
+    @Test
+    public void testStats() {
+        // 测试 缓存过期时间
+        String cacheName = "cache:name";
+        String cacheKey1 = "cache:key1";
+        LayeringCache cache1 = (LayeringCache) cacheManager.getCache(cacheName, layeringCacheSetting1);
+        cache1.get(cacheKey1, () -> initCache(String.class));
+        cache1.get(cacheKey1, () -> initCache(String.class));
+        sleep(5);
+        cache1.get(cacheKey1, () -> initCache(String.class));
+
+        sleep(11);
+        cache1.get(cacheKey1, () -> initCache(String.class));
+
+        logger.debug("缓请求数：{}", cache1.getCacheStats().getCacheRequestCount());
+        logger.debug("被缓存方法请求数：{}", cache1.getCacheStats().getCachedMethodRequestCount());
+        logger.debug("被缓存方法请求总耗时：{}", cache1.getCacheStats().getCachedMethodRequestTime());
+
+        Assert.assertEquals(cache1.getCacheStats().getCacheRequestCount().longValue(), 4);
+        Assert.assertEquals(cache1.getCacheStats().getCachedMethodRequestCount().longValue(), 2);
+        Assert.assertTrue(cache1.getCacheStats().getCachedMethodRequestCount().longValue() >= 0);
     }
 
     private <T> T initCache(Class<T> t) {

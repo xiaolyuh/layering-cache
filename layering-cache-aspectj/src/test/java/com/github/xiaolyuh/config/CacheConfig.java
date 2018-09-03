@@ -1,7 +1,7 @@
 package com.github.xiaolyuh.config;
 
-import com.github.xiaolyuh.manager.CacheManager;
 import com.github.xiaolyuh.aspect.LayeringAspect;
+import com.github.xiaolyuh.manager.CacheManager;
 import com.github.xiaolyuh.manager.LayeringCacheManager;
 import com.github.xiaolyuh.test.TestService;
 import org.springframework.context.annotation.Bean;
@@ -17,7 +17,10 @@ public class CacheConfig {
 
     @Bean
     public CacheManager cacheManager(RedisTemplate<String, Object> redisTemplate) {
-        return new LayeringCacheManager(redisTemplate);
+        LayeringCacheManager layeringCacheManager = new LayeringCacheManager(redisTemplate);
+        // 开启统计功能
+        layeringCacheManager.setStats(true);
+        return layeringCacheManager;
     }
 
     @Bean

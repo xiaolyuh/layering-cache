@@ -15,6 +15,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import java.math.BigDecimal;
+import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
@@ -226,83 +227,95 @@ public class CacheAspectTest {
     }
 
     @Test
+    public void testGetDate() {
+        Date date = testService.getDate(244);
+        Assert.assertNotNull(date);
+        date = testService.getDate(244);
+        Assert.assertTrue(date.getTime() <= System.currentTimeMillis());
+        sleep(5);
+        date = testService.getDate(244);
+        Assert.assertTrue(date.getTime() <= System.currentTimeMillis());
+    }
+
+
+    @Test
     public void testGetArray() {
-        long[] array = testService.getArray(214);
+        long[] array = testService.getArray(215);
         Assert.assertNotNull(array);
-        array = testService.getArray(214);
+        array = testService.getArray(215);
         Assert.assertEquals(array.length, 3);
         sleep(5);
-        array = testService.getArray(214);
+        array = testService.getArray(215);
         Assert.assertEquals(array.length, 3);
     }
 
     @Test
     public void testGetObjectArray() {
-        User[] array = testService.getObjectArray(214);
+        User[] array = testService.getObjectArray(216);
         Assert.assertNotNull(array);
-        array = testService.getObjectArray(214);
+        array = testService.getObjectArray(216);
         Assert.assertEquals(array.length, 3);
         sleep(5);
-        array = testService.getObjectArray(214);
+        array = testService.getObjectArray(216);
         Assert.assertEquals(array.length, 3);
     }
 
     @Test
     public void testGetList() {
-        List<String> list = testService.getList(215);
+        List<String> list = testService.getList(217);
         Assert.assertNotNull(list);
-        list = testService.getList(215);
+        list = testService.getList(217);
         Assert.assertEquals(list.size(), 3);
         sleep(5);
-        list = testService.getList(215);
+        list = testService.getList(217);
         Assert.assertEquals(list.size(), 3);
 
     }
 
     @Test
     public void testGetLinkList() {
-        LinkedList<String> list = testService.getLinkedList(215);
+        LinkedList<String> list = testService.getLinkedList(235);
         Assert.assertNotNull(list);
-        list = testService.getLinkedList(215);
+        list = testService.getLinkedList(235);
         Assert.assertEquals(list.size(), 3);
         sleep(5);
-        list = testService.getLinkedList(215);
+        list = testService.getLinkedList(235);
         Assert.assertEquals(list.size(), 3);
 
     }
 
     @Test
     public void testGetListObject() {
-        List<User> list = testService.getListObject(216);
+        List<User> list = testService.getListObject(236);
         Assert.assertNotNull(list);
-        list = testService.getListObject(216);
+        list = testService.getListObject(236);
         Assert.assertEquals(list.size(), 3);
         sleep(5);
-        list = testService.getListObject(216);
+        list = testService.getListObject(236);
         Assert.assertEquals(list.size(), 3);
 
     }
 
     @Test
     public void testGetSet() {
-        Set<String> set = testService.getSet(217);
+        Set<String> set = testService.getSet(237);
         Assert.assertNotNull(set);
-        set = testService.getSet(217);
+        set = testService.getSet(237);
         Assert.assertEquals(set.size(), 3);
         sleep(5);
-        set = testService.getSet(217);
+        set = testService.getSet(237);
         Assert.assertEquals(set.size(), 3);
 
     }
 
     @Test
     public void testGetSetObject() {
-        Set<User> set = testService.getSetObject(218);
+        Set<User> set = testService.getSetObject(238);
         Assert.assertNotNull(set);
-        set = testService.getSetObject(218);
+        set = testService.getSetObject(238);
         Assert.assertEquals(set.size(), 1);
         sleep(5);
-        set = testService.getSetObject(218);
+        set = testService.getSetObject(238);
         Assert.assertEquals(set.size(), 1);
 
     }
@@ -318,6 +331,33 @@ public class CacheAspectTest {
         }
         Assert.assertTrue(false);
 
+    }
+
+    @Test
+    public void testGetNullPram() {
+        User user = testService.getNullUser(null);
+        user = testService.getNullUser(null);
+        sleep(5);
+        user = testService.getNullUser(null);
+
+        Assert.assertNull(user);
+    }
+
+    @Test
+    public void testGetNullObjectPram() {
+        try {
+            User user = testService.getNullObjectPram(null);
+        } catch (Exception e) {
+            Assert.assertNotNull(e);
+            return;
+        }
+        Assert.assertTrue(false);
+    }
+
+    @Test
+    public void testGetNullObjectPramIgnoreException() {
+        User user = testService.getNullObjectPramIgnoreException(null);
+        Assert.assertNull(user);
     }
 
     @Test
@@ -354,6 +394,8 @@ public class CacheAspectTest {
         sleep(3);
         Object result = redisTemplate.opsForValue().get("user:info:118:118");
         Assert.assertNull(result);
+
+
     }
 
     @Test
@@ -370,32 +412,6 @@ public class CacheAspectTest {
         Assert.assertNull(result2);
     }
 
-    @Test
-    public void testGetNullPram() {
-        User user = testService.getNullUser(null);
-        user = testService.getNullUser(null);
-        sleep(5);
-        user = testService.getNullUser(null);
-
-        Assert.assertNull(user);
-    }
-
-    @Test
-    public void testGetNullObjectPram() {
-        try {
-            User user = testService.getNullObjectPram(null);
-        } catch (Exception e) {
-            Assert.assertNotNull(e);
-            return;
-        }
-        Assert.assertTrue(false);
-    }
-
-    @Test
-    public void testGetNullObjectPramIgnoreException() {
-        User user = testService.getNullObjectPramIgnoreException(null);
-        Assert.assertNull(user);
-    }
 
     private void sleep(int time) {
         try {

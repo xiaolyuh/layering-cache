@@ -1,6 +1,7 @@
 package com.github.xiaolyuh.cache;
 
 import com.github.xiaolyuh.manager.CacheManager;
+import com.github.xiaolyuh.stats.CacheStats;
 
 import java.util.concurrent.Callable;
 
@@ -92,4 +93,11 @@ public interface Cache {
      * 清楚缓存
      */
     void clear();
+
+    /**
+     * 获取统计信息
+     *
+     * @return {@link CacheStats}
+     */
+    CacheStats getCacheStats();
 }

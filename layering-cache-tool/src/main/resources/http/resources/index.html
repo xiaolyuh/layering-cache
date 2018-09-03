@@ -1,0 +1,218 @@
+<!doctype html>
+<html class="no-js">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>Amaze UI Admin table Examples</title>
+    <meta name="description" content="这是一个 table 页面">
+    <meta name="keywords" content="table">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="renderer" content="webkit">
+    <meta http-equiv="Cache-Control" content="no-siteapp"/>
+    <link rel="icon" type="image/png" href="i/favicon.png">
+    <link rel="apple-touch-icon-precomposed" href="i/app-icon72x72@2x.png">
+    <meta name="apple-mobile-web-app-title" content="Amaze UI"/>
+    <link rel="stylesheet" href="css/amazeui.min.css"/>
+    <link rel="stylesheet" href="css/admin.css">
+</head>
+<body>
+<!--[if lte IE 9]>
+<p class="browsehappy">你正在使用<strong>过时</strong>的浏览器，Amaze UI 暂不支持。 请 <a href="http://browsehappy.com/" target="_blank">升级浏览器</a>
+    以获得更好的体验！</p>
+<![endif]-->
+
+<header class="am-topbar am-topbar-inverse admin-header">
+    <div class="am-topbar-brand">
+        <strong>Amaze UI</strong>
+        <small>后台管理模板</small>
+    </div>
+
+    <button class="am-topbar-btn am-topbar-toggle am-btn am-btn-sm am-btn-success am-show-sm-only"
+            data-am-collapse="{target: '#topbar-collapse'}"><span class="am-sr-only">导航切换</span> <span
+            class="am-icon-bars"></span></button>
+
+    <div class="am-collapse am-topbar-collapse" id="topbar-collapse">
+
+        <ul class="am-nav am-nav-pills am-topbar-nav am-topbar-right admin-header-list">
+            <li><a href="javascript:;"><span class="am-icon-envelope-o"></span> 收件箱 <span
+                    class="am-badge am-badge-warning">5</span></a></li>
+            <li class="am-dropdown" data-am-dropdown>
+                <a class="am-dropdown-toggle" data-am-dropdown-toggle href="javascript:;">
+                    <span class="am-icon-users"></span> 管理员 <span class="am-icon-caret-down"></span>
+                </a>
+                <ul class="am-dropdown-content">
+                    <li><a href="#"><span class="am-icon-user"></span> 资料</a></li>
+                    <li><a href="#"><span class="am-icon-cog"></span> 设置</a></li>
+                    <li><a href="#"><span class="am-icon-power-off"></span> 退出</a></li>
+                </ul>
+            </li>
+            <li class="am-hide-sm-only"><a href="javascript:;" id="admin-fullscreen"><span
+                    class="am-icon-arrows-alt"></span> <span class="admin-fullText">开启全屏</span></a></li>
+        </ul>
+    </div>
+</header>
+
+<div class="am-cf admin-main">
+    <!-- sidebar start -->
+    <div class="admin-sidebar am-offcanvas" id="admin-offcanvas">
+        <div class="am-offcanvas-bar admin-offcanvas-bar">
+            <ul class="am-list admin-sidebar-list">
+                <li><a href="admin-index.html"><span class="am-icon-home"></span> 首页</a></li>
+                <li class="admin-parent">
+                    <a class="am-cf" data-am-collapse="{target: '#collapse-nav'}"><span class="am-icon-file"></span>
+                        页面模块 <span class="am-icon-angle-right am-fr am-margin-right"></span></a>
+                    <ul class="am-list am-collapse admin-sidebar-sub am-in" id="collapse-nav">
+                        <li><a href="admin-user.html" class="am-cf"><span class="am-icon-check"></span> 个人资料<span
+                                class="am-icon-star am-fr am-margin-right admin-icon-yellow"></span></a></li>
+                        <li><a href="admin-help.html"><span class="am-icon-puzzle-piece"></span> 帮助页</a></li>
+                        <li><a href="admin-gallery.html"><span class="am-icon-th"></span> 相册页面<span
+                                class="am-badge am-badge-secondary am-margin-right am-fr">24</span></a></li>
+                        <li><a href="admin-log.html"><span class="am-icon-calendar"></span> 系统日志</a></li>
+                        <li><a href="admin-404.html"><span class="am-icon-bug"></span> 404</a></li>
+                    </ul>
+                </li>
+                <li><a href="admin-table.html"><span class="am-icon-table"></span> 表格</a></li>
+                <li><a href="admin-form.html"><span class="am-icon-pencil-square-o"></span> 表单</a></li>
+                <li><a href="#"><span class="am-icon-sign-out"></span> 注销</a></li>
+            </ul>
+
+            <div class="am-panel am-panel-default admin-sidebar-panel">
+                <div class="am-panel-bd">
+                    <p><span class="am-icon-bookmark"></span> 公告</p>
+                    <p>时光静好，与君语；细水流年，与君同。—— Amaze UI</p>
+                </div>
+            </div>
+
+            <div class="am-panel am-panel-default admin-sidebar-panel">
+                <div class="am-panel-bd">
+                    <p><span class="am-icon-tag"></span> wiki</p>
+                    <p>Welcome to the Amaze UI wiki!</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- sidebar end -->
+
+    <!-- content start -->
+    <div class="admin-content">
+        <div class="admin-content-body">
+            <div class="am-cf am-padding am-padding-bottom-0">
+                <div class="am-fl am-cf"><strong class="am-text-primary am-text-lg">表格</strong> /
+                    <small>Table</small>
+                </div>
+            </div>
+
+            <hr>
+
+            <div class="am-g">
+                <div class="am-u-sm-12 am-u-md-3">
+                    <div class="am-input-group am-input-group-sm">
+                        <input type="text" class="am-form-field">
+                        <span class="am-input-group-btn">
+            <button class="am-btn am-btn-default" type="button">搜索</button>
+          </span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="am-g">
+                <div class="am-u-sm-12">
+                    <form class="am-form">
+                        <table class="am-table am-table-striped am-table-hover table-main">
+                            <thead>
+                            <tr>
+                                <th class="table-name">名称</th>
+                                <th class="table-internalKey">内部缓存名</th>
+                                <th class="table-internalKey">描述</th>
+                                <th class="table-request-count">请求总数</th>
+                                <th class="table-miss-count">未命中总数</th>
+                                <th class="table-hit-rate am-hide-sm-only">命中率</th>
+                                <th class="table-first-hit-rate am-hide-sm-only">一级缓存命中率</th>
+                                <th class="table-second-hit-rate am-hide-sm-only">二级缓存命中率</th>
+                                <th class="table-total-load-time am-hide-sm-only">加载缓存平均耗时</th>
+                                <th class="table-set">操作</th>
+                            </tr>
+                            </thead>
+                            <tbody data-bind="foreach: { data: cacheStats, as: 'stats' }">
+                            <tr>
+                                <td class="am-hide-sm-only" data-bind="text:stats.cacheName()"></td>
+                                <td class="am-hide-sm-only" data-bind="text:stats.internalKey()">5555-5555-5555</td>
+                                <td class="am-hide-sm-only" data-bind="text:stats.depict()">测试</td>
+                                <td class="am-hide-sm-only" data-bind="text:stats.requestCount()">10</td>
+                                <td class="am-hide-sm-only" data-bind="text:stats.missCount()">2</td>
+                                <td class="am-hide-sm-only" data-bind="text:stats.hitRate">80%</td>
+                                <td class="am-hide-sm-only" data-bind="text:stats.firstHitRate">70%</td>
+                                <td class="am-hide-sm-only" data-bind="text:stats.secondHitRate">50%</td>
+                                <td class="am-hide-sm-only" data-bind="text:stats.averageTotalLoadTime">58</td>
+                                <td>
+                                    <div class="am-btn-toolbar">
+                                        <div class="am-btn-group am-btn-group-xs">
+                                            <button class="am-btn am-btn-default am-btn-xs am-text-secondary"><span
+                                                    class="am-icon-pencil-square-o"></span> 编辑
+                                            </button>
+                                            <button class="am-btn am-btn-default am-btn-xs am-hide-sm-only"><span
+                                                    class="am-icon-copy"></span> 复制
+                                            </button>
+                                            <button class="am-btn am-btn-default am-btn-xs am-text-danger am-hide-sm-only">
+                                                <span class="am-icon-trash-o"></span> 删除
+                                            </button>
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
+                        <div class="am-cf">
+                            共 <span data-bind="text: cacheStats().length"></span> 条记录
+
+                            <!--<div class="am-fr">
+                                <ul class="am-pagination">
+                                    <li class="am-disabled"><a href="#">«</a></li>
+                                    <li class="am-active"><a href="#">1</a></li>
+                                    <li><a href="#">2</a></li>
+                                    <li><a href="#">3</a></li>
+                                    <li><a href="#">4</a></li>
+                                    <li><a href="#">5</a></li>
+                                    <li><a href="#">»</a></li>
+                                </ul>
+                            </div>-->
+                        </div>
+                    </form>
+                </div>
+
+            </div>
+        </div>
+
+        <footer class="admin-content-footer">
+            <hr>
+            <p class="am-padding-left">© 2014 AllMobilize, Inc. Licensed under MIT license.</p>
+        </footer>
+
+    </div>
+    <!-- content end -->
+</div>
+
+<a href="#" class="am-icon-btn am-icon-th-list am-show-sm-only admin-menu"
+   data-am-offcanvas="{target: '#admin-offcanvas'}"></a>
+
+<footer>
+    <hr>
+    <p class="am-padding-left">© 2014 AllMobilize, Inc. Licensed under MIT license.</p>
+</footer>
+
+<!--[if lt IE 9]>
+<script src="http://libs.baidu.com/jquery/1.11.1/jquery.min.js"></script>
+<script src="http://cdn.staticfile.org/modernizr/2.8.3/modernizr.js"></script>
+<script src="js/amazeui.ie8polyfill.min.js"></script>
+<![endif]-->
+
+<!--[if (gte IE 9)|!(IE)]><!-->
+<script src="js/lib/jquery.min.js"></script>
+<!--<![endif]-->
+<script src="js/lib/amazeui.min.js"></script>
+<script src="js/lib/app.js"></script>
+<script src="js/lib/knockout-3.3.0.js"></script>
+<script src="js/lib/knockout.mapping.js"></script>
+<script src="js/views/index.js"></script>
+</body>
+</html>

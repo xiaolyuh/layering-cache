@@ -16,6 +16,7 @@
 
 package com.github.xiaolyuh.cache;
 
+import com.github.xiaolyuh.stats.CacheStats;
 import com.github.xiaolyuh.support.NullValue;
 import org.springframework.util.Assert;
 
@@ -41,6 +42,15 @@ public abstract class AbstractValueAdaptingCache implements Cache {
      */
     private final String name;
 
+    /**
+     * 是否开启统计功能
+     */
+    private boolean stats;
+
+    /**
+     * 缓存统计类
+     */
+    private CacheStats cacheStats = new CacheStats();
 
     /**
      * 通过构造方法设置缓存配置
@@ -48,9 +58,10 @@ public abstract class AbstractValueAdaptingCache implements Cache {
      * @param allowNullValues 是否允许为NULL
      * @param name            缓存名称
      */
-    protected AbstractValueAdaptingCache(boolean allowNullValues, String name) {
+    protected AbstractValueAdaptingCache(boolean allowNullValues, boolean stats, String name) {
         Assert.notNull(name, "缓存名称不能为NULL");
         this.allowNullValues = allowNullValues;
+        this.stats = stats;
         this.name = name;
     }
 
@@ -71,12 +82,7 @@ public abstract class AbstractValueAdaptingCache implements Cache {
     @Override
     @SuppressWarnings("unchecked")
     public <T> T get(Object key, Class<T> type) {
-        Object result = fromStoreValue(get(key));
-        if (result != null && type != null && !type.isInstance(result)) {
-            throw new IllegalStateException("缓存的值不是需要的 [" + type.getName() + "] 类型: " + result);
-
-        }
-        return (T) result;
+        return (T) fromStoreValue(get(key));
     }
 
     /**
@@ -123,5 +129,24 @@ public abstract class AbstractValueAdaptingCache implements Cache {
         public Object getKey() {
             return this.key;
         }
+    }
+
+    /**
+     * 获取是否开启统计
+     *
+     * @return true：开启统计，false：关闭统计
+     */
+    public boolean isStats() {
+        return stats;
+    }
+
+    /**
+     * 获取统计信息
+     *
+     * @return
+     */
+    @Override
+    public CacheStats getCacheStats() {
+        return cacheStats;
     }
 }

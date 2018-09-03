@@ -2,9 +2,9 @@ package com.github.xiaolyuh.cache.redis;
 
 import com.alibaba.fastjson.JSON;
 import com.github.xiaolyuh.cache.AbstractValueAdaptingCache;
-import com.github.xiaolyuh.support.Lock;
 import com.github.xiaolyuh.setting.SecondaryCacheSetting;
 import com.github.xiaolyuh.support.AwaitThreadContainer;
+import com.github.xiaolyuh.support.Lock;
 import com.github.xiaolyuh.support.ThreadTaskUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -65,18 +65,18 @@ public class RedisCache extends AbstractValueAdaptingCache {
      */
     private boolean usePrefix;
 
-
     /**
      * @param name                  缓存名称
      * @param redisTemplate         redis客户端 redis 客户端
      * @param secondaryCacheSetting 二级缓存配置{@link SecondaryCacheSetting}
+     * @param stats                 是否开启统计模式
      */
-    public RedisCache(String name, RedisTemplate<String, Object> redisTemplate, SecondaryCacheSetting secondaryCacheSetting) {
+    public RedisCache(String name, RedisTemplate<String, Object> redisTemplate, SecondaryCacheSetting secondaryCacheSetting, boolean stats) {
 
         this(name, redisTemplate, secondaryCacheSetting.getTimeUnit().toMillis(secondaryCacheSetting.getExpiration()),
                 secondaryCacheSetting.getTimeUnit().toMillis(secondaryCacheSetting.getPreloadTime()),
                 secondaryCacheSetting.isForceRefresh(), secondaryCacheSetting.isUsePrefix(),
-                secondaryCacheSetting.isAllowNullValues());
+                secondaryCacheSetting.isAllowNullValues(), stats);
     }
 
     /**
@@ -86,10 +86,11 @@ public class RedisCache extends AbstractValueAdaptingCache {
      * @param preloadTime     缓存主动在失效前强制刷新缓存的时间
      * @param forceRefresh    是否强制刷新（执行被缓存的方法），默认是false
      * @param allowNullValues 是否允许存NULL值，模式允许
+     * @param stats           是否开启统计模式
      */
     public RedisCache(String name, RedisTemplate<String, Object> redisTemplate, long expiration, long preloadTime,
-                      boolean forceRefresh, boolean usePrefix, boolean allowNullValues) {
-        super(allowNullValues, name);
+                      boolean forceRefresh, boolean usePrefix, boolean allowNullValues, boolean stats) {
+        super(allowNullValues, stats, name);
 
         Assert.notNull(redisTemplate, "RedisTemplate 不能为NULL");
         this.redisTemplate = redisTemplate;
@@ -106,6 +107,10 @@ public class RedisCache extends AbstractValueAdaptingCache {
 
     @Override
     public Object get(Object key) {
+        if (isStats()) {
+            getCacheStats().addCacheRequestCount(1);
+        }
+
         RedisCacheKey redisCacheKey = getRedisCacheKey(key);
         logger.debug("redis缓存 key: {} 查询redis缓存", redisCacheKey.getKey());
         return redisTemplate.opsForValue().get(redisCacheKey.getKey());
@@ -113,6 +118,10 @@ public class RedisCache extends AbstractValueAdaptingCache {
 
     @Override
     public <T> T get(Object key, Callable<T> valueLoader) {
+        if (isStats()) {
+            getCacheStats().addCacheRequestCount(1);
+        }
+
         RedisCacheKey redisCacheKey = getRedisCacheKey(key);
         logger.debug("redis缓存 key: {} 查询redis缓存如果没有命中，从数据库获取数据", redisCacheKey.getKey());
         // 先获取缓存，如果有直接返回
@@ -179,6 +188,7 @@ public class RedisCache extends AbstractValueAdaptingCache {
      * 同一个线程循环5次查询缓存，每次等待20毫秒，如果还是没有数据直接去执行被缓存的方法
      */
     private <T> T executeCacheMethod(RedisCacheKey redisCacheKey, Callable<T> valueLoader) {
+        long start = System.currentTimeMillis();
         Lock redisLock = new Lock(redisTemplate, redisCacheKey.getKey() + "_sync_lock");
         // 同一个线程循环5次查询缓存，每次等待20毫秒，如果还是没有数据直接去执行被缓存的方法
         for (int i = 0; i < RETRY_COUNT; i++) {
@@ -192,7 +202,7 @@ public class RedisCache extends AbstractValueAdaptingCache {
 
                 // 获取分布式锁去后台查询数据
                 if (redisLock.lock()) {
-                    T t = loaderAndPutValue(redisCacheKey, valueLoader);
+                    T t = loaderAndPutValue(redisCacheKey, valueLoader, true);
                     logger.debug("redis缓存 key: {} 从数据库获取数据完毕，唤醒所有等待线程", redisCacheKey.getKey());
                     // 唤醒线程
                     container.signalAll(redisCacheKey.getKey());
@@ -208,13 +218,19 @@ public class RedisCache extends AbstractValueAdaptingCache {
             }
         }
         logger.debug("redis缓存 key:{} 等待{}次，共{}毫秒，任未获取到缓存，直接去执行被缓存的方法", redisCacheKey.getKey(), RETRY_COUNT, RETRY_COUNT * WAIT_TIME, WAIT_TIME);
-        return loaderAndPutValue(redisCacheKey, valueLoader);
+        T t = loaderAndPutValue(redisCacheKey, valueLoader, true);
+        return t;
     }
 
     /**
      * 加载并将数据放到redis缓存
      */
-    private <T> T loaderAndPutValue(RedisCacheKey key, Callable<T> valueLoader) {
+    private <T> T loaderAndPutValue(RedisCacheKey key, Callable<T> valueLoader, boolean isLoad) {
+        long start = System.currentTimeMillis();
+        if (isLoad && isStats()) {
+            getCacheStats().addCachedMethodRequestCount(1);
+        }
+
         try {
             // 加载数据
             Object result = toStoreValue(valueLoader.call());
@@ -225,7 +241,11 @@ public class RedisCache extends AbstractValueAdaptingCache {
                 // 缓存值不为NULL，将数据放到缓存
                 redisTemplate.opsForValue().set(key.getKey(), result, expiration, TimeUnit.MILLISECONDS);
             }
-            logger.debug("redis缓存 key:{} 接去执行被缓存的方法，并将其放入缓存。数据:{}", key.getKey(), JSON.toJSONString(result));
+            logger.debug("redis缓存 key:{} 接去执行被缓存的方法，并将其放入缓存, 耗时：{}。数据:{}", System.currentTimeMillis() - start, key.getKey(), JSON.toJSONString(result));
+
+            if (isLoad && isStats()) {
+                getCacheStats().addCachedMethodRequestTime(System.currentTimeMillis() - start);
+            }
             return (T) fromStoreValue(result);
         } catch (Exception e) {
             logger.error("加载缓存数据异常,{}", e.getMessage(), e);
@@ -286,7 +306,7 @@ public class RedisCache extends AbstractValueAdaptingCache {
                     Long ttl = redisTemplate.getExpire(redisCacheKey.getKey());
                     if (null != ttl && ttl <= this.preloadTime) {
                         // 加载数据并放到缓存
-                        loaderAndPutValue(redisCacheKey, valueLoader);
+                        loaderAndPutValue(redisCacheKey, valueLoader, false);
                     }
                 }
             } catch (Exception e) {

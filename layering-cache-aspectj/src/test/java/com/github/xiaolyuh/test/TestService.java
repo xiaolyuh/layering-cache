@@ -144,6 +144,15 @@ public class TestService {
     @Cacheable(value = "'user:info' + ':' + #userId", ignoreException = false,
             firstCache = @FirstCache(expireTime = 4, timeUnit = TimeUnit.SECONDS),
             secondaryCache = @SecondaryCache(expireTime = 10, preloadTime = 3, forceRefresh = true, timeUnit = TimeUnit.SECONDS))
+    public Date getDate(long userId) {
+        logger.debug("缓存方法返回Date类型");
+        return new Date();
+    }
+
+
+    @Cacheable(value = "'user:info' + ':' + #userId", ignoreException = false,
+            firstCache = @FirstCache(expireTime = 4, timeUnit = TimeUnit.SECONDS),
+            secondaryCache = @SecondaryCache(expireTime = 10, preloadTime = 3, forceRefresh = true, timeUnit = TimeUnit.SECONDS))
     public CacheMode getEnum(long userId) {
         logger.debug("缓存方法返回枚举");
         return CacheMode.ONLY_FIRST;
@@ -241,7 +250,7 @@ public class TestService {
 
     @CachePut(value = "'user:info' + ':' + #userId", key = "#userId", ignoreException = false,
             firstCache = @FirstCache(expireTime = 4, timeUnit = TimeUnit.SECONDS),
-            secondaryCache = @SecondaryCache(expireTime = 10, preloadTime = 3, forceRefresh = true, timeUnit = TimeUnit.SECONDS))
+            secondaryCache = @SecondaryCache(expireTime = 1000, preloadTime = 3, forceRefresh = true, timeUnit = TimeUnit.SECONDS))
     public User putUser(long userId) {
         return new User();
     }

@@ -4,6 +4,8 @@ import com.alibaba.fastjson.JSON;
 import com.github.xiaolyuh.listener.RedisPubSubMessage;
 import com.github.xiaolyuh.listener.RedisPubSubMessageType;
 import com.github.xiaolyuh.listener.RedisPublisher;
+import com.github.xiaolyuh.setting.LayeringCacheSetting;
+import com.github.xiaolyuh.stats.CacheStats;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -36,6 +38,11 @@ public class LayeringCache extends AbstractValueAdaptingCache {
     private Cache secondCache;
 
     /**
+     * 多级缓存配置
+     */
+    private LayeringCacheSetting layeringCacheSetting;
+
+    /**
      * 是否使用一级缓存， 默认true
      */
     private boolean useFirstCache = true;
@@ -45,9 +52,10 @@ public class LayeringCache extends AbstractValueAdaptingCache {
      *
      * @param firstCache  一级缓存
      * @param secondCache 二级缓存
+     * @param stats       是否开启统计
      */
-    public LayeringCache(RedisTemplate<String, Object> redisTemplate, Cache firstCache, Cache secondCache) {
-        this(redisTemplate, firstCache, secondCache, true, secondCache.getName());
+    public LayeringCache(RedisTemplate<String, Object> redisTemplate, Cache firstCache, Cache secondCache, boolean stats, LayeringCacheSetting layeringCacheSetting) {
+        this(redisTemplate, firstCache, secondCache, true, stats, secondCache.getName(), layeringCacheSetting);
     }
 
     /**
@@ -56,14 +64,16 @@ public class LayeringCache extends AbstractValueAdaptingCache {
      * @param firstCache    一级缓存
      * @param secondCache   二级缓存
      * @param useFirstCache 是否使用一级缓存，默认是
+     * @param stats         是否开启统计，默认否
      * @param name          缓存名称
      */
-    public LayeringCache(RedisTemplate<String, Object> redisTemplate, Cache firstCache, Cache secondCache, boolean useFirstCache, String name) {
-        super(true, name);
+    public LayeringCache(RedisTemplate<String, Object> redisTemplate, Cache firstCache, Cache secondCache, boolean useFirstCache, boolean stats, String name, LayeringCacheSetting layeringCacheSetting) {
+        super(true, stats, name);
         this.redisTemplate = redisTemplate;
         this.firstCache = firstCache;
         this.secondCache = secondCache;
         this.useFirstCache = useFirstCache;
+        this.layeringCacheSetting = layeringCacheSetting;
     }
 
     @Override
@@ -89,16 +99,10 @@ public class LayeringCache extends AbstractValueAdaptingCache {
     @Override
     public <T> T get(Object key, Class<T> type) {
         if (useFirstCache) {
-            Object result = firstCache.get(key);
+            Object result = firstCache.get(key, type);
             logger.debug("查询一级缓存。 key:{},返回值是:{}", key, JSON.toJSONString(result));
-            // 有可能是缓存的是 @{link NullValue.INSTANCE}值，所以需要双重if判断
             if (result != null) {
-                result = fromStoreValue(result);
-                // 判断返回值类型
-                if (result != null && type != null && !type.isInstance(result)) {
-                    throw new IllegalStateException("缓存的值不是需要的 [" + type.getName() + "] 类型: " + result);
-                }
-                return (T) result;
+                return (T) fromStoreValue(result);
             }
         }
 
@@ -117,7 +121,6 @@ public class LayeringCache extends AbstractValueAdaptingCache {
                 return (T) fromStoreValue(result);
             }
         }
-
         T result = secondCache.get(key, valueLoader);
         firstCache.putIfAbsent(key, result);
         logger.debug("查询二级缓存,并将数据放到一级缓存。 key:{},返回值是:{}", key, JSON.toJSONString(result));
@@ -186,5 +189,20 @@ public class LayeringCache extends AbstractValueAdaptingCache {
      */
     public Cache getSecondCache() {
         return secondCache;
+    }
+
+    @Override
+    public CacheStats getCacheStats() {
+        CacheStats cacheStats = super.getCacheStats();
+        cacheStats.addCacheRequestCount(firstCache.getCacheStats().getCacheRequestCount().longValue());
+        cacheStats.addCachedMethodRequestCount(secondCache.getCacheStats().getCachedMethodRequestCount().longValue());
+        cacheStats.addCachedMethodRequestTime(secondCache.getCacheStats().getCachedMethodRequestTime().longValue());
+
+        firstCache.getCacheStats().addCachedMethodRequestCount(secondCache.getCacheStats().getCachedMethodRequestCount().longValue());
+        return cacheStats;
+    }
+
+    public LayeringCacheSetting getLayeringCacheSetting() {
+        return layeringCacheSetting;
     }
 }

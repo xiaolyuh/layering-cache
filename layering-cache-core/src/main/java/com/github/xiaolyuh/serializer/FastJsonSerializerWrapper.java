@@ -1,7 +1,8 @@
 package com.github.xiaolyuh.serializer;
 
+import com.github.xiaolyuh.support.SerializationException;
 import com.github.xiaolyuh.support.Type;
-import org.springframework.data.redis.serializer.SerializationException;
+
 
 import java.util.List;
 import java.util.Set;

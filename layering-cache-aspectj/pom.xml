@@ -20,6 +20,12 @@
         </dependency>
 
         <dependency>
+            <groupId>com.github.xiaolyuh</groupId>
+            <artifactId>layering-cache-tool</artifactId>
+            <version>1.0.8-SNAPSHOT</version>
+        </dependency>
+
+        <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
             <optional>true</optional>

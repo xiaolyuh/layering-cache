@@ -33,9 +33,10 @@ public class CaffeineCache extends AbstractValueAdaptingCache {
      *
      * @param name              缓存名称
      * @param firstCacheSetting 一级缓存配置 {@link FirstCacheSetting}
+     * @param stats             是否开启统计模式
      */
-    public CaffeineCache(String name, FirstCacheSetting firstCacheSetting) {
-        this(name, getCache(firstCacheSetting), true);
+    public CaffeineCache(String name, FirstCacheSetting firstCacheSetting, boolean stats) {
+        this(name, getCache(firstCacheSetting), true, stats);
     }
 
     /**
@@ -44,11 +45,12 @@ public class CaffeineCache extends AbstractValueAdaptingCache {
      * @param name            缓存名称
      * @param cache           t一个 Caffeine Cache 的实例对象
      * @param allowNullValues 缓存是否允许存NULL（true：允许）
+     * @param stats           是否开启统计模式
      */
     public CaffeineCache(String name, Cache<Object, Object> cache,
-                         boolean allowNullValues) {
+                         boolean allowNullValues, boolean stats) {
 
-        super(allowNullValues, name);
+        super(allowNullValues, stats, name);
         Assert.notNull(cache, "Cache 不能为NULL");
         this.cache = cache;
     }
@@ -61,6 +63,11 @@ public class CaffeineCache extends AbstractValueAdaptingCache {
     @Override
     public Object get(Object key) {
         logger.debug("caffeine缓存 key:{} 获取缓存", JSON.toJSONString(key));
+
+        if (isStats()) {
+            getCacheStats().addCacheRequestCount(1);
+        }
+
         if (this.cache instanceof LoadingCache) {
             return ((LoadingCache<Object, Object>) this.cache).get(key);
         }
@@ -68,14 +75,13 @@ public class CaffeineCache extends AbstractValueAdaptingCache {
     }
 
     @Override
-    public <T> T get(Object key, Class<T> type) {
-        logger.debug("caffeine缓存 key:{} 获取缓存，并转换成{}类型", JSON.toJSONString(key), type.getName());
-        return super.get(key, type);
-    }
-
-    @Override
     public <T> T get(Object key, Callable<T> valueLoader) {
         logger.debug("caffeine缓存 key:{} 获取缓存， 如果没有命中就走库加载缓存", JSON.toJSONString(key));
+
+        if (isStats()) {
+            getCacheStats().addCacheRequestCount(1);
+        }
+
         Object result = this.cache.get(key, (k) -> loaderValue(key, valueLoader));
         return (T) fromStoreValue(result);
     }
@@ -109,14 +115,24 @@ public class CaffeineCache extends AbstractValueAdaptingCache {
      * 加载数据
      */
     private <T> Object loaderValue(Object key, Callable<T> valueLoader) {
+        long start = System.currentTimeMillis();
+        if (isStats()) {
+            getCacheStats().addCachedMethodRequestCount(1);
+        }
+
         try {
             T t = valueLoader.call();
             logger.debug("caffeine缓存 key:{} 从库加载缓存", JSON.toJSONString(key), JSON.toJSONString(t));
+
+            if (isStats()) {
+                getCacheStats().addCachedMethodRequestTime(System.currentTimeMillis() - start);
+            }
             return toStoreValue(t);
         } catch (Exception e) {
             logger.error("加载缓存数据异常,{}", e.getMessage(), e);
             throw new LoaderCacheValueException(key, valueLoader, e);
         }
+
     }
 
     /**
@@ -138,5 +154,4 @@ public class CaffeineCache extends AbstractValueAdaptingCache {
         // 根据Caffeine builder创建 Cache 对象
         return builder.build();
     }
-
 }

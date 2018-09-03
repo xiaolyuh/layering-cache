@@ -27,6 +27,11 @@ public @interface CachePut {
     String[] cacheNames() default {};
 
     /**
+     * 描述
+     */
+    String depict() default "";
+
+    /**
      * 缓存key，支持SpEL表达式
      * <p>The SpEL expression evaluates against a dedicated context that provides the
      * following meta-data:

@@ -2,9 +2,9 @@
 
     var constant = {
         MENU_CSS: '.bind-menu-syndrome-search',
-        ADD_BUTTON: '.bind-search-add-button',
-        REMOVE_BUTTON: '.bind-search-remove-button',
-        SYMPTOM_NAME_SELECT: '.bind-search-symptom-name-select'
+        RESET_STATS_BUTTON: '.bind-reset-stats-button',
+        SEARCH_BUTTON: '.bind-search-button',
+        SEARCH_INPUT: '.bind-search-input',
     };
 
     var viewModel = {
@@ -18,11 +18,32 @@
                 .removeClass('list-group-item-success');
             $(constant.MENU_CSS).addClass('list-group-item-success');
         },
-        initData: function () {
+        bindResetStats: function () {
+            $(constant.RESET_STATS_BUTTON).on("click", function () {
+                if (confirm("您确认需要重置缓存统计数据吗？")) {
+                    $.ajax({
+                        type: 'POST',
+                        url: 'cache-stats/reset-stats',
+                        dataType: 'JSON',
+                        success: function (data) {
+                            alert("重置缓存统计数据成功");
+                        }
+                    });
+                }
+
+            });
+        },
+        searchData:function () {
+            $(constant.SEARCH_BUTTON).on("click", function () {
+                bindEvent.getData();
+            });
+        },
+        getData: function () {
             $.ajax({
                 type: 'POST',
                 url: 'cache-stats/list',
                 dataType: 'JSON',
+                data: {"cacheName": $(constant.SEARCH_INPUT).val()},
                 success: function (data) {
                     var temp = ko.mapping.fromJS(data);
                     format.formatInit(temp());
@@ -35,7 +56,7 @@
     var format = {
         formatInit: function (cacheStats) {
             $.each(cacheStats, function (i, cs) {
-                cs.hitRate = ((cs.requestCount() - cs.missCount()) / cs.requestCount() * 100 ).toFixed(2) + "%";
+                cs.hitRate = cs.hitRate().toFixed(2) + "%";
                 cs.firstHitRate = ((cs.firstCacheRequestCount() - cs.firstCacheMissCount()) / cs.firstCacheRequestCount() * 100 ).toFixed(2) + "%";
                 cs.secondHitRate = ((cs.secondCacheRequestCount() - cs.secondCacheMissCount()) / cs.secondCacheRequestCount() * 100 ).toFixed(2) + "%";
                 cs.averageTotalLoadTime = (cs.totalLoadTime() / cs.requestCount()).toFixed(2) + "毫秒";
@@ -47,7 +68,9 @@
         init: function () {
             ko.applyBindings(viewModel);
             bindEvent.bindMenuCss();
-            bindEvent.initData();
+            bindEvent.getData();
+            bindEvent.searchData();
+            bindEvent.bindResetStats();
         }
     };
 

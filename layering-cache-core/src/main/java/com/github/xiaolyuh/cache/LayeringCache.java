@@ -196,7 +196,7 @@ public class LayeringCache extends AbstractValueAdaptingCache {
         CacheStats cacheStats = super.getCacheStats();
         cacheStats.addCacheRequestCount(firstCache.getCacheStats().getCacheRequestCount().longValue());
         cacheStats.addCachedMethodRequestCount(secondCache.getCacheStats().getCachedMethodRequestCount().longValue());
-        cacheStats.addCachedMethodRequestTime(secondCache.getCacheStats().getCachedMethodRequestTime().longValue());
+        cacheStats.addCachedMethodRequestTime(secondCache.getCacheStats().getAndResetCachedMethodRequestTime());
 
         firstCache.getCacheStats().addCachedMethodRequestCount(secondCache.getCacheStats().getCachedMethodRequestCount().longValue());
         return cacheStats;

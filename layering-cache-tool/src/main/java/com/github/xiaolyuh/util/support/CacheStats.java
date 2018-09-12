@@ -35,6 +35,11 @@ public class CacheStats {
     private long missCount;
 
     /**
+     * 命中率
+     */
+    private double hitRate;
+
+    /**
      * 一级缓存命中总数
      */
     private long firstCacheRequestCount;
@@ -145,6 +150,22 @@ public class CacheStats {
         this.layeringCacheSetting = layeringCacheSetting;
     }
 
+    public String getDepict() {
+        return depict;
+    }
+
+    public void setDepict(String depict) {
+        this.depict = depict;
+    }
+
+    public double getHitRate() {
+        return hitRate;
+    }
+
+    public void setHitRate(double hitRate) {
+        this.hitRate = hitRate;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) {
@@ -160,14 +181,6 @@ public class CacheStats {
             return false;
         }
         return internalKey != null ? internalKey.equals(that.internalKey) : that.internalKey == null;
-    }
-
-    public String getDepict() {
-        return depict;
-    }
-
-    public void setDepict(String depict) {
-        this.depict = depict;
     }
 
     @Override

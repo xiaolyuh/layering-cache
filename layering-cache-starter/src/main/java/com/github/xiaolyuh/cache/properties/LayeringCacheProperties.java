@@ -10,7 +10,7 @@ public class LayeringCacheProperties {
     /**
      * 启动 LayeringCacheServlet.
      */
-    private boolean utilViewServletEnabled = false;
+    private boolean utilViewServletEnabled = true;
     private String urlPattern;
     /**
      * 白名单

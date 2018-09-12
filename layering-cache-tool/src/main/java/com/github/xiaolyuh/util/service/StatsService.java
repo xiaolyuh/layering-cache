@@ -12,12 +12,16 @@ import com.github.xiaolyuh.util.support.CacheStats;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.util.StringUtils;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.text.DecimalFormat;
 import java.util.*;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 /**
  * 统计服务
@@ -27,20 +31,29 @@ import java.util.concurrent.TimeUnit;
 public class StatsService {
     private static Logger logger = LoggerFactory.getLogger(LayeringCacheServlet.class);
 
-    private static final String CACHE_STATS = ":cache_stats";
+    /**
+     * 缓存统计数据前缀
+     */
+    private static final String CACHE_STATS_KEY_PREFIX = "layering-cache:cache_stats:xiaolyuh:";
 
     /**
      * 定时任务线程池
      */
-    ScheduledThreadPoolExecutor executor = new ScheduledThreadPoolExecutor(50);
+    private static ScheduledThreadPoolExecutor executor = new ScheduledThreadPoolExecutor(50);
+
+    /**
+     * 数字格式化
+     */
+    private static DecimalFormat df = new DecimalFormat("#.00");
 
     /**
      * 获取缓存统计list
      *
-     * @param response {@link HttpServletResponse}
+     * @param cacheNameParam 缓存名称
      */
-    public void listCacheStats(HttpServletResponse response) throws IOException {
+    public List<CacheStats> listCacheStats(String cacheNameParam) throws IOException {
         logger.debug("获取缓存统计数据");
+
         List<CacheStats> statsList = new ArrayList<>();
         Set<AbstractCacheManager> cacheManagers = AbstractCacheManager.getCacheManager();
 
@@ -48,13 +61,17 @@ public class StatsService {
             RedisTemplate<String, Object> redisTemplate = cacheManager.getRedisTemplate();
             Collection<String> cacheNames = ((CacheManager) cacheManager).getCacheNames();
             for (String cacheName : cacheNames) {
+                if (!StringUtils.isEmpty(cacheNameParam) && !cacheName.startsWith(cacheNameParam)) {
+                    continue;
+                }
+
                 // 获取Cache
                 Collection<Cache> caches = cacheManager.getCache(cacheName);
                 for (Cache cache : caches) {
                     LayeringCache layeringCache = (LayeringCache) cache;
                     LayeringCacheSetting layeringCacheSetting = layeringCache.getLayeringCacheSetting();
-                    // 加锁并增量缓存统计数据，缓存key=缓存名称加 + 内部缓存名 + 固定后缀
-                    String redisKey = cacheName + layeringCacheSetting.getInternalKey() + CACHE_STATS;
+                    // 加锁并增量缓存统计数据，缓存key=固定前缀 + 缓存名称加 + 内部缓存名
+                    String redisKey = CACHE_STATS_KEY_PREFIX + cacheName + layeringCacheSetting.getInternalKey();
                     CacheStats cacheStats = (CacheStats) redisTemplate.opsForValue().get(redisKey);
                     if (!Objects.isNull(cacheStats)) {
                         statsList.add(cacheStats);
@@ -63,13 +80,15 @@ public class StatsService {
             }
         }
 
-        response.getWriter().write(JSON.toJSONString(statsList));
+        return statsList.stream().sorted(Comparator.comparing(CacheStats::getHitRate)).collect(Collectors.toList());
     }
 
     /**
      * 同步缓存统计list
      */
     public void syncCacheStats() {
+        // 清空统计数据
+        resetCacheStat();
         executor.scheduleWithFixedDelay(() -> {
             logger.debug("执行缓存统计数据采集定时任务");
             Set<AbstractCacheManager> cacheManagers = AbstractCacheManager.getCacheManager();
@@ -84,8 +103,8 @@ public class StatsService {
                     for (Cache cache : caches) {
                         LayeringCache layeringCache = (LayeringCache) cache;
                         LayeringCacheSetting layeringCacheSetting = layeringCache.getLayeringCacheSetting();
-                        // 加锁并增量缓存统计数据，缓存key=缓存名称加 + 内部缓存名 + 固定后缀
-                        String redisKey = cacheName + layeringCacheSetting.getInternalKey() + CACHE_STATS;
+                        // 加锁并增量缓存统计数据，缓存key=固定前缀 + 缓存名称加 + 内部缓存名
+                        String redisKey = CACHE_STATS_KEY_PREFIX + cacheName + layeringCacheSetting.getInternalKey();
                         Lock lock = new Lock(redisTemplate, redisKey, 60, 5000);
                         try {
                             if (lock.tryLock()) {
@@ -110,8 +129,11 @@ public class StatsService {
                                 cacheStats.setRequestCount(cacheStats.getRequestCount() + layeringCacheStats.getAndResetCacheRequestCount());
                                 cacheStats.setMissCount(cacheStats.getMissCount() + layeringCacheStats.getAndResetCachedMethodRequestCount());
                                 cacheStats.setTotalLoadTime(cacheStats.getTotalLoadTime() + layeringCacheStats.getAndResetCachedMethodRequestTime());
+                                cacheStats.setHitRate((cacheStats.getRequestCount() - cacheStats.getMissCount()) / (double) cacheStats.getRequestCount() * 100);
+
                                 cacheStats.setFirstCacheRequestCount(cacheStats.getFirstCacheRequestCount() + firstCacheStats.getAndResetCacheRequestCount());
                                 cacheStats.setFirstCacheMissCount(cacheStats.getFirstCacheMissCount() + firstCacheStats.getAndResetCachedMethodRequestCount());
+
                                 cacheStats.setSecondCacheRequestCount(cacheStats.getSecondCacheRequestCount() + secondCacheStats.getAndResetCacheRequestCount());
                                 cacheStats.setSecondCacheMissCount(cacheStats.getSecondCacheMissCount() + secondCacheStats.getAndResetCachedMethodRequestCount());
 
@@ -128,7 +150,7 @@ public class StatsService {
             }
 
             //  初始时间间隔是5分
-        }, 5, 5, TimeUnit.MINUTES);
+        }, 5, 5, TimeUnit.SECONDS);
     }
 
     /**
@@ -136,5 +158,19 @@ public class StatsService {
      */
     public void shutdownExecutor() {
         executor.shutdown();
+    }
+
+    /**
+     * 重置缓存统计数据
+     *
+     */
+    public void resetCacheStat() {
+        Set<AbstractCacheManager> cacheManagers = AbstractCacheManager.getCacheManager();
+        for (AbstractCacheManager cacheManager : cacheManagers) {
+            RedisTemplate<String, Object> redisTemplate = cacheManager.getRedisTemplate();
+            Set<String> keys = redisTemplate.keys(CACHE_STATS_KEY_PREFIX + "*");
+            redisTemplate.delete(keys);
+        }
+
     }
 }

@@ -1,8 +1,10 @@
 package com.github.xiaolyuh.util.servlet;
 
 
+import com.alibaba.fastjson.JSON;
 import com.github.xiaolyuh.util.service.StatsService;
 import com.github.xiaolyuh.util.service.UserService;
+import com.github.xiaolyuh.util.support.CacheStats;
 import com.github.xiaolyuh.util.support.IPRange;
 import com.github.xiaolyuh.util.support.InitServletData;
 import com.github.xiaolyuh.util.support.URLConstant;
@@ -59,9 +61,17 @@ public class LayeringCacheServlet extends HttpServlet {
             return;
         }
 
+        // 重置缓存统计数据
+        if (URLConstant.RESET_CACHE_STAT.equals(path)) {
+            BeanFactory.getBean(StatsService.class).resetCacheStat();
+            return;
+        }
+
         // 缓存统计列表
         if (URLConstant.CACHE_STATS_LIST.equals(path)) {
-            BeanFactory.getBean(StatsService.class).listCacheStats(response);
+            String cacheNameParam = request.getParameter("cacheName");
+            List<CacheStats> statsList = BeanFactory.getBean(StatsService.class).listCacheStats(cacheNameParam);
+            response.getWriter().write(JSON.toJSONString(statsList));
             return;
         }
 

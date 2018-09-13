@@ -1,4 +1,4 @@
-package com.github.xiaolyuh.util.support;
+package com.github.xiaolyuh.tool.support;
 
 /**
  * URL 常量
@@ -21,5 +21,10 @@ public class URLConstant {
      * 缓存统计列表
      */
     public static final String CACHE_STATS_LIST = "/cache-stats/list";
+
+    /**
+     * 删除缓存统计
+     */
+    public static final String CACHE_STATS_DELETE_CACHW = "/cache-stats/delete-cache";
 
 }

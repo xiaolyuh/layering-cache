@@ -1,15 +1,12 @@
-package com.github.xiaolyuh.util.servlet;
+package com.github.xiaolyuh.tool.servlet;
 
 
 import com.alibaba.fastjson.JSON;
-import com.github.xiaolyuh.util.service.StatsService;
-import com.github.xiaolyuh.util.service.UserService;
-import com.github.xiaolyuh.util.support.CacheStats;
-import com.github.xiaolyuh.util.support.IPRange;
-import com.github.xiaolyuh.util.support.InitServletData;
-import com.github.xiaolyuh.util.support.URLConstant;
-import com.github.xiaolyuh.util.util.BeanFactory;
-import com.github.xiaolyuh.util.util.Utils;
+import com.github.xiaolyuh.tool.service.StatsService;
+import com.github.xiaolyuh.tool.service.UserService;
+import com.github.xiaolyuh.tool.support.*;
+import com.github.xiaolyuh.tool.util.BeanFactory;
+import com.github.xiaolyuh.tool.util.Utils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.util.StringUtils;
@@ -58,12 +55,14 @@ public class LayeringCacheServlet extends HttpServlet {
         // 登录
         if (URLConstant.USER_SUBMIT_LOGIN.equals(path)) {
             BeanFactory.getBean(UserService.class).login(initServletData, request, response);
+            response.getWriter().write(JSON.toJSONString(Result.success()));
             return;
         }
 
         // 重置缓存统计数据
         if (URLConstant.RESET_CACHE_STAT.equals(path)) {
             BeanFactory.getBean(StatsService.class).resetCacheStat();
+            response.getWriter().write(JSON.toJSONString(Result.success()));
             return;
         }
 
@@ -71,7 +70,17 @@ public class LayeringCacheServlet extends HttpServlet {
         if (URLConstant.CACHE_STATS_LIST.equals(path)) {
             String cacheNameParam = request.getParameter("cacheName");
             List<CacheStats> statsList = BeanFactory.getBean(StatsService.class).listCacheStats(cacheNameParam);
-            response.getWriter().write(JSON.toJSONString(statsList));
+            response.getWriter().write(JSON.toJSONString(Result.success(statsList)));
+            return;
+        }
+
+        // 删除缓存
+        if (URLConstant.CACHE_STATS_DELETE_CACHW.equals(path)) {
+            String cacheNameParam = request.getParameter("cacheName");
+            String internalKey = request.getParameter("internalKey");
+            String key = request.getParameter("key");
+            BeanFactory.getBean(StatsService.class).deleteCache(cacheNameParam, internalKey, key);
+            response.getWriter().write(JSON.toJSONString(Result.success()));
             return;
         }
 

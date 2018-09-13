@@ -1,7 +1,7 @@
 package com.github.xiaolyuh.cache.config;
 
 import com.github.xiaolyuh.cache.properties.LayeringCacheProperties;
-import com.github.xiaolyuh.util.servlet.LayeringCacheServlet;
+import com.github.xiaolyuh.tool.servlet.LayeringCacheServlet;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
 import org.springframework.boot.web.servlet.ServletRegistrationBean;

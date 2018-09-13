@@ -1,4 +1,4 @@
-package com.github.xiaolyuh.util.util;
+package com.github.xiaolyuh.tool.util;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

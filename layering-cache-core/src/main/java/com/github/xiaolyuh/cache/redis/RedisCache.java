@@ -156,7 +156,7 @@ public class RedisCache extends AbstractValueAdaptingCache {
     @Override
     public void evict(Object key) {
         RedisCacheKey redisCacheKey = getRedisCacheKey(key);
-        logger.debug("redis缓存 key: {} 清除缓存", redisCacheKey.getKey());
+        logger.info("redis缓存 key: {} 清除缓存", redisCacheKey.getKey());
         redisTemplate.delete(redisCacheKey.getKey());
     }
 

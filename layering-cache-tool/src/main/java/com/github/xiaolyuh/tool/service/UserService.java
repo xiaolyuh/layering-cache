@@ -1,6 +1,6 @@
-package com.github.xiaolyuh.util.service;
+package com.github.xiaolyuh.tool.service;
 
-import com.github.xiaolyuh.util.support.InitServletData;
+import com.github.xiaolyuh.tool.support.InitServletData;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;

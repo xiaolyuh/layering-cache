@@ -1,4 +1,4 @@
-package com.github.xiaolyuh.util.util;
+package com.github.xiaolyuh.tool.util;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;

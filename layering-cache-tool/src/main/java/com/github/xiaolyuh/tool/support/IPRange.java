@@ -1,4 +1,4 @@
-package com.github.xiaolyuh.util.support;
+package com.github.xiaolyuh.tool.support;
 
 public class IPRange {
 

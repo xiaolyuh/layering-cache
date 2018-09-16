@@ -15,6 +15,7 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -50,12 +51,33 @@ public class LayeringCacheServlet extends HttpServlet {
         String uri = contextPath + servletPath;
         String path = requestURI.substring(contextPath.length() + servletPath.length());
 
-        BeanFactory.getBean(UserService.class).checkSecrity(initServletData, request);
+        // 权限校验
+        String ip = request.getRemoteAddr();
+        boolean security = BeanFactory.getBean(UserService.class).checkSecurity(initServletData, ip);
+        if (!security) {
+            returnResourceFile("/nopermit.html", uri, response);
+            return;
+        }
+
+        // 登录校验
+        HttpSession session = request.getSession(false);
+        boolean isLogin = BeanFactory.getBean(UserService.class).checkLogin(path, session);
+        if (!isLogin) {
+            returnResourceFile("/login.html", uri, response);
+            return;
+        }
 
         // 登录
         if (URLConstant.USER_SUBMIT_LOGIN.equals(path)) {
-            BeanFactory.getBean(UserService.class).login(initServletData, request, response);
-            response.getWriter().write(JSON.toJSONString(Result.success()));
+            String usernameParam = request.getParameter(InitServletData.PARAM_NAME_USERNAME);
+            String passwordParam = request.getParameter(InitServletData.PARAM_NAME_PASSWORD);
+            boolean success = BeanFactory.getBean(UserService.class).login(initServletData, usernameParam, passwordParam, request);
+
+            if (success) {
+                response.getWriter().write(JSON.toJSONString(Result.success()));
+            } else {
+                response.getWriter().write(JSON.toJSONString(Result.error("用户名或密码错误")));
+            }
             return;
         }
 
@@ -179,7 +201,6 @@ public class LayeringCacheServlet extends HttpServlet {
     protected String getFilePath(String fileName) {
         return InitServletData.RESOURCE_PATH + fileName;
     }
-
 
     @Override
     public void destroy() {

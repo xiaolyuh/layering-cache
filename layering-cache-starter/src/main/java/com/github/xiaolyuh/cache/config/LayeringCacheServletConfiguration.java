@@ -12,7 +12,7 @@ import org.springframework.util.StringUtils;
  * @author yuhao.wang3
  */
 @ConditionalOnWebApplication
-@ConditionalOnProperty(name = "spring.cache.layering-cache.util-view-servlet-enabled", havingValue = "true", matchIfMissing = false)
+@ConditionalOnProperty(name = "layering-cache.util-view-servlet-enabled", havingValue = "true", matchIfMissing = false)
 public class LayeringCacheServletConfiguration {
     @Bean
     public ServletRegistrationBean statViewServletRegistrationBean(LayeringCacheProperties properties) {

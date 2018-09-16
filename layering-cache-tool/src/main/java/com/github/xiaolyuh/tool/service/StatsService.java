@@ -1,5 +1,6 @@
 package com.github.xiaolyuh.tool.service;
 
+import com.alibaba.fastjson.JSON;
 import com.github.xiaolyuh.cache.Cache;
 import com.github.xiaolyuh.cache.LayeringCache;
 import com.github.xiaolyuh.manager.AbstractCacheManager;
@@ -136,6 +137,8 @@ public class StatsService {
 
                                 // 将缓存统计数据写到redis
                                 redisTemplate.opsForValue().set(redisKey, cacheStats, 1, TimeUnit.HOURS);
+
+                                logger.info("Layering Cache 统计信息：{}", JSON.toJSONString(cacheStats));
                             }
                         } catch (Exception e) {
                             logger.error(e.getMessage(), e);

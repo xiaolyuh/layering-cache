@@ -5,7 +5,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 /**
  * @author yuhao.wang3
  */
-@ConfigurationProperties("spring.cache.layering-cache")
+@ConfigurationProperties("layering-cache")
 public class LayeringCacheProperties {
     /**
      * 启动 LayeringCacheServlet.

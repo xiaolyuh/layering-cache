@@ -59,7 +59,7 @@ public abstract class AbstractCacheManager implements CacheManager, Initializing
     /**
      * 是否开启统计
      */
-    private boolean stats = false;
+    private boolean stats = true;
 
     public static Set<AbstractCacheManager> getCacheManager() {
         return cacheManagers;

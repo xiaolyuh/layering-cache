@@ -2,6 +2,7 @@ package com.github.xiaolyuh.tool.servlet;
 
 
 import com.alibaba.fastjson.JSON;
+import com.github.xiaolyuh.manager.AbstractCacheManager;
 import com.github.xiaolyuh.tool.service.StatsService;
 import com.github.xiaolyuh.tool.service.UserService;
 import com.github.xiaolyuh.tool.support.*;
@@ -9,16 +10,17 @@ import com.github.xiaolyuh.tool.util.BeanFactory;
 import com.github.xiaolyuh.tool.util.Utils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.util.StringUtils;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 /**
  * 统计的Servlet
@@ -29,6 +31,8 @@ public class LayeringCacheServlet extends HttpServlet {
     private static Logger logger = LoggerFactory.getLogger(LayeringCacheServlet.class);
 
     private InitServletData initServletData = new InitServletData();
+
+    private RedisTemplate<String, Object> redisTemplate;
 
 
     @Override
@@ -60,8 +64,7 @@ public class LayeringCacheServlet extends HttpServlet {
         }
 
         // 登录校验
-        HttpSession session = request.getSession(false);
-        boolean isLogin = BeanFactory.getBean(UserService.class).checkLogin(path, session);
+        boolean isLogin = BeanFactory.getBean(UserService.class).checkLogin(path, redisTemplate);
         if (!isLogin) {
             returnResourceFile("/login.html", uri, response);
             return;
@@ -71,7 +74,7 @@ public class LayeringCacheServlet extends HttpServlet {
         if (URLConstant.USER_SUBMIT_LOGIN.equals(path)) {
             String usernameParam = request.getParameter(InitServletData.PARAM_NAME_USERNAME);
             String passwordParam = request.getParameter(InitServletData.PARAM_NAME_PASSWORD);
-            boolean success = BeanFactory.getBean(UserService.class).login(initServletData, usernameParam, passwordParam, request);
+            boolean success = BeanFactory.getBean(UserService.class).login(initServletData, usernameParam, passwordParam, redisTemplate);
 
             if (success) {
                 response.getWriter().write(JSON.toJSONString(Result.success()));
@@ -83,7 +86,7 @@ public class LayeringCacheServlet extends HttpServlet {
 
         // 重置缓存统计数据
         if (URLConstant.RESET_CACHE_STAT.equals(path)) {
-            BeanFactory.getBean(StatsService.class).resetCacheStat();
+            BeanFactory.getBean(StatsService.class).resetCacheStat(redisTemplate);
             response.getWriter().write(JSON.toJSONString(Result.success()));
             return;
         }
@@ -91,7 +94,7 @@ public class LayeringCacheServlet extends HttpServlet {
         // 缓存统计列表
         if (URLConstant.CACHE_STATS_LIST.equals(path)) {
             String cacheNameParam = request.getParameter("cacheName");
-            List<CacheStats> statsList = BeanFactory.getBean(StatsService.class).listCacheStats(cacheNameParam);
+            List<CacheStats> statsList = BeanFactory.getBean(StatsService.class).listCacheStats(redisTemplate, cacheNameParam);
             response.getWriter().write(JSON.toJSONString(Result.success(statsList)));
             return;
         }
@@ -144,8 +147,9 @@ public class LayeringCacheServlet extends HttpServlet {
             logger.error("initParameter config error, deny : {}", getInitParameter(InitServletData.PARAM_NAME_DENY), e);
         }
 
-        // 采集缓存命中数据,每5分钟采集一次
-        BeanFactory.getBean(StatsService.class).syncCacheStats();
+        // 采集缓存命中数据
+        redisTemplate = getRedisTemplate();
+        BeanFactory.getBean(StatsService.class).syncCacheStats(redisTemplate);
     }
 
     private List<IPRange> parseStringToIP(String ipStr) {
@@ -200,6 +204,14 @@ public class LayeringCacheServlet extends HttpServlet {
 
     protected String getFilePath(String fileName) {
         return InitServletData.RESOURCE_PATH + fileName;
+    }
+
+    private RedisTemplate<String, Object> getRedisTemplate() {
+        Set<AbstractCacheManager> cacheManagers = AbstractCacheManager.getCacheManager();
+        for (AbstractCacheManager cacheManager : cacheManagers) {
+            return cacheManager.getRedisTemplate();
+        }
+        return null;
     }
 
     @Override

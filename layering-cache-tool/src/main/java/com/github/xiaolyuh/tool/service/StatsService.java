@@ -49,14 +49,13 @@ public class StatsService {
      *
      * @param cacheNameParam 缓存名称
      */
-    public List<CacheStats> listCacheStats(String cacheNameParam) throws IOException {
+    public List<CacheStats> listCacheStats(RedisTemplate<String, Object> redisTemplate, String cacheNameParam) throws IOException {
         logger.debug("获取缓存统计数据");
 
         List<CacheStats> statsList = new ArrayList<>();
         Set<AbstractCacheManager> cacheManagers = AbstractCacheManager.getCacheManager();
 
         for (AbstractCacheManager cacheManager : cacheManagers) {
-            RedisTemplate<String, Object> redisTemplate = cacheManager.getRedisTemplate();
             Collection<String> cacheNames = ((CacheManager) cacheManager).getCacheNames();
             for (String cacheName : cacheNames) {
                 if (StringUtils.isNotBlank(cacheNameParam) && !cacheName.startsWith(cacheNameParam)) {
@@ -84,16 +83,15 @@ public class StatsService {
     /**
      * 同步缓存统计list
      */
-    public void syncCacheStats() {
+    public void syncCacheStats(RedisTemplate<String, Object> redisTemplate) {
         // 清空统计数据
-        resetCacheStat();
+        resetCacheStat(redisTemplate);
         executor.scheduleWithFixedDelay(() -> {
             logger.debug("执行缓存统计数据采集定时任务");
             Set<AbstractCacheManager> cacheManagers = AbstractCacheManager.getCacheManager();
             for (AbstractCacheManager abstractCacheManager : cacheManagers) {
                 // 获取CacheManager
                 CacheManager cacheManager = ((CacheManager) abstractCacheManager);
-                RedisTemplate<String, Object> redisTemplate = cacheManager.getRedisTemplate();
                 Collection<String> cacheNames = cacheManager.getCacheNames();
                 for (String cacheName : cacheNames) {
                     // 获取Cache
@@ -163,13 +161,9 @@ public class StatsService {
     /**
      * 重置缓存统计数据
      */
-    public void resetCacheStat() {
-        Set<AbstractCacheManager> cacheManagers = AbstractCacheManager.getCacheManager();
-        for (AbstractCacheManager cacheManager : cacheManagers) {
-            RedisTemplate<String, Object> redisTemplate = cacheManager.getRedisTemplate();
-            Set<String> keys = redisTemplate.keys(CACHE_STATS_KEY_PREFIX + "*");
-            redisTemplate.delete(keys);
-        }
+    public void resetCacheStat(RedisTemplate<String, Object> redisTemplate) {
+        Set<String> keys = redisTemplate.keys(CACHE_STATS_KEY_PREFIX + "*");
+        redisTemplate.delete(keys);
     }
 
     /**
@@ -193,7 +187,7 @@ public class StatsService {
                 Cache cache = cacheManager.getCache(cacheName, layeringCacheSetting);
                 cache.clear();
             }
-            
+
             return;
         }
 

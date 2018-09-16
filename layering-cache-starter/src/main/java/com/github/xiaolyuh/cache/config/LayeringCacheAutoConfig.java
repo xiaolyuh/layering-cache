@@ -30,10 +30,10 @@ public class LayeringCacheAutoConfig {
 
     @Bean
     @ConditionalOnMissingBean(CacheManager.class)
-    public CacheManager cacheManager(RedisTemplate<String, Object> redisTemplate) {
+    public CacheManager cacheManager(RedisTemplate<String, Object> redisTemplate, LayeringCacheProperties properties) {
         LayeringCacheManager layeringCacheManager = new LayeringCacheManager(redisTemplate);
-        // 默认关闭统计功能
-        layeringCacheManager.setStats(true);
+        // 默认开启统计功能
+        layeringCacheManager.setStats(properties.isStats());
         return layeringCacheManager;
     }
 

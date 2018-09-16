@@ -35,6 +35,9 @@
                             dataType: 'JSON',
                             success: function (data) {
                                 bindEvent.getData();
+                            },
+                            error: function () {
+                                window.location.href = "index.html";
                             }
                         });
                     },
@@ -66,6 +69,9 @@
                     var temp = ko.mapping.fromJS(data.data);
                     format.formatInit(temp());
                     viewModel.cacheStats(temp());
+                },
+                error: function () {
+                    window.location.href = "index.html";
                 }
             });
         }
@@ -75,9 +81,23 @@
         formatInit: function (cacheStats) {
             $.each(cacheStats, function (i, cs) {
                 cs.hitRate = cs.hitRate().toFixed(2) + "%";
-                cs.firstHitRate = ((cs.firstCacheRequestCount() - cs.firstCacheMissCount()) / cs.firstCacheRequestCount() * 100 ).toFixed(2) + "%";
-                cs.secondHitRate = ((cs.secondCacheRequestCount() - cs.secondCacheMissCount()) / cs.secondCacheRequestCount() * 100 ).toFixed(2) + "%";
-                cs.averageTotalLoadTime = (cs.totalLoadTime() / cs.requestCount()).toFixed(2) + "毫秒";
+                if (cs.firstCacheRequestCount() > 0) {
+                    cs.firstHitRate = ((cs.firstCacheRequestCount() - cs.firstCacheMissCount()) / cs.firstCacheRequestCount() * 100 ).toFixed(2) + "%";
+                } else {
+                    cs.firstHitRate = (0).toFixed(2) + "%";
+                }
+
+                if (cs.secondCacheRequestCount() > 0) {
+                    cs.secondHitRate = ((cs.secondCacheRequestCount() - cs.secondCacheMissCount()) / cs.secondCacheRequestCount() * 100 ).toFixed(2) + "%";
+                } else {
+                    cs.secondHitRate = (0).toFixed(2) + "%";
+                }
+
+                if (cs.missCount() > 0) {
+                    cs.averageTotalLoadTime = (cs.totalLoadTime() / cs.missCount()).toFixed(2) + "毫秒";
+                } else {
+                    cs.averageTotalLoadTime = (0).toFixed(2) + "毫秒";
+                }
 
                 cs.deleteCache = function () {
                     $(constant.DELETE_PROMPT).modal({
@@ -94,6 +114,9 @@
                                         success: function (data) {
                                             $(constant.DELETE_CACHE_KEYINPUT).val("");
                                             bindEvent.getData();
+                                        },
+                                        error: function () {
+                                            window.location.href = "index.html";
                                         }
                                     });
                                 },

@@ -149,8 +149,8 @@ public class StatsService {
                 }
             }
 
-            //  初始时间间隔是5分
-        }, 5, 5, TimeUnit.MINUTES);
+            //  初始时间间隔是1分
+        }, 1, 1, TimeUnit.MINUTES);
     }
 
     /**

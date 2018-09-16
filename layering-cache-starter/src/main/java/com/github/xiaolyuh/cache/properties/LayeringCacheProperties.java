@@ -7,11 +7,22 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
  */
 @ConfigurationProperties("layering-cache")
 public class LayeringCacheProperties {
+
+    /**
+     * 是否开启缓存统计
+     */
+    private boolean stats = true;
+
     /**
      * 启动 LayeringCacheServlet.
      */
     private boolean utilViewServletEnabled = true;
+
+    /**
+     * contextPath
+     */
     private String urlPattern;
+
     /**
      * 白名单
      */
@@ -80,4 +91,11 @@ public class LayeringCacheProperties {
         this.loginPassword = loginPassword;
     }
 
+    public boolean isStats() {
+        return stats;
+    }
+
+    public void setStats(boolean stats) {
+        this.stats = stats;
+    }
 }

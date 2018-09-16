@@ -62,7 +62,7 @@ public class CaffeineCache extends AbstractValueAdaptingCache {
 
     @Override
     public Object get(Object key) {
-        logger.debug("caffeine缓存 key:{} 获取缓存", JSON.toJSONString(key));
+        logger.debug("caffeine缓存 key={} 获取缓存", JSON.toJSONString(key));
 
         if (isStats()) {
             getCacheStats().addCacheRequestCount(1);
@@ -76,7 +76,7 @@ public class CaffeineCache extends AbstractValueAdaptingCache {
 
     @Override
     public <T> T get(Object key, Callable<T> valueLoader) {
-        logger.debug("caffeine缓存 key:{} 获取缓存， 如果没有命中就走库加载缓存", JSON.toJSONString(key));
+        logger.debug("caffeine缓存 key={} 获取缓存， 如果没有命中就走库加载缓存", JSON.toJSONString(key));
 
         if (isStats()) {
             getCacheStats().addCacheRequestCount(1);
@@ -88,26 +88,26 @@ public class CaffeineCache extends AbstractValueAdaptingCache {
 
     @Override
     public void put(Object key, Object value) {
-        logger.debug("caffeine缓存 key:{} put缓存，缓存值：{}", JSON.toJSONString(key), JSON.toJSONString(value));
+        logger.debug("caffeine缓存 key={} put缓存，缓存值：{}", JSON.toJSONString(key), JSON.toJSONString(value));
         this.cache.put(key, toStoreValue(value));
     }
 
     @Override
     public Object putIfAbsent(Object key, Object value) {
-        logger.debug("caffeine缓存 key:{} putIfAbsent 缓存，缓存值：{}", JSON.toJSONString(key), JSON.toJSONString(value));
+        logger.debug("caffeine缓存 key={} putIfAbsent 缓存，缓存值：{}", JSON.toJSONString(key), JSON.toJSONString(value));
         Object result = this.cache.get(key, k -> toStoreValue(value));
         return fromStoreValue(result);
     }
 
     @Override
     public void evict(Object key) {
-        logger.debug("caffeine缓存 key:{} 清除缓存", JSON.toJSONString(key));
+        logger.debug("caffeine缓存 key={} 清除缓存", JSON.toJSONString(key));
         this.cache.invalidate(key);
     }
 
     @Override
     public void clear() {
-        logger.debug("caffeine缓存 key:{} 清空缓存");
+        logger.debug("caffeine缓存 key={} 清空缓存");
         this.cache.invalidateAll();
     }
 
@@ -122,7 +122,7 @@ public class CaffeineCache extends AbstractValueAdaptingCache {
 
         try {
             T t = valueLoader.call();
-            logger.debug("caffeine缓存 key:{} 从库加载缓存", JSON.toJSONString(key), JSON.toJSONString(t));
+            logger.debug("caffeine缓存 key={} 从库加载缓存", JSON.toJSONString(key), JSON.toJSONString(t));
 
             if (isStats()) {
                 getCacheStats().addCachedMethodRequestTime(System.currentTimeMillis() - start);

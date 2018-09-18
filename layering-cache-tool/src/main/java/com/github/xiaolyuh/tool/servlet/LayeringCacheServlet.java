@@ -17,6 +17,7 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -48,6 +49,7 @@ public class LayeringCacheServlet extends HttpServlet {
 
         response.setCharacterEncoding("utf-8");
 
+        HttpSession session = request.getSession();
         // root context
         if (contextPath == null) {
             contextPath = "";
@@ -64,7 +66,7 @@ public class LayeringCacheServlet extends HttpServlet {
         }
 
         // 登录校验
-        boolean isLogin = BeanFactory.getBean(UserService.class).checkLogin(path, redisTemplate);
+        boolean isLogin = BeanFactory.getBean(UserService.class).checkLogin(path, session);
         if (!isLogin) {
             returnResourceFile("/login.html", uri, response);
             return;
@@ -74,7 +76,19 @@ public class LayeringCacheServlet extends HttpServlet {
         if (URLConstant.USER_SUBMIT_LOGIN.equals(path)) {
             String usernameParam = request.getParameter(InitServletData.PARAM_NAME_USERNAME);
             String passwordParam = request.getParameter(InitServletData.PARAM_NAME_PASSWORD);
-            boolean success = BeanFactory.getBean(UserService.class).login(initServletData, usernameParam, passwordParam, redisTemplate);
+            boolean success = BeanFactory.getBean(UserService.class).login(initServletData, usernameParam, passwordParam, session);
+
+            if (success) {
+                response.getWriter().write(JSON.toJSONString(Result.success()));
+            } else {
+                response.getWriter().write(JSON.toJSONString(Result.error("用户名或密码错误")));
+            }
+            return;
+        }
+
+        // 登录
+        if (URLConstant.USER_LOGIN_OUT.equals(path)) {
+            boolean success = BeanFactory.getBean(UserService.class).loginOut(session);
 
             if (success) {
                 response.getWriter().write(JSON.toJSONString(Result.success()));

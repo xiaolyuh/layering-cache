@@ -5,7 +5,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 /**
  * @author yuhao.wang3
  */
-@ConfigurationProperties("layering-cache")
+@ConfigurationProperties("spring.layering-cache")
 public class LayeringCacheProperties {
 
     /**
@@ -16,7 +16,7 @@ public class LayeringCacheProperties {
     /**
      * 启动 LayeringCacheServlet.
      */
-    private boolean utilViewServletEnabled = true;
+    private boolean layeringCacheServletEnabled = true;
 
     /**
      * contextPath
@@ -43,12 +43,12 @@ public class LayeringCacheProperties {
      */
     private String loginPassword = "admin";
 
-    public boolean isUtilViewServletEnabled() {
-        return utilViewServletEnabled;
+    public boolean isLayeringCacheServletEnabled() {
+        return layeringCacheServletEnabled;
     }
 
-    public void setUtilViewServletEnabled(boolean utilViewServletEnabled) {
-        this.utilViewServletEnabled = utilViewServletEnabled;
+    public void setLayeringCacheServletEnabled(boolean layeringCacheServletEnabled) {
+        this.layeringCacheServletEnabled = layeringCacheServletEnabled;
     }
 
     public String getUrlPattern() {

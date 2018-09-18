@@ -14,7 +14,11 @@
                     dataType: 'JSON',
                     data: $(constant.LOGIN_FORM).serialize(),
                     success: function (data) {
-                        window.location.href = "index.html";
+                        if (data.status == "SUCCESS") {
+                            window.location.href = "index.html";
+                        } else {
+                            alert("用户名或密码错误");
+                        }
                     }
                 });
             });

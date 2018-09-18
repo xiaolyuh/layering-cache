@@ -4,11 +4,10 @@ import com.github.xiaolyuh.tool.support.IPAddress;
 import com.github.xiaolyuh.tool.support.IPRange;
 import com.github.xiaolyuh.tool.support.InitServletData;
 import com.github.xiaolyuh.tool.support.URLConstant;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.util.CollectionUtils;
 
+import javax.servlet.http.HttpSession;
 import java.io.IOException;
-import java.util.concurrent.TimeUnit;
 
 /**
  * 用户服务
@@ -54,17 +53,17 @@ public class UserService {
     /**
      * 登录校验
      *
-     * @param path          请求地址
-     * @param redisTemplate {@link RedisTemplate}
+     * @param path    请求地址
+     * @param session {@link HttpSession}
      */
-    public boolean checkLogin(String path, RedisTemplate<String, Object> redisTemplate) {
+    public boolean checkLogin(String path, HttpSession session) {
         // 不需要权限的就可以访问的资源
         if (isIgnoreSource(path)) {
             return true;
         }
 
         // 检查是否登录
-        if (!isLogin(redisTemplate)) {
+        if (!isLogin(session)) {
             return false;
         }
 
@@ -77,14 +76,14 @@ public class UserService {
      * @param initServletData 服务启动初始化参数
      * @param usernameParam   用户名
      * @param passwordParam   密码
-     * @param redisTemplate   {@link RedisTemplate}
+     * @param session         {@link HttpSession}
      * @return
      * @throws IOException
      */
-    public boolean login(InitServletData initServletData, String usernameParam, String passwordParam, RedisTemplate<String, Object> redisTemplate) throws IOException {
+    public boolean login(InitServletData initServletData, String usernameParam, String passwordParam, HttpSession session) throws IOException {
         if (initServletData.getUsername().equals(usernameParam) &&
                 initServletData.getPassword().equals(passwordParam)) {
-            redisTemplate.opsForValue().set(SESSION_USER_KEY, initServletData.getUsername(), 30, TimeUnit.MINUTES);
+            session.setAttribute(SESSION_USER_KEY, initServletData.getUsername());
             return true;
         }
         return false;
@@ -93,11 +92,11 @@ public class UserService {
     /**
      * 是否登录
      *
-     * @param redisTemplate redisTemplate
+     * @param session session
      * @return
      */
-    public boolean isLogin(RedisTemplate<String, Object> redisTemplate) {
-        return redisTemplate != null && redisTemplate.opsForValue().get(SESSION_USER_KEY) != null;
+    public boolean isLogin(HttpSession session) {
+        return session != null && session.getAttribute(SESSION_USER_KEY) != null;
     }
 
     /**
@@ -114,5 +113,16 @@ public class UserService {
                 || path.startsWith("/js/")
                 || path.startsWith("/fonts/")
                 || path.startsWith("/i/");
+    }
+
+    /**
+     * 退出
+     *
+     * @param session {@link HttpSession}
+     * @return boolean
+     */
+    public boolean loginOut(HttpSession session) {
+        session.invalidate();
+        return true;
     }
 }

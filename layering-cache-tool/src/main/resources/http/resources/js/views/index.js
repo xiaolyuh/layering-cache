@@ -1,7 +1,6 @@
 (function ($) {
 
     var constant = {
-        MENU_CSS: '.bind-menu-syndrome-search',
         RESET_STATS_BUTTON: '.bind-reset-stats-button',
         SEARCH_BUTTON: '.bind-search-button',
         SEARCH_INPUT: '.bind-search-input',
@@ -9,6 +8,7 @@
         DELETE_CACHE_KEYINPUT: '#delete-cache-key-input',
         CONFIRM: '#my-confirm',
         DETAIL_MODAL: '#detail-modal',
+        LOGIN_OUT: '#login-out',
     };
 
     var viewModel = {
@@ -19,11 +19,6 @@
     };
 
     var bindEvent = {
-        bindMenuCss: function () {
-            $('.list-group-item-success')
-                .removeClass('list-group-item-success');
-            $(constant.MENU_CSS).addClass('list-group-item-success');
-        },
         bindResetStats: function () {
             $(constant.RESET_STATS_BUTTON).on("click", function () {
                 $(constant.CONFIRM).modal({
@@ -44,6 +39,22 @@
                     // closeOnConfirm: false,
                     onCancel: function() {
 
+                    }
+                });
+            });
+        },
+        bindLoginOut: function () {
+            $(constant.LOGIN_OUT).on("click", function () {
+                $.ajax({
+                    type: 'POST',
+                    url: 'user/login-out',
+                    dataType: 'JSON',
+                    success: function (data) {
+                        if (data.status == "SUCCESS") {
+                            window.location.href = "login.html";
+                        } else {
+                            alert("操作失败");
+                        }
                     }
                 });
             });
@@ -155,10 +166,10 @@
     var index = {
         init: function () {
             ko.applyBindings(viewModel);
-            bindEvent.bindMenuCss();
             bindEvent.getData();
             bindEvent.searchData();
             bindEvent.bindResetStats();
+            bindEvent.bindLoginOut();
         }
     };
 

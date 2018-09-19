@@ -82,7 +82,7 @@
                     viewModel.cacheStats(temp());
                 },
                 error: function () {
-                    window.location.href = "index.html";
+                    window.location.href = "login.html";
                 }
             });
         }

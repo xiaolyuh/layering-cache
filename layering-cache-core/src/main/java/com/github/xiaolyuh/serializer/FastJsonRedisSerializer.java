@@ -20,7 +20,6 @@ import java.nio.charset.Charset;
 public class FastJsonRedisSerializer<T> implements RedisSerializer<T> {
     private Logger logger = LoggerFactory.getLogger(FastJsonRedisSerializer.class);
 
-    private static final byte[] EMPTY_ARRAY = new byte[0];
     private static final Charset DEFAULT_CHARSET = Charset.forName("UTF-8");
 
     private Class<T> clazz;

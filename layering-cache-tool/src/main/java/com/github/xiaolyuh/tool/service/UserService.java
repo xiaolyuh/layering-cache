@@ -24,6 +24,11 @@ public class UserService {
      * @param ip              IP地址
      */
     public boolean checkSecurity(InitServletData initServletData, String ip) {
+        boolean ipV6 = ip != null && ip.indexOf(':') != -1;
+        if (ipV6) {
+            return "0:0:0:0:0:0:0:1".equals(ip);
+        }
+
         // 检查是否是授权IP
         if (CollectionUtils.isEmpty(initServletData.getDenyList()) && CollectionUtils.isEmpty(initServletData.getAllowList())) {
             return true;

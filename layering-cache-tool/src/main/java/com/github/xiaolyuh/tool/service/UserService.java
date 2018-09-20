@@ -22,8 +22,14 @@ public class UserService {
      *
      * @param initServletData {@link InitServletData}
      * @param ip              IP地址
+     * @param path            path
      */
-    public boolean checkSecurity(InitServletData initServletData, String ip) {
+    public boolean checkSecurity(InitServletData initServletData, String ip, String path) {
+        // 不需要权限的就可以访问的资源
+        if (isIgnoreSource(path)) {
+            return true;
+        }
+
         boolean ipV6 = ip != null && ip.indexOf(':') != -1;
         if (ipV6) {
             return "0:0:0:0:0:0:0:1".equals(ip);
@@ -66,7 +72,7 @@ public class UserService {
         if (isIgnoreSource(path)) {
             return true;
         }
-
+        
         // 检查是否登录
         if (!isLogin(session)) {
             return false;

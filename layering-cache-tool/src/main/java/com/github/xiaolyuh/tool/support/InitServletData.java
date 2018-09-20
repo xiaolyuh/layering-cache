@@ -17,9 +17,6 @@ public class InitServletData {
     public static final String PARAM_NAME_DENY = "deny";
     public static final String PARAM_NAME_SYNC_CACHE_STATS_DELAY = "syncCacheStatsDelay";
 
-
-    public static final String RESOURCE_PATH = "http/resources";
-
     /**
      * 命名空间（一般是服务名）
      */
@@ -44,11 +41,6 @@ public class InitServletData {
      * 黑名单（优先级高于白名单）
      */
     private List<IPRange> denyList = new ArrayList<>();
-
-    /**
-     * 采集缓存命中数据的时间间隔，至少5分钟（单位分钟）
-     */
-    private long syncCacheStatsDelay = 5;
 
     public String getUsername() {
         return username;
@@ -80,18 +72,6 @@ public class InitServletData {
 
     public void setDenyList(List<IPRange> denyList) {
         this.denyList = denyList;
-    }
-
-    public String getResourcePath() {
-        return RESOURCE_PATH;
-    }
-
-    public long getSyncCacheStatsDelay() {
-        return syncCacheStatsDelay;
-    }
-
-    public void setSyncCacheStatsDelay(long syncCacheStatsDelay) {
-        this.syncCacheStatsDelay = syncCacheStatsDelay;
     }
 
     public String getNamespace() {

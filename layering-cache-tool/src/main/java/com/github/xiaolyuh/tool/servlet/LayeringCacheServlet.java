@@ -100,7 +100,7 @@ public class LayeringCacheServlet extends HttpServlet {
 
         // 重置缓存统计数据
         if (URLConstant.RESET_CACHE_STAT.equals(path)) {
-            BeanFactory.getBean(StatsService.class).resetCacheStat(initServletData, redisTemplate);
+            BeanFactory.getBean(StatsService.class).resetCacheStat(redisTemplate);
             response.getWriter().write(JSON.toJSONString(Result.success()));
             return;
         }
@@ -108,7 +108,7 @@ public class LayeringCacheServlet extends HttpServlet {
         // 缓存统计列表
         if (URLConstant.CACHE_STATS_LIST.equals(path)) {
             String cacheNameParam = request.getParameter("cacheName");
-            List<CacheStats> statsList = BeanFactory.getBean(StatsService.class).listCacheStats(initServletData, redisTemplate, cacheNameParam);
+            List<CacheStats> statsList = BeanFactory.getBean(StatsService.class).listCacheStats(redisTemplate, cacheNameParam);
             response.getWriter().write(JSON.toJSONString(Result.success(statsList)));
             return;
         }
@@ -128,11 +128,6 @@ public class LayeringCacheServlet extends HttpServlet {
     }
 
     private void initAuthEnv() {
-        String namespace = getInitParameter(InitServletData.PARAM_NAME_NAMESPACE);
-        if (!StringUtils.isEmpty(namespace)) {
-            this.initServletData.setNamespace(namespace);
-        }
-
         String paramUserName = getInitParameter(InitServletData.PARAM_NAME_USERNAME);
         if (!StringUtils.isEmpty(paramUserName)) {
             this.initServletData.setUsername(paramUserName);
@@ -141,15 +136,6 @@ public class LayeringCacheServlet extends HttpServlet {
         String paramPassword = getInitParameter(InitServletData.PARAM_NAME_PASSWORD);
         if (!StringUtils.isEmpty(paramPassword)) {
             this.initServletData.setPassword(paramPassword);
-        }
-
-        try {
-            String syncCacheStatsDelay = getInitParameter(InitServletData.PARAM_NAME_SYNC_CACHE_STATS_DELAY);
-            if (!StringUtils.isEmpty(syncCacheStatsDelay)) {
-                this.initServletData.setSyncCacheStatsDelay(Long.parseLong(syncCacheStatsDelay));
-            }
-        } catch (Exception e) {
-            logger.error("initParameter config error, syncCacheStatsDelay : {}", getInitParameter(InitServletData.PARAM_NAME_SYNC_CACHE_STATS_DELAY), e);
         }
 
         try {
@@ -168,7 +154,7 @@ public class LayeringCacheServlet extends HttpServlet {
 
         // 采集缓存命中数据
         redisTemplate = getRedisTemplate();
-        BeanFactory.getBean(StatsService.class).syncCacheStats(initServletData, redisTemplate);
+        BeanFactory.getBean(StatsService.class).syncCacheStats(redisTemplate);
     }
 
     private List<IPRange> parseStringToIP(String ipStr) {

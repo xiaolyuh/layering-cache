@@ -10,18 +10,12 @@ import java.util.List;
  */
 public class InitServletData {
 
-    public static final String PARAM_NAME_NAMESPACE = "namespace";
     public static final String PARAM_NAME_USERNAME = "loginUsername";
     public static final String PARAM_NAME_PASSWORD = "loginPassword";
     public static final String PARAM_NAME_ALLOW = "allow";
     public static final String PARAM_NAME_DENY = "deny";
-    public static final String PARAM_NAME_SYNC_CACHE_STATS_DELAY = "syncCacheStatsDelay";
 
-    /**
-     * 命名空间（一般是服务名）
-     */
-    private String namespace;
-
+    public static final String RESOURCE_PATH = "http/resources";
     /**
      * 登录用户名
      */
@@ -41,6 +35,11 @@ public class InitServletData {
      * 黑名单（优先级高于白名单）
      */
     private List<IPRange> denyList = new ArrayList<>();
+
+    /**
+     * 采集缓存命中数据的时间间隔，至少5分钟（单位分钟）
+     */
+    private long syncCacheStatsDelay = 5;
 
     public String getUsername() {
         return username;
@@ -74,11 +73,15 @@ public class InitServletData {
         this.denyList = denyList;
     }
 
-    public String getNamespace() {
-        return namespace;
+    public String getResourcePath() {
+        return RESOURCE_PATH;
     }
 
-    public void setNamespace(String namespace) {
-        this.namespace = namespace;
+    public long getSyncCacheStatsDelay() {
+        return syncCacheStatsDelay;
+    }
+
+    public void setSyncCacheStatsDelay(long syncCacheStatsDelay) {
+        this.syncCacheStatsDelay = syncCacheStatsDelay;
     }
 }

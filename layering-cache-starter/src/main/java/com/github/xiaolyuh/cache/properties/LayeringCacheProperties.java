@@ -14,6 +14,11 @@ public class LayeringCacheProperties {
     private boolean stats = true;
 
     /**
+     * 命名空间，必须唯一般使用服务名
+     */
+    private String namespace;
+
+    /**
      * 启动 LayeringCacheServlet.
      */
     private boolean layeringCacheServletEnabled = true;
@@ -97,5 +102,13 @@ public class LayeringCacheProperties {
 
     public void setStats(boolean stats) {
         this.stats = stats;
+    }
+
+    public String getNamespace() {
+        return namespace;
+    }
+
+    public void setNamespace(String namespace) {
+        this.namespace = namespace;
     }
 }

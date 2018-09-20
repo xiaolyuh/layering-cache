@@ -9,6 +9,7 @@ import com.github.xiaolyuh.setting.LayeringCacheSetting;
 import com.github.xiaolyuh.support.Lock;
 import com.github.xiaolyuh.tool.servlet.LayeringCacheServlet;
 import com.github.xiaolyuh.tool.support.CacheStats;
+import com.github.xiaolyuh.tool.support.InitServletData;
 import com.github.xiaolyuh.tool.util.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -49,7 +50,7 @@ public class StatsService {
      *
      * @param cacheNameParam 缓存名称
      */
-    public List<CacheStats> listCacheStats(RedisTemplate<String, Object> redisTemplate, String cacheNameParam) throws IOException {
+    public List<CacheStats> listCacheStats(InitServletData initServletData, RedisTemplate<String, Object> redisTemplate, String cacheNameParam) throws IOException {
         logger.debug("获取缓存统计数据");
 
         List<CacheStats> statsList = new ArrayList<>();
@@ -67,8 +68,8 @@ public class StatsService {
                 for (Cache cache : caches) {
                     LayeringCache layeringCache = (LayeringCache) cache;
                     LayeringCacheSetting layeringCacheSetting = layeringCache.getLayeringCacheSetting();
-                    // 加锁并增量缓存统计数据，缓存key=固定前缀 + 缓存名称加 + 内部缓存名
-                    String redisKey = CACHE_STATS_KEY_PREFIX + cacheName + layeringCacheSetting.getInternalKey();
+                    // 加锁并增量缓存统计数据，缓存key=固定前缀 + namespace + 缓存名称加 + 内部缓存名
+                    String redisKey = CACHE_STATS_KEY_PREFIX + initServletData.getNamespace() + ":" + cacheName + layeringCacheSetting.getInternalKey();
                     CacheStats cacheStats = (CacheStats) redisTemplate.opsForValue().get(redisKey);
                     if (!Objects.isNull(cacheStats)) {
                         statsList.add(cacheStats);
@@ -83,9 +84,9 @@ public class StatsService {
     /**
      * 同步缓存统计list
      */
-    public void syncCacheStats(RedisTemplate<String, Object> redisTemplate) {
+    public void syncCacheStats(InitServletData initServletData, RedisTemplate<String, Object> redisTemplate) {
         // 清空统计数据
-        resetCacheStat(redisTemplate);
+        resetCacheStat(initServletData, redisTemplate);
         executor.scheduleWithFixedDelay(() -> {
             logger.debug("执行缓存统计数据采集定时任务");
             Set<AbstractCacheManager> cacheManagers = AbstractCacheManager.getCacheManager();
@@ -99,8 +100,8 @@ public class StatsService {
                     for (Cache cache : caches) {
                         LayeringCache layeringCache = (LayeringCache) cache;
                         LayeringCacheSetting layeringCacheSetting = layeringCache.getLayeringCacheSetting();
-                        // 加锁并增量缓存统计数据，缓存key=固定前缀 + 缓存名称加 + 内部缓存名
-                        String redisKey = CACHE_STATS_KEY_PREFIX + cacheName + layeringCacheSetting.getInternalKey();
+                        // 加锁并增量缓存统计数据，缓存key=固定前缀 + namespace +缓存名称加 + 内部缓存名
+                        String redisKey = CACHE_STATS_KEY_PREFIX + initServletData.getNamespace() + ":" + cacheName + layeringCacheSetting.getInternalKey();
                         Lock lock = new Lock(redisTemplate, redisKey, 60, 5000);
                         try {
                             if (lock.tryLock()) {
@@ -161,8 +162,8 @@ public class StatsService {
     /**
      * 重置缓存统计数据
      */
-    public void resetCacheStat(RedisTemplate<String, Object> redisTemplate) {
-        Set<String> keys = redisTemplate.keys(CACHE_STATS_KEY_PREFIX + "*");
+    public void resetCacheStat(InitServletData initServletData, RedisTemplate<String, Object> redisTemplate) {
+        Set<String> keys = redisTemplate.keys(CACHE_STATS_KEY_PREFIX + initServletData.getNamespace() + ":*");
         redisTemplate.delete(keys);
     }
 

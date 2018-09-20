@@ -10,6 +10,7 @@ import java.util.List;
  */
 public class InitServletData {
 
+    public static final String PARAM_NAME_NAMESPACE = "namespace";
     public static final String PARAM_NAME_USERNAME = "loginUsername";
     public static final String PARAM_NAME_PASSWORD = "loginPassword";
     public static final String PARAM_NAME_ALLOW = "allow";
@@ -18,6 +19,11 @@ public class InitServletData {
 
 
     public static final String RESOURCE_PATH = "http/resources";
+
+    /**
+     * 命名空间（一般是服务名）
+     */
+    private String namespace;
 
     /**
      * 登录用户名
@@ -86,5 +92,13 @@ public class InitServletData {
 
     public void setSyncCacheStatsDelay(long syncCacheStatsDelay) {
         this.syncCacheStatsDelay = syncCacheStatsDelay;
+    }
+
+    public String getNamespace() {
+        return namespace;
+    }
+
+    public void setNamespace(String namespace) {
+        this.namespace = namespace;
     }
 }

@@ -59,7 +59,7 @@ public class LayeringCacheServlet extends HttpServlet {
 
         // 权限校验
         String ip = request.getRemoteAddr();
-        boolean security = BeanFactory.getBean(UserService.class).checkSecurity(initServletData, ip);
+        boolean security = BeanFactory.getBean(UserService.class).checkSecurity(initServletData, ip, path);
         if (!security) {
             returnResourceFile("/nopermit.html", uri, response);
             return;

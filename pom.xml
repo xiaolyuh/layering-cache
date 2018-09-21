@@ -9,6 +9,12 @@
     <packaging>pom</packaging>
     <version>1.0.8</version>
 
+    <parent>
+        <groupId>org.sonatype.oss</groupId>
+        <artifactId>oss-parent</artifactId>
+        <version>7</version>
+    </parent>
+
     <modules>
         <module>layering-cache-core</module>
         <module>layering-cache-tool</module>
@@ -18,12 +24,6 @@
 
     <name>layering-cache</name>
     <url>https://github.com/xiaolyuh/layering-cache</url>
-
-    <parent>
-        <groupId>org.sonatype.oss</groupId>
-        <artifactId>oss-parent</artifactId>
-        <version>7</version>
-    </parent>
 
     <licenses>
         <license>

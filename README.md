@@ -1,5 +1,4 @@
 # layering-cache
-# layering-cache
 # 简介
 
 [![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.github.xiaolyuh/layering-cache/badge.svg)](https://search.maven.org/artifact/com.github.xiaolyuh/layering-cache/)

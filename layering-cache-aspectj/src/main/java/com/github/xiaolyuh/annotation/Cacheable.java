@@ -18,6 +18,8 @@ public @interface Cacheable {
 
     /**
      * 别名是 {@link #cacheNames}.
+     *
+     * @return String[]
      */
     @AliasFor("cacheNames")
     String[] value() default {};
@@ -25,13 +27,15 @@ public @interface Cacheable {
     /**
      * 缓存名称，支持SpEL表达式
      *
-     * @return
+     * @return String[]
      */
     @AliasFor("value")
     String[] cacheNames() default {};
 
     /**
      * 描述
+     *
+     * @return String
      */
     String depict() default "";
 
@@ -49,6 +53,8 @@ public @interface Cacheable {
      * can be accessed via {@code #root.args[1]}, {@code #p1} or {@code #a1}. Arguments
      * can also be accessed by name if that information is available.</li>
      * </ul>
+     *
+     * @return String
      */
     String key() default "";
 
@@ -56,26 +62,32 @@ public @interface Cacheable {
      * The bean name of the custom {@link KeyGenerator}
      * to use.
      * <p>Mutually exclusive with the {@link #key} attribute.
+     *
+     * @return String
      */
     @Deprecated
     String keyGenerator() default "";
 
     /**
      * 是否忽略在操作缓存中遇到的异常，如反序列化异常，默认true。
-     * <p>true: 有异常会输出warn级别的日志，并直接执行被缓存的方法（缓存将失效）<p/>
-     * <p>false:有异常会输出error级别的日志，并抛出异常<p/>
+     * <p>true: 有异常会输出warn级别的日志，并直接执行被缓存的方法（缓存将失效）</p>
+     * <p>false:有异常会输出error级别的日志，并抛出异常</p>
      *
-     * @return
+     * @return boolean
      */
     boolean ignoreException() default true;
 
     /**
      * 一级缓存配置
+     *
+     * @return FirstCache
      */
     FirstCache firstCache() default @FirstCache();
 
     /**
      * 二级缓存配置
+     *
+     * @return SecondaryCache
      */
     SecondaryCache secondaryCache() default @SecondaryCache();
 }

@@ -13,7 +13,6 @@ import java.util.concurrent.ConcurrentHashMap;
 /**
  * Utility class handling the SpEL expression parsing.
  * Meant to be used as a reusable, thread-safe component.
- * <p>
  * <p>Performs internal caching for performance reasons
  * using {@link AnnotatedElementKey}.
  *
@@ -52,10 +51,14 @@ public class CacheOperationExpressionEvaluator extends CachedExpressionEvaluator
     private final Map<AnnotatedElementKey, Method> targetMethodCache =
             new ConcurrentHashMap<AnnotatedElementKey, Method>(64);
 
-
     /**
      * Create an {@link EvaluationContext} without a return value.
      *
+     * @param method      Method
+     * @param args        Object[]
+     * @param target      Object
+     * @param targetClass Class
+     * @return EvaluationContext
      * @see #createEvaluationContext(Method, Object[], Object, Class, Object)
      */
     public EvaluationContext createEvaluationContext(Method method, Object[] args, Object target, Class<?> targetClass) {

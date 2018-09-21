@@ -1,4 +1,5 @@
 # layering-cache
+# layering-cache
 # 简介
 
 [![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.github.xiaolyuh/layering-cache/badge.svg)](https://search.maven.org/artifact/com.github.xiaolyuh/layering-cache/)
@@ -483,7 +484,7 @@ spring.layering-cache.deny=192.168.1.73
 ```  
 
 # 实现原理
-
+https://github.com/xiaolyuh/layering-cache/wiki
 
 # 作者信息
 
@@ -496,11 +497,10 @@ github 地址：https://github.com/wyh-chenfeng/layering-cache
 
 # 捐赠
 项目的发展离不开你的支持，请作者喝杯咖啡吧！
+
 ![微信.png](https://upload-images.jianshu.io/upload_images/6464086-553feada56e87976.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
 
 ![支付宝.png](https://upload-images.jianshu.io/upload_images/6464086-b5931fed21a137c6.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
 
 ![扫描领支付宝红包.png](https://upload-images.jianshu.io/upload_images/6464086-4c07fc47862dab24.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
-
-
 

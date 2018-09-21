@@ -18,12 +18,17 @@ layering-cache是在Spring Cache基础上扩展而来的一个缓存框架，主
 # 集成
 ## 集成 Spring 4.x
 1. 引入layering-cache
+- maven 方式
 ```xml
 <dependency>
     <groupId>com.xiaolyuh</groupId>
     <artifactId>layering-cache-aspectj</artifactId>
     <version>${layering.version}</version>
 </dependency>
+```
+- gradle 方式
+```
+compile 'com.github.xiaolyuh:layering-cache:1.0.8'
 ```
 2. 声明RedisTemplate
 ```java

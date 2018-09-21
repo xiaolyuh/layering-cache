@@ -5,11 +5,13 @@
     <parent>
         <artifactId>layering-cache</artifactId>
         <groupId>com.github.xiaolyuh</groupId>
-        <version>1.0.8-SNAPSHOT</version>
+        <version>1.0.8</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>layering-cache-core</artifactId>
+    <name>layering-cache-core</name>
+    <packaging>jar</packaging>
 
     <dependencies>
         <dependency>

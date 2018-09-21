@@ -5,24 +5,25 @@
     <parent>
         <artifactId>layering-cache</artifactId>
         <groupId>com.github.xiaolyuh</groupId>
-        <version>1.0.8-SNAPSHOT</version>
+        <version>1.0.8</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>layering-cache-aspectj</artifactId>
+    <name>layering-cache-aspectj</name>
     <packaging>jar</packaging>
 
     <dependencies>
         <dependency>
             <groupId>com.github.xiaolyuh</groupId>
             <artifactId>layering-cache-core</artifactId>
-            <version>1.0.8-SNAPSHOT</version>
+            <version>1.0.8</version>
         </dependency>
 
         <dependency>
             <groupId>com.github.xiaolyuh</groupId>
             <artifactId>layering-cache-tool</artifactId>
-            <version>1.0.8-SNAPSHOT</version>
+            <version>1.0.8</version>
         </dependency>
 
         <dependency>

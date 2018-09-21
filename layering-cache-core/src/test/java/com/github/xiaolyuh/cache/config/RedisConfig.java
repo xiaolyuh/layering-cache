@@ -1,6 +1,7 @@
 package com.github.xiaolyuh.cache.config;
 
 import com.github.xiaolyuh.serializer.FastJsonRedisSerializer;
+import com.github.xiaolyuh.serializer.KryoRedisSerializer;
 import com.github.xiaolyuh.serializer.StringRedisSerializer;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -63,10 +64,11 @@ public class RedisConfig {
         redisTemplate.setConnectionFactory(redisConnectionFactory);
 
         FastJsonRedisSerializer<Object> fastJsonRedisSerializer = new FastJsonRedisSerializer<>(Object.class, "com.xxx.");
+        KryoRedisSerializer<Object> kryoRedisSerializer = new KryoRedisSerializer<>(Object.class);
 
         // 设置值（value）的序列化采用FastJsonRedisSerializer。
-        redisTemplate.setValueSerializer(fastJsonRedisSerializer);
-        redisTemplate.setHashValueSerializer(fastJsonRedisSerializer);
+        redisTemplate.setValueSerializer(kryoRedisSerializer);
+        redisTemplate.setHashValueSerializer(kryoRedisSerializer);
         // 设置键（key）的序列化采用StringRedisSerializer。
         redisTemplate.setKeySerializer(new StringRedisSerializer());
         redisTemplate.setHashKeySerializer(new StringRedisSerializer());

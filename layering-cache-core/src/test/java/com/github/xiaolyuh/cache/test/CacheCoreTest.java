@@ -9,6 +9,7 @@ import com.github.xiaolyuh.manager.CacheManager;
 import com.github.xiaolyuh.setting.FirstCacheSetting;
 import com.github.xiaolyuh.setting.LayeringCacheSetting;
 import com.github.xiaolyuh.setting.SecondaryCacheSetting;
+import com.github.xiaolyuh.stats.CacheStats;
 import com.github.xiaolyuh.support.ExpireMode;
 import org.junit.Assert;
 import org.junit.Before;
@@ -217,13 +218,14 @@ public class CacheCoreTest {
         sleep(11);
         cache1.get(cacheKey1, () -> initCache(String.class));
 
-        logger.debug("缓请求数：{}", cache1.getCacheStats().getCacheRequestCount());
-        logger.debug("被缓存方法请求数：{}", cache1.getCacheStats().getCachedMethodRequestCount());
-        logger.debug("被缓存方法请求总耗时：{}", cache1.getCacheStats().getCachedMethodRequestTime());
+        CacheStats cacheStats  = cache1.getCacheStats();
+        logger.debug("缓请求数：{}", cacheStats.getCacheRequestCount());
+        logger.debug("被缓存方法请求数：{}", cacheStats.getCachedMethodRequestCount());
+        logger.debug("被缓存方法请求总耗时：{}", cacheStats.getCachedMethodRequestTime());
 
-        Assert.assertEquals(cache1.getCacheStats().getCacheRequestCount().longValue(), 4);
-        Assert.assertEquals(cache1.getCacheStats().getCachedMethodRequestCount().longValue(), 2);
-        Assert.assertTrue(cache1.getCacheStats().getCachedMethodRequestCount().longValue() >= 0);
+        Assert.assertEquals(cacheStats.getCacheRequestCount().longValue(), 4);
+        Assert.assertEquals(cacheStats.getCachedMethodRequestCount().longValue(), 2);
+        Assert.assertTrue(cacheStats.getCachedMethodRequestTime().longValue() >= 0);
     }
 
     private <T> T initCache(Class<T> t) {

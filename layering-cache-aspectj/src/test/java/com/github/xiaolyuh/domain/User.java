@@ -114,7 +114,7 @@ public class User {
         this.height = height;
     }
 
-    public class Address {
+    public static class Address {
         private String addredd;
 
         public Address() {

@@ -11,6 +11,7 @@
 
     <artifactId>layering-cache-aspectj</artifactId>
     <name>layering-cache-aspectj</name>
+    <description>多级缓存注解模块</description>
     <packaging>jar</packaging>
 
     <dependencies>

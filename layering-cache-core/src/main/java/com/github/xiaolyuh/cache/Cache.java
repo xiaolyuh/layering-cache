@@ -14,11 +14,13 @@ public interface Cache {
 
     /**
      * 返回缓存名称
+     * @return String
      */
     String getName();
 
     /**
      * 返回真实Cache对象
+     * @return Object
      */
     Object getNativeCache();
 

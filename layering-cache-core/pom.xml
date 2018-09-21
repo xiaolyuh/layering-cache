@@ -11,6 +11,7 @@
 
     <artifactId>layering-cache-core</artifactId>
     <name>layering-cache-core</name>
+    <description>多级缓存核心模块</description>
     <packaging>jar</packaging>
 
     <dependencies>

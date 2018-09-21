@@ -26,8 +26,8 @@ public class SerializationException extends NestedRuntimeException {
     /**
      * Constructs a new <code>SerializationException</code> instance.
      *
-     * @param msg
-     * @param cause
+     * @param msg   msg
+     * @param cause 原因
      */
     public SerializationException(String msg, Throwable cause) {
         super(msg, cause);
@@ -36,7 +36,7 @@ public class SerializationException extends NestedRuntimeException {
     /**
      * Constructs a new <code>SerializationException</code> instance.
      *
-     * @param msg
+     * @param msg msg
      */
     public SerializationException(String msg) {
         super(msg);

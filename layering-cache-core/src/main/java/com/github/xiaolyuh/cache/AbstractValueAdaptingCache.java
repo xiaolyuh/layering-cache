@@ -56,6 +56,7 @@ public abstract class AbstractValueAdaptingCache implements Cache {
      * 通过构造方法设置缓存配置
      *
      * @param allowNullValues 是否允许为NULL
+     * @param stats           是否开启监控统计
      * @param name            缓存名称
      */
     protected AbstractValueAdaptingCache(boolean allowNullValues, boolean stats, String name) {

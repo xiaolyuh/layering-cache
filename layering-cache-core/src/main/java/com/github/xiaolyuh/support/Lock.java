@@ -39,7 +39,7 @@ import java.util.UUID;
  *
  * @author yuhao.wangwang
  * @version 1.0
- * @date 2017年11月3日 上午10:21:27
+ * @since 2017年11月3日 上午10:21:27
  */
 public class Lock {
 
@@ -232,6 +232,8 @@ public class Lock {
      * 不使用固定的字符串作为键的值，而是设置一个不可猜测（non-guessable）的长随机字符串，作为口令串（token）。
      * 不使用 DEL 命令来释放锁，而是发送一个 Lua 脚本，这个脚本只在客户端传入的值和键的口令串相匹配时，才对键进行删除。
      * 这两个改动可以防止持有过期锁的客户端误删现有锁的情况出现。
+     *
+     * @return Boolean
      */
     public Boolean unlock() {
         // 只有加锁成功并且锁还有效才去释放锁

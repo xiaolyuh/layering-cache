@@ -169,7 +169,7 @@ public class Lock {
     /**
      * 尝试获取锁 超时返回
      *
-     * @return
+     * @return boolean
      */
     public boolean tryLock() {
         // 生成随机key
@@ -316,8 +316,8 @@ public class Lock {
      * 获取锁状态
      *
      * @return Boolean
-     * @Title: isLock
      * @author yuhao.wang
+     * @return boolean
      */
     public boolean isLock() {
 

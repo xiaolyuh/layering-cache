@@ -9,11 +9,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.redis.serializer.RedisSerializer;
 
-
 import java.io.ByteArrayOutputStream;
 
 /**
- * @param <T>
+ * @param <T> T
  * @author yuhao.wang
  */
 public class KryoRedisSerializer<T> implements RedisSerializer<T> {

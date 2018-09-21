@@ -25,7 +25,6 @@ import java.util.concurrent.Callable;
 
 /**
  * Cache 接口的抽象实现类，对公共的方法做了一写实现，如是否允许存NULL值
- * <p>
  * <p>如果允许为NULL值，则需要在内部将NULL替换成{@link NullValue#INSTANCE} 对象
  *
  * @author yuhao.wang3
@@ -144,7 +143,7 @@ public abstract class AbstractValueAdaptingCache implements Cache {
     /**
      * 获取统计信息
      *
-     * @return
+     * @return CacheStats
      */
     @Override
     public CacheStats getCacheStats() {

@@ -85,6 +85,7 @@ public class RedisCache extends AbstractValueAdaptingCache {
      * @param expiration      key的有效时间
      * @param preloadTime     缓存主动在失效前强制刷新缓存的时间
      * @param forceRefresh    是否强制刷新（执行被缓存的方法），默认是false
+     * @param usePrefix       是否使用缓存名称作为前缀
      * @param allowNullValues 是否允许存NULL值，模式允许
      * @param stats           是否开启统计模式
      */
@@ -177,7 +178,7 @@ public class RedisCache extends AbstractValueAdaptingCache {
      * 获取 RedisCacheKey
      *
      * @param key 缓存key
-     * @return
+     * @return RedisCacheKey
      */
     public RedisCacheKey getRedisCacheKey(Object key) {
         return new RedisCacheKey(key, redisTemplate.getKeySerializer())

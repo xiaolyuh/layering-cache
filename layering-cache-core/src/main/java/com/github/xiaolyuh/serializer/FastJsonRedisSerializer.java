@@ -14,7 +14,6 @@ import org.springframework.data.redis.serializer.RedisSerializer;
 import java.nio.charset.Charset;
 
 /**
- * @param <T>
  * @author yuhao.wang
  */
 public class FastJsonRedisSerializer<T> implements RedisSerializer<T> {
@@ -26,6 +25,7 @@ public class FastJsonRedisSerializer<T> implements RedisSerializer<T> {
 
     /**
      * 允许所有包的序列化和反序列化，不推荐
+     * @param clazz Class
      */
     @Deprecated
     public FastJsonRedisSerializer(Class<T> clazz) {

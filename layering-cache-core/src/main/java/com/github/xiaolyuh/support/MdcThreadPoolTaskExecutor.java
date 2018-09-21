@@ -7,12 +7,12 @@ import java.util.Map;
 
 /**
  * 这是{@link ThreadPoolTaskExecutor}的一个简单替换，可以在每个任务之前设置子线程的MDC数据。
- * <p/>
+ * <p>
  * 在记录日志的时候，一般情况下我们会使用MDC来存储每个线程的特有参数，如身份信息等，以便更好的查询日志。
  * 但是Logback在最新的版本中因为性能问题，不会自动的将MDC的内存传给子线程。所以Logback建议在执行异步线程前
  * 先通过MDC.getCopyOfContextMap()方法将MDC内存获取出来，再传给线程。
  * 并在子线程的执行的最开始调用MDC.setContextMap(context)方法将父线程的MDC内容传给子线程。
- * <p>
+ * </p>
  * https://logback.qos.ch/manual/mdc.html
  *
  * @author yuhao.wang3
@@ -23,7 +23,7 @@ public class MdcThreadPoolTaskExecutor extends ThreadPoolTaskExecutor {
      * 所有线程都会委托给这个execute方法，在这个方法中我们把父线程的MDC内容赋值给子线程
      * https://logback.qos.ch/manual/mdc.html#managedThreads
      *
-     * @param runnable
+     * @param runnable runnable
      */
     @Override
     public void execute(Runnable runnable) {

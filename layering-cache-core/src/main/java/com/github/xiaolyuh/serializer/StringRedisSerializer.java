@@ -9,7 +9,7 @@ import java.nio.charset.Charset;
 /**
  * 必须重写序列化器，否则@Cacheable注解的key会报类型转换错误
  *
- * @authors yuhao.wang
+ * @author yuhao.wang
  */
 public class StringRedisSerializer implements RedisSerializer<Object> {
 

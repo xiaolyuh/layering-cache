@@ -32,6 +32,8 @@ public final class CacheStats implements Serializable {
 
     /**
      * 自增请求缓存总数
+     *
+     * @param add 自增数量
      */
     public void addCacheRequestCount(long add) {
         cacheRequestCount.add(add);
@@ -39,6 +41,8 @@ public final class CacheStats implements Serializable {
 
     /**
      * 自增请求被缓存方法总数
+     *
+     * @param add 自增数量
      */
     public void addCachedMethodRequestCount(long add) {
         cachedMethodRequestCount.add(add);
@@ -46,6 +50,8 @@ public final class CacheStats implements Serializable {
 
     /**
      * 自增请求被缓存方法总耗时(毫秒)
+     *
+     * @param time 自增数量
      */
     public void addCachedMethodRequestTime(long time) {
         cachedMethodRequestTime.add(time);

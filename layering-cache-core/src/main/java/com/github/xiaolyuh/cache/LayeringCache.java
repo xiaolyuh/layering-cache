@@ -50,22 +50,24 @@ public class LayeringCache extends AbstractValueAdaptingCache {
     /**
      * 创建一个多级缓存对象
      *
-     * @param firstCache  一级缓存
-     * @param secondCache 二级缓存
-     * @param stats       是否开启统计
+     * @param redisTemplate        redisTemplate
+     * @param firstCache           一级缓存
+     * @param secondCache          二级缓存
+     * @param stats                是否开启统计
+     * @param layeringCacheSetting 多级缓存配置
      */
     public LayeringCache(RedisTemplate<String, Object> redisTemplate, Cache firstCache, Cache secondCache, boolean stats, LayeringCacheSetting layeringCacheSetting) {
         this(redisTemplate, firstCache, secondCache, true, stats, secondCache.getName(), layeringCacheSetting);
     }
 
     /**
-     * 创建一个多级缓存对象
-     *
-     * @param firstCache    一级缓存
-     * @param secondCache   二级缓存
-     * @param useFirstCache 是否使用一级缓存，默认是
-     * @param stats         是否开启统计，默认否
-     * @param name          缓存名称
+     * @param redisTemplate        redisTemplate
+     * @param firstCache           一级缓存
+     * @param secondCache          二级缓存
+     * @param useFirstCache        是否使用一级缓存，默认是
+     * @param stats                是否开启统计，默认否
+     * @param name                 缓存名称
+     * @param layeringCacheSetting 多级缓存配置
      */
     public LayeringCache(RedisTemplate<String, Object> redisTemplate, Cache firstCache, Cache secondCache, boolean useFirstCache, boolean stats, String name, LayeringCacheSetting layeringCacheSetting) {
         super(true, stats, name);

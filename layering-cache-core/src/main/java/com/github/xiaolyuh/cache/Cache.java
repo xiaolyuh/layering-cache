@@ -14,12 +14,14 @@ public interface Cache {
 
     /**
      * 返回缓存名称
+     *
      * @return String
      */
     String getName();
 
     /**
      * 返回真实Cache对象
+     *
      * @return Object
      */
     Object getNativeCache();
@@ -27,7 +29,7 @@ public interface Cache {
     /**
      * 根据Key返回key对应的值，如果没有就返回NULL
      *
-     * @param key
+     * @param key key
      * @return 缓存key对应的值
      */
     Object get(Object key);
@@ -37,6 +39,7 @@ public interface Cache {
      *
      * @param key  缓存key
      * @param type 返回值类型
+     * @param <T>  Object
      * @return 缓存key对应的值
      */
     <T> T get(Object key, Class<T> type);
@@ -46,6 +49,7 @@ public interface Cache {
      *
      * @param key         缓存key
      * @param valueLoader 加载缓存的回调方法
+     * @param <T>         Object
      * @return 缓存key对应的值
      */
     <T> T get(Object key, Callable<T> valueLoader);

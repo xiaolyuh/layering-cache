@@ -41,6 +41,7 @@ public class RedisCacheKey {
 
     /**
      * @param keyElement 缓存key
+     * @param serializer RedisSerializer
      */
     public RedisCacheKey(Object keyElement, RedisSerializer serializer) {
 
@@ -52,6 +53,8 @@ public class RedisCacheKey {
 
     /**
      * 获取缓存key
+     *
+     * @return String
      */
     public String getKey() {
 
@@ -60,6 +63,8 @@ public class RedisCacheKey {
 
     /**
      * 获取key的byte数组
+     *
+     * @return byte[]
      */
     public byte[] getKeyBytes() {
 
@@ -86,7 +91,7 @@ public class RedisCacheKey {
     /**
      * 获取缓存前缀，默认缓存前缀是":"
      *
-     * @return
+     * @return byte[]
      */
     public byte[] getPrefix() {
         return prefixSerializer1.serialize((StringUtils.isEmpty(cacheName) ? cacheName.concat(":") : cacheName.concat(":")));
@@ -95,8 +100,8 @@ public class RedisCacheKey {
     /**
      * 设置缓存名称
      *
-     * @param cacheName
-     * @return
+     * @param cacheName cacheName
+     * @return RedisCacheKey
      */
     public RedisCacheKey cacheName(String cacheName) {
         this.cacheName = cacheName;
@@ -106,8 +111,8 @@ public class RedisCacheKey {
     /**
      * 设置是否使用缓存前缀，默认使用
      *
-     * @param usePrefix
-     * @return
+     * @param usePrefix usePrefix
+     * @return RedisCacheKey
      */
     public RedisCacheKey usePrefix(boolean usePrefix) {
         this.usePrefix = usePrefix;

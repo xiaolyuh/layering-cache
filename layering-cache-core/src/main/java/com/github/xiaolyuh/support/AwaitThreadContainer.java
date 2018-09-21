@@ -20,7 +20,7 @@ public class AwaitThreadContainer {
      * 线程等待,最大等待100毫秒
      * @param key 缓存Key
      * @param milliseconds 等待时间
-     * @throws InterruptedException
+     * @throws InterruptedException {@link InterruptedException}
      */
     public final void await(String key, long milliseconds) throws InterruptedException {
         // 测试当前线程是否已经被中断
@@ -41,7 +41,7 @@ public class AwaitThreadContainer {
 
     /**
      * 线程唤醒
-     * @param key
+     * @param key key
      */
     public final void signalAll(String key) {
         Set<Thread> threadSet = threadMap.get(key);

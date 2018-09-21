@@ -48,8 +48,6 @@
     </scm>
 
     <properties>
-        <project.release.version>1.0.8-SNAPSHOT</project.release.version>
-
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>

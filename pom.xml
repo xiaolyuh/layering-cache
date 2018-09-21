@@ -42,9 +42,9 @@
 
     <scm>
         <tag>master</tag>
-        <connection>git@github.com:xiaolyuh/layering-cache.git</connection>
-        <developerConnection>git@github.com:xiaolyuh/layering-cache.git</developerConnection>
-        <url>git@github.com:xiaolyuh/layering-cache.git</url>
+        <connection>https://github.com/xiaolyuh/layering-cache.git</connection>
+        <developerConnection>https://github.com/xiaolyuh/layering-cache</developerConnection>
+        <url>https://github.com/xiaolyuh/layering-cache.git</url>
     </scm>
 
     <properties>
@@ -175,6 +175,74 @@
             </dependency>
         </dependencies>
     </dependencyManagement>
+
+    <profiles>
+        <profile>
+            <id>release</id>
+            <build>
+                <plugins>
+                    <!-- Source -->
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-source-plugin</artifactId>
+                        <version>2.2.1</version>
+                        <executions>
+                            <execution>
+                                <phase>package</phase>
+                                <goals>
+                                    <goal>jar-no-fork</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <!-- Javadoc -->
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-javadoc-plugin</artifactId>
+                        <version>2.9.1</version>
+                        <executions>
+                            <execution>
+                                <phase>package</phase>
+                                <goals>
+                                    <goal>jar</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+
+                    <!-- GPG -->
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-gpg-plugin</artifactId>
+                        <version>1.5</version>
+                        <executions>
+                            <execution>
+                                <phase>verify</phase>
+                                <goals>
+                                    <goal>sign</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+
+            <distributionManagement>
+                <snapshotRepository>
+                    <id>sonatype</id>
+                    <url>
+                        https://oss.sonatype.org/content/repositories/snapshots/
+                    </url>
+                </snapshotRepository>
+                <repository>
+                    <id>sonatype</id>
+                    <url>
+                        https://oss.sonatype.org/service/local/staging/deploy/maven2/
+                    </url>
+                </repository>
+            </distributionManagement>
+        </profile>
+    </profiles>
 
     <build>
         <plugins>

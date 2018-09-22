@@ -17,7 +17,7 @@ layering-cache是在Spring Cache基础上扩展而来的一个缓存框架，主
 
 # 文档
 
-[中文文档](https://github.com/xiaolyuh/layering-cache/wiki/%E6%B3%A8%E8%A7%A3%E6%96%87%E6%A1%A3)
+[中文文档](https://github.com/xiaolyuh/layering-cache/wiki/%E6%96%87%E6%A1%A3)
 # 打开监控统计功能
 
 [打开监控统计功能](https://github.com/xiaolyuh/layering-cache/wiki/%E6%89%93%E5%BC%80%E7%9B%91%E6%8E%A7%E7%BB%9F%E8%AE%A1%E5%8A%9F%E8%83%BD)
@@ -84,7 +84,7 @@ layering-cache是在Spring Cache基础上扩展而来的一个缓存框架，主
 ```  
 
 # 实现原理
-https://github.com/xiaolyuh/layering-cache/wiki
+[实现原理](https://github.com/xiaolyuh/layering-cache/wiki/%E5%AE%9E%E7%8E%B0%E5%8E%9F%E7%90%86)
 
 # 作者信息
 

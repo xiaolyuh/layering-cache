@@ -25,14 +25,14 @@ layering-cache是在Spring Cache基础上扩展而来的一个缓存框架，主
 
 [打开内置的监控页面](https://github.com/xiaolyuh/layering-cache/wiki/%E6%89%93%E5%BC%80%E5%86%85%E7%BD%AE%E7%9A%84%E7%9B%91%E6%8E%A7%E9%A1%B5%E9%9D%A2)
 
-# 更新日志
-
-[更新日志](https://github.com/xiaolyuh/layering-cache/wiki/%E6%9B%B4%E6%96%B0%E6%97%A5%E5%BF%97)
-
 # 重要提示
 - layering-cache支持同一个缓存名称设置不同的过期时间，但是一定要保证key唯一，否则会出现缓存过期时间错乱的情况
 - 删除缓存的时候会将同一个缓存名称的不同的过期时间的缓存都删掉
 - 在集成layering-cache之前还需要添加以下的依赖，主要是为了减少jar包冲突([依赖jar列表](https://github.com/xiaolyuh/layering-cache/wiki/%E4%BE%9D%E8%B5%96jar%E5%88%97%E8%A1%A8))。
+
+# 更新日志
+
+[更新日志](https://github.com/xiaolyuh/layering-cache/wiki/%E6%9B%B4%E6%96%B0%E6%97%A5%E5%BF%97)
 
 # 实现原理
 [实现原理](https://github.com/xiaolyuh/layering-cache/wiki/%E5%AE%9E%E7%8E%B0%E5%8E%9F%E7%90%86)

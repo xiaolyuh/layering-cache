@@ -31,7 +31,8 @@ layering-cache是在Spring Cache基础上扩展而来的一个缓存框架，主
 compile 'com.github.xiaolyuh:layering-cache:1.0.8'
 ```
 2. 声明RedisTemplate
-[声明RedisTemplate](https://github.com/xiaolyuh/layering-cache/wiki/%E5%A3%B0%E6%98%8ERedisTemplate)
+
+如果项目中没有声明RedisTemplate Bean 可以参考下面链接 [声明RedisTemplate](https://github.com/xiaolyuh/layering-cache/wiki/%E5%A3%B0%E6%98%8ERedisTemplate)
 
 3. 声明CacheManager和LayeringAspect
 ```java

@@ -3,6 +3,7 @@ package com.github.xiaolyuh.listener;
 import com.alibaba.fastjson.JSON;
 import com.github.xiaolyuh.cache.Cache;
 import com.github.xiaolyuh.cache.LayeringCache;
+import com.github.xiaolyuh.manager.AbstractCacheManager;
 import com.github.xiaolyuh.manager.CacheManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,7 +23,7 @@ public class RedisMessageListener extends MessageListenerAdapter {
     /**
      * 缓存管理器
      */
-    private CacheManager cacheManager;
+    private AbstractCacheManager cacheManager;
 
     @Override
     public void onMessage(Message message, byte[] pattern) {
@@ -59,7 +60,7 @@ public class RedisMessageListener extends MessageListenerAdapter {
         }
     }
 
-    public void setCacheManager(CacheManager cacheManager) {
+    public void setCacheManager(AbstractCacheManager cacheManager) {
         this.cacheManager = cacheManager;
     }
 }

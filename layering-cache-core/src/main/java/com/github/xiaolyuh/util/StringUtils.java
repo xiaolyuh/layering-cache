@@ -1,4 +1,4 @@
-package com.github.xiaolyuh.tool.util;
+package com.github.xiaolyuh.util;
 
 /**
  * 字符串工具类

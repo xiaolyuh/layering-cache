@@ -11,12 +11,7 @@ import org.springframework.data.redis.core.RedisTemplate;
  * @author yuhao.wang
  */
 public class LayeringCacheManager extends AbstractCacheManager {
-    /**
-     * redis 客户端
-     */
-    private RedisTemplate<String, Object> redisTemplate;
-
-    public LayeringCacheManager(RedisTemplate<String, Object> redisTemplate) {
+        public LayeringCacheManager(RedisTemplate<String, Object> redisTemplate) {
         this.redisTemplate = redisTemplate;
         cacheManagers.add(this);
     }
@@ -28,15 +23,6 @@ public class LayeringCacheManager extends AbstractCacheManager {
         // 创建二级缓存
         RedisCache redisCache = new RedisCache(name, redisTemplate, layeringCacheSetting.getSecondaryCacheSetting(), getStats());
         return new LayeringCache(redisTemplate, caffeineCache, redisCache, super.getStats(), layeringCacheSetting);
-    }
-
-    @Override
-    public RedisTemplate<String, Object> getRedisTemplate() {
-        return redisTemplate;
-    }
-
-    public void setRedisTemplate(RedisTemplate<String, Object> redisTemplate) {
-        this.redisTemplate = redisTemplate;
     }
 
     @Override

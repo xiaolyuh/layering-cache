@@ -1,4 +1,4 @@
-package com.github.xiaolyuh.tool.util;
+package com.github.xiaolyuh.util;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -7,6 +7,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Bean 工厂类
+ * @author yuhao.wang3
  */
 public class BeanFactory {
     private static Logger logger = LoggerFactory.getLogger(BeanFactory.class);

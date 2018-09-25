@@ -1,13 +1,13 @@
-package com.github.xiaolyuh.tool.support;
+package com.github.xiaolyuh.stats;
 
 import com.github.xiaolyuh.setting.LayeringCacheSetting;
 
 /**
- * 缓存统计实体类
+ * 缓存命中率统计实体类
  *
  * @author yuhao.wang3
  */
-public class CacheStats {
+public class CacheStatsInfo {
 
     /**
      * 缓存名称
@@ -175,7 +175,7 @@ public class CacheStats {
             return false;
         }
 
-        CacheStats that = (CacheStats) o;
+        CacheStatsInfo that = (CacheStatsInfo) o;
 
         if (cacheName != null ? !cacheName.equals(that.cacheName) : that.cacheName != null) {
             return false;

@@ -32,7 +32,6 @@ import java.lang.reflect.Method;
  * @author Phillip Webb
  * @author Juergen Hoeller
  * @see SimpleKey
- * @see DefaultKeyGenerator
  * @see org.springframework.cache.annotation.CachingConfigurer
  * @since 4.0
  */

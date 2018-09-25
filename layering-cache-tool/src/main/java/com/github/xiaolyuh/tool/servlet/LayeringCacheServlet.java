@@ -3,14 +3,18 @@ package com.github.xiaolyuh.tool.servlet;
 
 import com.alibaba.fastjson.JSON;
 import com.github.xiaolyuh.manager.AbstractCacheManager;
-import com.github.xiaolyuh.tool.service.StatsService;
+import com.github.xiaolyuh.stats.CacheStatsInfo;
+import com.github.xiaolyuh.tool.service.CacheService;
 import com.github.xiaolyuh.tool.service.UserService;
-import com.github.xiaolyuh.tool.support.*;
-import com.github.xiaolyuh.tool.util.BeanFactory;
+import com.github.xiaolyuh.tool.support.IPRange;
+import com.github.xiaolyuh.tool.support.InitServletData;
+import com.github.xiaolyuh.tool.support.Result;
+import com.github.xiaolyuh.tool.support.URLConstant;
 import com.github.xiaolyuh.tool.util.Utils;
+import com.github.xiaolyuh.util.BeanFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
 import javax.servlet.ServletException;
@@ -32,9 +36,6 @@ public class LayeringCacheServlet extends HttpServlet {
     private static Logger logger = LoggerFactory.getLogger(LayeringCacheServlet.class);
 
     private InitServletData initServletData = new InitServletData();
-
-    private RedisTemplate<String, Object> redisTemplate;
-
 
     @Override
     public void init() throws ServletException {
@@ -100,15 +101,25 @@ public class LayeringCacheServlet extends HttpServlet {
 
         // 重置缓存统计数据
         if (URLConstant.RESET_CACHE_STAT.equals(path)) {
-            BeanFactory.getBean(StatsService.class).resetCacheStat(redisTemplate);
+            Set<AbstractCacheManager> cacheManagers = AbstractCacheManager.getCacheManager();
+            for (AbstractCacheManager cacheManager : cacheManagers) {
+                cacheManager.resetCacheStat();
+            }
             response.getWriter().write(JSON.toJSONString(Result.success()));
             return;
         }
 
         // 缓存统计列表
         if (URLConstant.CACHE_STATS_LIST.equals(path)) {
-            String cacheNameParam = request.getParameter("cacheName");
-            List<CacheStats> statsList = BeanFactory.getBean(StatsService.class).listCacheStats(redisTemplate, cacheNameParam);
+            String cacheName = request.getParameter("cacheName");
+            Set<AbstractCacheManager> cacheManagers = AbstractCacheManager.getCacheManager();
+            List<CacheStatsInfo> statsList = new ArrayList<>();
+            for (AbstractCacheManager cacheManager : cacheManagers) {
+                List<CacheStatsInfo> cacheStats = cacheManager.listCacheStats(cacheName);
+                if (!CollectionUtils.isEmpty(cacheStats)) {
+                    statsList.addAll(cacheStats);
+                }
+            }
             response.getWriter().write(JSON.toJSONString(Result.success(statsList)));
             return;
         }
@@ -118,7 +129,7 @@ public class LayeringCacheServlet extends HttpServlet {
             String cacheNameParam = request.getParameter("cacheName");
             String internalKey = request.getParameter("internalKey");
             String key = request.getParameter("key");
-            BeanFactory.getBean(StatsService.class).deleteCache(cacheNameParam, internalKey, key);
+            BeanFactory.getBean(CacheService.class).deleteCache(cacheNameParam, internalKey, key);
             response.getWriter().write(JSON.toJSONString(Result.success()));
             return;
         }
@@ -151,10 +162,6 @@ public class LayeringCacheServlet extends HttpServlet {
         } catch (Exception e) {
             logger.error("initParameter config error, deny : {}", getInitParameter(InitServletData.PARAM_NAME_DENY), e);
         }
-
-        // 采集缓存命中数据
-        redisTemplate = getRedisTemplate();
-        BeanFactory.getBean(StatsService.class).syncCacheStats(redisTemplate);
     }
 
     private List<IPRange> parseStringToIP(String ipStr) {
@@ -209,19 +216,5 @@ public class LayeringCacheServlet extends HttpServlet {
 
     protected String getFilePath(String fileName) {
         return InitServletData.RESOURCE_PATH + fileName;
-    }
-
-    private RedisTemplate<String, Object> getRedisTemplate() {
-        Set<AbstractCacheManager> cacheManagers = AbstractCacheManager.getCacheManager();
-        for (AbstractCacheManager cacheManager : cacheManagers) {
-            return cacheManager.getRedisTemplate();
-        }
-        return null;
-    }
-
-    @Override
-    public void destroy() {
-        super.destroy();
-        BeanFactory.getBean(StatsService.class).shutdownExecutor();
     }
 }

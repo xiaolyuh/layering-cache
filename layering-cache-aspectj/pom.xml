@@ -5,7 +5,7 @@
     <parent>
         <artifactId>layering-cache</artifactId>
         <groupId>com.github.xiaolyuh</groupId>
-        <version>1.0.9</version>
+        <version>1.1.0</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
@@ -18,13 +18,13 @@
         <dependency>
             <groupId>com.github.xiaolyuh</groupId>
             <artifactId>layering-cache-core</artifactId>
-            <version>1.0.9</version>
+            <version>1.1.0</version>
         </dependency>
 
         <dependency>
             <groupId>com.github.xiaolyuh</groupId>
             <artifactId>layering-cache-tool</artifactId>
-            <version>1.0.9</version>
+            <version>1.1.0</version>
         </dependency>
 
         <dependency>

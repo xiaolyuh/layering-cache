@@ -1,4 +1,4 @@
-package com.github.xiaolyuh.tool.service;
+package com.github.xiaolyuh.stats;
 
 import com.alibaba.fastjson.JSON;
 import com.github.xiaolyuh.cache.Cache;
@@ -7,16 +7,11 @@ import com.github.xiaolyuh.manager.AbstractCacheManager;
 import com.github.xiaolyuh.manager.CacheManager;
 import com.github.xiaolyuh.setting.LayeringCacheSetting;
 import com.github.xiaolyuh.support.Lock;
-import com.github.xiaolyuh.tool.servlet.LayeringCacheServlet;
-import com.github.xiaolyuh.tool.support.CacheStats;
-import com.github.xiaolyuh.tool.support.InitServletData;
-import com.github.xiaolyuh.tool.util.StringUtils;
+import com.github.xiaolyuh.util.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.redis.core.RedisTemplate;
 
-import java.io.IOException;
-import java.text.DecimalFormat;
 import java.util.*;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -28,12 +23,12 @@ import java.util.stream.Collectors;
  * @author yuhao.wang3
  */
 public class StatsService {
-    private static Logger logger = LoggerFactory.getLogger(LayeringCacheServlet.class);
+    private static Logger logger = LoggerFactory.getLogger(StatsService.class);
 
     /**
      * 缓存统计数据前缀
      */
-    private static final String CACHE_STATS_KEY_PREFIX = "layering-cache:cache_stats:xiaolyuh:";
+    private static final String CACHE_STATS_KEY_PREFIX = "layering-cache:cache_stats_info:xiaolyuh:";
 
     /**
      * 定时任务线程池
@@ -41,52 +36,49 @@ public class StatsService {
     private static ScheduledThreadPoolExecutor executor = new ScheduledThreadPoolExecutor(50);
 
     /**
-     * 数字格式化
+     * {@link AbstractCacheManager }
      */
-    private static DecimalFormat df = new DecimalFormat("#.00");
+    private AbstractCacheManager cacheManager;
 
     /**
      * 获取缓存统计list
      *
      * @param cacheNameParam 缓存名称
      */
-    public List<CacheStats> listCacheStats(RedisTemplate<String, Object> redisTemplate, String cacheNameParam) throws IOException {
+    public List<CacheStatsInfo> listCacheStats(String cacheNameParam) {
         logger.debug("获取缓存统计数据");
 
-        List<CacheStats> statsList = new ArrayList<>();
-        Set<AbstractCacheManager> cacheManagers = AbstractCacheManager.getCacheManager();
+        List<CacheStatsInfo> statsList = new ArrayList<>();
+        Collection<String> cacheNames = cacheManager.getCacheNames();
+        for (String cacheName : cacheNames) {
+            if (StringUtils.isNotBlank(cacheNameParam) && !cacheName.startsWith(cacheNameParam)) {
+                continue;
+            }
 
-        for (AbstractCacheManager cacheManager : cacheManagers) {
-            Collection<String> cacheNames = ((CacheManager) cacheManager).getCacheNames();
-            for (String cacheName : cacheNames) {
-                if (StringUtils.isNotBlank(cacheNameParam) && !cacheName.startsWith(cacheNameParam)) {
-                    continue;
-                }
-
-                // 获取Cache
-                Collection<Cache> caches = cacheManager.getCache(cacheName);
-                for (Cache cache : caches) {
-                    LayeringCache layeringCache = (LayeringCache) cache;
-                    LayeringCacheSetting layeringCacheSetting = layeringCache.getLayeringCacheSetting();
-                    // 加锁并增量缓存统计数据，缓存key=固定前缀 + 缓存名称加 + 内部缓存名
-                    String redisKey = CACHE_STATS_KEY_PREFIX + cacheName + layeringCacheSetting.getInternalKey();
-                    CacheStats cacheStats = (CacheStats) redisTemplate.opsForValue().get(redisKey);
-                    if (!Objects.isNull(cacheStats)) {
-                        statsList.add(cacheStats);
-                    }
+            // 获取Cache
+            Collection<Cache> caches = cacheManager.getCache(cacheName);
+            for (Cache cache : caches) {
+                LayeringCache layeringCache = (LayeringCache) cache;
+                LayeringCacheSetting layeringCacheSetting = layeringCache.getLayeringCacheSetting();
+                // 加锁并增量缓存统计数据，缓存key=固定前缀 + 缓存名称加 + 内部缓存名
+                String redisKey = CACHE_STATS_KEY_PREFIX + cacheName + layeringCacheSetting.getInternalKey();
+                CacheStatsInfo cacheStats = (CacheStatsInfo) cacheManager.getRedisTemplate().opsForValue().get(redisKey);
+                if (!Objects.isNull(cacheStats)) {
+                    statsList.add(cacheStats);
                 }
             }
         }
 
-        return statsList.stream().sorted(Comparator.comparing(CacheStats::getHitRate)).collect(Collectors.toList());
+        return statsList.stream().sorted(Comparator.comparing(CacheStatsInfo::getHitRate)).collect(Collectors.toList());
     }
 
     /**
      * 同步缓存统计list
      */
-    public void syncCacheStats(RedisTemplate<String, Object> redisTemplate) {
+    public void syncCacheStats() {
+        RedisTemplate<String, Object> redisTemplate = cacheManager.getRedisTemplate();
         // 清空统计数据
-        resetCacheStat(redisTemplate);
+        resetCacheStat();
         executor.scheduleWithFixedDelay(() -> {
             logger.debug("执行缓存统计数据采集定时任务");
             Set<AbstractCacheManager> cacheManagers = AbstractCacheManager.getCacheManager();
@@ -105,9 +97,9 @@ public class StatsService {
                         Lock lock = new Lock(redisTemplate, redisKey, 60, 5000);
                         try {
                             if (lock.tryLock()) {
-                                CacheStats cacheStats = (CacheStats) redisTemplate.opsForValue().get(redisKey);
+                                CacheStatsInfo cacheStats = (CacheStatsInfo) redisTemplate.opsForValue().get(redisKey);
                                 if (Objects.isNull(cacheStats)) {
-                                    cacheStats = new CacheStats();
+                                    cacheStats = new CacheStatsInfo();
                                 }
 
                                 // 设置缓存唯一标示
@@ -119,9 +111,9 @@ public class StatsService {
                                 cacheStats.setLayeringCacheSetting(layeringCacheSetting);
 
                                 // 设置缓存统计数据
-                                com.github.xiaolyuh.stats.CacheStats layeringCacheStats = layeringCache.getCacheStats();
-                                com.github.xiaolyuh.stats.CacheStats firstCacheStats = layeringCache.getFirstCache().getCacheStats();
-                                com.github.xiaolyuh.stats.CacheStats secondCacheStats = layeringCache.getSecondCache().getCacheStats();
+                                CacheStats layeringCacheStats = layeringCache.getCacheStats();
+                                CacheStats firstCacheStats = layeringCache.getFirstCache().getCacheStats();
+                                CacheStats secondCacheStats = layeringCache.getSecondCache().getCacheStats();
 
                                 cacheStats.setRequestCount(cacheStats.getRequestCount() + layeringCacheStats.getAndResetCacheRequestCount());
                                 cacheStats.setMissCount(cacheStats.getMissCount() + layeringCacheStats.getAndResetCachedMethodRequestCount());
@@ -162,42 +154,13 @@ public class StatsService {
     /**
      * 重置缓存统计数据
      */
-    public void resetCacheStat(RedisTemplate<String, Object> redisTemplate) {
+    public void resetCacheStat() {
+        RedisTemplate<String, Object> redisTemplate = cacheManager.getRedisTemplate();
         Set<String> keys = redisTemplate.keys(CACHE_STATS_KEY_PREFIX + "*");
         redisTemplate.delete(keys);
     }
 
-    /**
-     * 删除缓存
-     *
-     * @param cacheName   缓存名称
-     * @param internalKey 内部缓存名，由[一级缓存有效时间-二级缓存有效时间-二级缓存自动刷新时间]组成
-     * @param key         key，可以为NULL，如果是NULL则清空缓存
-     */
-    public void deleteCache(String cacheName, String internalKey, String key) {
-        if (StringUtils.isBlank(cacheName) || StringUtils.isBlank(internalKey)) {
-            return;
-        }
-
-        Set<AbstractCacheManager> cacheManagers = AbstractCacheManager.getCacheManager();
-        if (StringUtils.isBlank(key)) {
-            // 清空缓存
-            for (AbstractCacheManager cacheManager : cacheManagers) {
-                LayeringCacheSetting layeringCacheSetting = new LayeringCacheSetting();
-                layeringCacheSetting.setInternalKey(internalKey);
-                Cache cache = cacheManager.getCache(cacheName, layeringCacheSetting);
-                cache.clear();
-            }
-
-            return;
-        }
-
-        // 删除指定key
-        for (AbstractCacheManager cacheManager : cacheManagers) {
-            LayeringCacheSetting layeringCacheSetting = new LayeringCacheSetting();
-            layeringCacheSetting.setInternalKey(internalKey);
-            Cache cache = cacheManager.getCache(cacheName, layeringCacheSetting);
-            cache.evict(key);
-        }
+    public void setCacheManager(AbstractCacheManager cacheManager) {
+        this.cacheManager = cacheManager;
     }
 }

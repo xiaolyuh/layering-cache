@@ -3,20 +3,21 @@ package com.github.xiaolyuh.manager;
 import com.github.xiaolyuh.cache.Cache;
 import com.github.xiaolyuh.listener.RedisMessageListener;
 import com.github.xiaolyuh.setting.LayeringCacheSetting;
+import com.github.xiaolyuh.stats.CacheStatsInfo;
+import com.github.xiaolyuh.stats.StatsService;
+import com.github.xiaolyuh.util.BeanFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.BeanNameAware;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.SmartLifecycle;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.listener.ChannelTopic;
 import org.springframework.data.redis.listener.RedisMessageListenerContainer;
 import org.springframework.util.CollectionUtils;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.LinkedHashSet;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
@@ -45,7 +46,6 @@ public abstract class AbstractCacheManager implements CacheManager, Initializing
      */
     private final ConcurrentMap<String, ConcurrentMap<String, Cache>> cacheContainer = new ConcurrentHashMap<>(16);
 
-
     /**
      * 缓存名称容器
      */
@@ -60,6 +60,11 @@ public abstract class AbstractCacheManager implements CacheManager, Initializing
      * 是否开启统计
      */
     private boolean stats = true;
+
+    /**
+     * redis 客户端
+     */
+    RedisTemplate<String, Object> redisTemplate;
 
     public static Set<AbstractCacheManager> getCacheManager() {
         return cacheManagers;
@@ -182,6 +187,22 @@ public abstract class AbstractCacheManager implements CacheManager, Initializing
         container.setConnectionFactory(getRedisTemplate().getConnectionFactory());
         container.afterPropertiesSet();
         messageListener.afterPropertiesSet();
+
+        BeanFactory.getBean(StatsService.class).setCacheManager(this);
+        if (getStats()) {
+            // 采集缓存命中率数据
+            BeanFactory.getBean(StatsService.class).syncCacheStats();
+        }
+    }
+
+    @Override
+    public List<CacheStatsInfo> listCacheStats(String cacheName) {
+        return BeanFactory.getBean(StatsService.class).listCacheStats(cacheName);
+    }
+
+    @Override
+    public void resetCacheStat() {
+        BeanFactory.getBean(StatsService.class).resetCacheStat();
     }
 
     @Override
@@ -192,6 +213,7 @@ public abstract class AbstractCacheManager implements CacheManager, Initializing
     @Override
     public void destroy() throws Exception {
         container.destroy();
+        BeanFactory.getBean(StatsService.class).shutdownExecutor();
     }
 
     @Override
@@ -240,5 +262,13 @@ public abstract class AbstractCacheManager implements CacheManager, Initializing
     @Override
     public int hashCode() {
         return super.hashCode();
+    }
+
+    public RedisTemplate<String, Object> getRedisTemplate() {
+        return redisTemplate;
+    }
+
+    public void setRedisTemplate(RedisTemplate<String, Object> redisTemplate) {
+        this.redisTemplate = redisTemplate;
     }
 }

@@ -29,7 +29,11 @@
                             url: 'cache-stats/reset-stats',
                             dataType: 'JSON',
                             success: function (data) {
-                                bindEvent.getData();
+                                if (data.status == "SUCCESS") {
+                                    bindEvent.getData();
+                                } else {
+                                    alert(data.message);
+                                }
                             },
                             error: function () {
                                 window.location.href = "index.html";
@@ -123,8 +127,12 @@
                                         dataType: 'JSON',
                                         data: {"cacheName": cs.cacheName(),"internalKey": cs.internalKey(),"key": $(constant.DELETE_CACHE_KEYINPUT).val()},
                                         success: function (data) {
-                                            $(constant.DELETE_CACHE_KEYINPUT).val("");
-                                            bindEvent.getData();
+                                            if (data.status == "SUCCESS") {
+                                                $(constant.DELETE_CACHE_KEYINPUT).val("");
+                                                bindEvent.getData();
+                                            } else {
+                                                alert(data.message);
+                                            }
                                         },
                                         error: function () {
                                             window.location.href = "index.html";

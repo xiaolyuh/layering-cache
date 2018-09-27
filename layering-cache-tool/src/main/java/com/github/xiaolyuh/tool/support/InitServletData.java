@@ -1,5 +1,7 @@
 package com.github.xiaolyuh.tool.support;
 
+import com.sun.org.apache.xpath.internal.operations.Bool;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -14,6 +16,7 @@ public class InitServletData {
     public static final String PARAM_NAME_PASSWORD = "loginPassword";
     public static final String PARAM_NAME_ALLOW = "allow";
     public static final String PARAM_NAME_DENY = "deny";
+    public static final String PARAM_NAME_ENABLE_UPDATE = "enableUpdate";
 
     public static final String RESOURCE_PATH = "http/resources";
     /**
@@ -25,6 +28,11 @@ public class InitServletData {
      * 登录密码
      */
     private String password;
+
+    /**
+     * 是否有更新数据权限
+     */
+    private Boolean enableUpdate;
 
     /**
      * 白名单
@@ -83,5 +91,13 @@ public class InitServletData {
 
     public void setSyncCacheStatsDelay(long syncCacheStatsDelay) {
         this.syncCacheStatsDelay = syncCacheStatsDelay;
+    }
+
+    public Boolean getEnableUpdate() {
+        return enableUpdate;
+    }
+
+    public void setEnableUpdate(Boolean enableUpdate) {
+        this.enableUpdate = enableUpdate;
     }
 }

@@ -48,6 +48,11 @@ public class LayeringCacheProperties {
      */
     private String loginPassword = "admin";
 
+    /**
+     * 是否启用更新权限
+     */
+    private boolean enableUpdate = true;
+
     public boolean isLayeringCacheServletEnabled() {
         return layeringCacheServletEnabled;
     }
@@ -110,5 +115,13 @@ public class LayeringCacheProperties {
 
     public void setNamespace(String namespace) {
         this.namespace = namespace;
+    }
+
+    public boolean isEnableUpdate() {
+        return enableUpdate;
+    }
+
+    public void setEnableUpdate(boolean enableUpdate) {
+        this.enableUpdate = enableUpdate;
     }
 }

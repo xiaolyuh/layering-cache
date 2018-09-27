@@ -101,6 +101,10 @@ public class LayeringCacheServlet extends HttpServlet {
 
         // 重置缓存统计数据
         if (URLConstant.RESET_CACHE_STAT.equals(path)) {
+            if (!initServletData.getEnableUpdate()) {
+                response.getWriter().write(JSON.toJSONString(Result.error("你没有开启更新数据的权限")));
+                return;
+            }
             Set<AbstractCacheManager> cacheManagers = AbstractCacheManager.getCacheManager();
             for (AbstractCacheManager cacheManager : cacheManagers) {
                 cacheManager.resetCacheStat();
@@ -126,6 +130,11 @@ public class LayeringCacheServlet extends HttpServlet {
 
         // 删除缓存
         if (URLConstant.CACHE_STATS_DELETE_CACHW.equals(path)) {
+            if (!initServletData.getEnableUpdate()) {
+                response.getWriter().write(JSON.toJSONString(Result.error("你没有开启更新数据的权限")));
+                return;
+            }
+            
             String cacheNameParam = request.getParameter("cacheName");
             String internalKey = request.getParameter("internalKey");
             String key = request.getParameter("key");
@@ -147,6 +156,15 @@ public class LayeringCacheServlet extends HttpServlet {
         String paramPassword = getInitParameter(InitServletData.PARAM_NAME_PASSWORD);
         if (!StringUtils.isEmpty(paramPassword)) {
             this.initServletData.setPassword(paramPassword);
+        }
+
+        try {
+            String paramEnableUpdate = getInitParameter(InitServletData.PARAM_NAME_ENABLE_UPDATE);
+            if (!StringUtils.isEmpty(paramPassword)) {
+                this.initServletData.setEnableUpdate(parseStringToBoolean(paramEnableUpdate));
+            }
+        } catch (Exception e) {
+            logger.error("initParameter config error, enableUpdate : {}", getInitParameter(InitServletData.PARAM_NAME_ENABLE_UPDATE), e);
         }
 
         try {
@@ -212,6 +230,11 @@ public class LayeringCacheServlet extends HttpServlet {
             response.setContentType("text/javascript;charset=utf-8");
         }
         response.getWriter().write(text);
+    }
+
+    private boolean parseStringToBoolean(String enableUpdate) {
+
+        return Boolean.parseBoolean(enableUpdate);
     }
 
     protected String getFilePath(String fileName) {

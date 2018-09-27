@@ -44,6 +44,7 @@ public class StatsService {
      * 获取缓存统计list
      *
      * @param cacheNameParam 缓存名称
+     * @return List&lt;CacheStatsInfo&gt;
      */
     public List<CacheStatsInfo> listCacheStats(String cacheNameParam) {
         logger.debug("获取缓存统计数据");

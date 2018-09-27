@@ -51,5 +51,3 @@ github 地址：https://github.com/wyh-chenfeng/layering-cache
 
 ![微信-支付宝](https://upload-images.jianshu.io/upload_images/6464086-cf0fb1b2facf4a14.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
 
-![扫描领支付宝红包.png](https://upload-images.jianshu.io/upload_images/6464086-4c07fc47862dab24.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
-

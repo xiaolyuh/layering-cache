@@ -378,7 +378,7 @@ public class CacheAspectTest {
 
     @Test
     public void testPutNullUser() {
-        long userId = 117;
+        long userId = 1117;
         testService.putNullUser(userId);
         User user = testService.getUserById(userId);
         logger.debug(JSON.toJSONString(user));

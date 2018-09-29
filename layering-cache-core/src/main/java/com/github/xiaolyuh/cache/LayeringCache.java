@@ -195,12 +195,14 @@ public class LayeringCache extends AbstractValueAdaptingCache {
 
     @Override
     public CacheStats getCacheStats() {
-        CacheStats cacheStats = super.getCacheStats();
+        CacheStats cacheStats = new CacheStats();
         cacheStats.addCacheRequestCount(firstCache.getCacheStats().getCacheRequestCount().longValue());
         cacheStats.addCachedMethodRequestCount(secondCache.getCacheStats().getCachedMethodRequestCount().longValue());
-        cacheStats.addCachedMethodRequestTime(secondCache.getCacheStats().getAndResetCachedMethodRequestTime());
+        cacheStats.addCachedMethodRequestTime(secondCache.getCacheStats().getCachedMethodRequestTime().longValue());
 
-        firstCache.getCacheStats().addCachedMethodRequestCount(secondCache.getCacheStats().getCachedMethodRequestCount().longValue());
+        firstCache.getCacheStats().addCachedMethodRequestCount(secondCache.getCacheStats().getCacheRequestCount().longValue());
+
+        setCacheStats(cacheStats);
         return cacheStats;
     }
 

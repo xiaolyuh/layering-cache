@@ -189,7 +189,6 @@ public class RedisCache extends AbstractValueAdaptingCache {
      * 同一个线程循环5次查询缓存，每次等待20毫秒，如果还是没有数据直接去执行被缓存的方法
      */
     private <T> T executeCacheMethod(RedisCacheKey redisCacheKey, Callable<T> valueLoader) {
-        long start = System.currentTimeMillis();
         Lock redisLock = new Lock(redisTemplate, redisCacheKey.getKey() + "_sync_lock");
         // 同一个线程循环20次查询缓存，每次等待20毫秒，如果还是没有数据直接去执行被缓存的方法
         for (int i = 0; i < RETRY_COUNT; i++) {

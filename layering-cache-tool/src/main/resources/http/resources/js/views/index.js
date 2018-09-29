@@ -6,7 +6,8 @@
         SEARCH_INPUT: '.bind-search-input',
         DELETE_PROMPT: '#delete-prompt',
         DELETE_CACHE_KEYINPUT: '#delete-cache-key-input',
-        CONFIRM: '#my-confirm',
+        RESET_CONFIRM: '#reset-confirm',
+        DELETE_CONFIRM: '#delete-confirm',
         DETAIL_MODAL: '#detail-modal',
         LOGIN_OUT: '#login-out',
     };
@@ -21,7 +22,7 @@
     var bindEvent = {
         bindResetStats: function () {
             $(constant.RESET_STATS_BUTTON).on("click", function () {
-                $(constant.CONFIRM).modal({
+                $(constant.RESET_CONFIRM).modal({
                     relatedTarget: this,
                     onConfirm: function(options) {
                         $.ajax({
@@ -118,7 +119,7 @@
                     $(constant.DELETE_PROMPT).modal({
                         relatedTarget: this,
                         onConfirm: function(e) {
-                            $(constant.CONFIRM).modal({
+                            $(constant.DELETE_CONFIRM).modal({
                                 relatedTarget: this,
                                 onConfirm: function(options) {
                                     $.ajax({

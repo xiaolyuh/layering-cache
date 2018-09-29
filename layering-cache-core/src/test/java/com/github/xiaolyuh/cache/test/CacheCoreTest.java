@@ -219,6 +219,11 @@ public class CacheCoreTest {
         cache1.get(cacheKey1, () -> initCache(String.class));
 
         CacheStats cacheStats  = cache1.getCacheStats();
+        CacheStats cacheStats2  = cache1.getCacheStats();
+        Assert.assertEquals(cacheStats.getCacheRequestCount().longValue(), cacheStats2.getCacheRequestCount().longValue());
+        Assert.assertEquals(cacheStats.getCachedMethodRequestCount().longValue(), cacheStats2.getCachedMethodRequestCount().longValue());
+        Assert.assertEquals(cacheStats.getCachedMethodRequestTime().longValue(), cacheStats2.getCachedMethodRequestTime().longValue());
+
         logger.debug("缓请求数：{}", cacheStats.getCacheRequestCount());
         logger.debug("被缓存方法请求数：{}", cacheStats.getCachedMethodRequestCount());
         logger.debug("被缓存方法请求总耗时：{}", cacheStats.getCachedMethodRequestTime());

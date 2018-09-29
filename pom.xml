@@ -59,10 +59,11 @@
         <spring.version>4.3.18.RELEASE</spring.version>
         <slf4j.version>1.7.25</slf4j.version>
         <fastjson.version>1.2.31</fastjson.version>
-        <kryo.version>3.0.3</kryo.version>
-        <jackson.version>2.8.8</jackson.version>
         <aspectj.version>1.8.10</aspectj.version>
         <servlet.version>3.1.0</servlet.version>
+        <jackson.version>2.8.8</jackson.version>
+        <kryo.version>3.0.3</kryo.version>
+        <protostuff.version>1.6.0</protostuff.version>
 
         <spring.boot.version>1.5.3.RELEASE</spring.boot.version>
 
@@ -120,6 +121,18 @@
             </dependency>
 
             <dependency>
+                <groupId>org.aspectj</groupId>
+                <artifactId>aspectjweaver</artifactId>
+                <version>${aspectj.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-starter</artifactId>
+                <version>${spring.boot.version}</version>
+            </dependency>
+
+            <dependency>
                 <groupId>com.alibaba</groupId>
                 <artifactId>fastjson</artifactId>
                 <version>${fastjson.version}</version>
@@ -132,16 +145,17 @@
             </dependency>
 
             <dependency>
-                <groupId>org.aspectj</groupId>
-                <artifactId>aspectjweaver</artifactId>
-                <version>${aspectj.version}</version>
+                <groupId>io.protostuff</groupId>
+                <artifactId>protostuff-core</artifactId>
+                <version>${protostuff.version}</version>
             </dependency>
 
             <dependency>
-                <groupId>org.springframework.boot</groupId>
-                <artifactId>spring-boot-starter</artifactId>
-                <version>${spring.boot.version}</version>
+                <groupId>io.protostuff</groupId>
+                <artifactId>protostuff-runtime</artifactId>
+                <version>${protostuff.version}</version>
             </dependency>
+
 
             <!--在此处添加Spring Boot自身的自动配置最为依赖-->
             <dependency>

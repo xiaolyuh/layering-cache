@@ -149,4 +149,8 @@ public abstract class AbstractValueAdaptingCache implements Cache {
     public CacheStats getCacheStats() {
         return cacheStats;
     }
+
+    public void setCacheStats(CacheStats cacheStats) {
+        this.cacheStats = cacheStats;
+    }
 }

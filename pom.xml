@@ -7,7 +7,7 @@
     <groupId>com.github.xiaolyuh</groupId>
     <artifactId>layering-cache</artifactId>
     <packaging>pom</packaging>
-    <version>1.1.1</version>
+    <version>1.1.2</version>
 
     <parent>
         <groupId>org.sonatype.oss</groupId>
@@ -21,8 +21,9 @@
         <module>layering-cache-aspectj</module>
         <module>layering-cache-starter</module>
     </modules>
+
     <name>layering-cache</name>
-    <description>为监控而生的多级缓存</description>
+    <description>多级缓存</description>
     <url>https://github.com/xiaolyuh/layering-cache</url>
 
     <licenses>

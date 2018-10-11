@@ -1,5 +1,6 @@
 package com.github.xiaolyuh.serializer;
 
+import com.alibaba.fastjson.JSON;
 import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryo.io.Input;
 import com.esotericsoftware.kryo.io.Output;
@@ -43,7 +44,7 @@ public class KryoRedisSerializer<T> implements RedisSerializer<T> {
             output.flush();
             return baos.toByteArray();
         } catch (Exception e) {
-            logger.error("KryoRedisSerializer 序列化异常: {}", e.getMessage(), e);
+            logger.error("KryoRedisSerializer 序列化异常: {}, 【{}】", e.getMessage(), JSON.toJSONString(t), e);
             throw new SerializationException("KryoRedisSerializer 序列化异常: " + e.getMessage(), e);
         } finally {
             kryos.remove();
@@ -69,7 +70,7 @@ public class KryoRedisSerializer<T> implements RedisSerializer<T> {
             }
             return (T) result;
         } catch (Exception e) {
-            logger.error("KryoRedisSerializer 反序列化异常: {}", e.getMessage(), e);
+            logger.error("KryoRedisSerializer 反序列化异常: {}, 【{}】", e.getMessage(), JSON.toJSONString(bytes), e);
             throw new SerializationException("KryoRedisSerializer 反序列化异常: " + e.getMessage(), e);
         } finally {
             kryos.remove();

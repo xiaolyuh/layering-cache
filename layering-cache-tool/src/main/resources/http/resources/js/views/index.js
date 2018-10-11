@@ -19,16 +19,27 @@
         scs: ko.observable({}),
     };
 
+    var token = {
+        getToken: function () {
+            var url = location.search;
+            if (url.indexOf("?") != -1) {
+                var str = url.substr(1);
+                return str.split("=")[1];
+            }
+        }
+    };
+
     var bindEvent = {
         bindResetStats: function () {
             $(constant.RESET_STATS_BUTTON).on("click", function () {
                 $(constant.RESET_CONFIRM).modal({
                     relatedTarget: this,
-                    onConfirm: function(options) {
+                    onConfirm: function (options) {
                         $.ajax({
                             type: 'POST',
                             url: 'cache-stats/reset-stats',
                             dataType: 'JSON',
+                            data: {"token": token.getToken()},
                             success: function (data) {
                                 if (data.status == "SUCCESS") {
                                     bindEvent.getData();
@@ -42,7 +53,7 @@
                         });
                     },
                     // closeOnConfirm: false,
-                    onCancel: function() {
+                    onCancel: function () {
 
                     }
                 });
@@ -54,6 +65,7 @@
                     type: 'POST',
                     url: 'user/login-out',
                     dataType: 'JSON',
+                    data: {"token": token.getToken()},
                     success: function (data) {
                         if (data.status == "SUCCESS") {
                             window.location.href = "login.html";
@@ -64,7 +76,7 @@
                 });
             });
         },
-        searchData:function () {
+        searchData: function () {
             $(constant.SEARCH_BUTTON).on("click", function () {
                 bindEvent.getData();
             });
@@ -80,7 +92,7 @@
                 type: 'POST',
                 url: 'cache-stats/list',
                 dataType: 'JSON',
-                data: {"cacheName": $(constant.SEARCH_INPUT).val()},
+                data: {"cacheName": $(constant.SEARCH_INPUT).val(), "token": token.getToken()},
                 success: function (data) {
                     var temp = ko.mapping.fromJS(data.data);
                     format.formatInit(temp());
@@ -118,15 +130,20 @@
                 cs.deleteCache = function () {
                     $(constant.DELETE_PROMPT).modal({
                         relatedTarget: this,
-                        onConfirm: function(e) {
+                        onConfirm: function (e) {
                             $(constant.DELETE_CONFIRM).modal({
                                 relatedTarget: this,
-                                onConfirm: function(options) {
+                                onConfirm: function (options) {
                                     $.ajax({
                                         type: 'POST',
                                         url: 'cache-stats/delete-cache',
                                         dataType: 'JSON',
-                                        data: {"cacheName": cs.cacheName(),"internalKey": cs.internalKey(),"key": $(constant.DELETE_CACHE_KEYINPUT).val()},
+                                        data: {
+                                            "cacheName": cs.cacheName(),
+                                            "internalKey": cs.internalKey(),
+                                            "key": $(constant.DELETE_CACHE_KEYINPUT).val(),
+                                            "token": token.getToken()
+                                        },
                                         success: function (data) {
                                             if (data.status == "SUCCESS") {
                                                 $(constant.DELETE_CACHE_KEYINPUT).val("");
@@ -141,12 +158,12 @@
                                     });
                                 },
                                 // closeOnConfirm: false,
-                                onCancel: function() {
+                                onCancel: function () {
                                     $(constant.DELETE_CACHE_KEYINPUT).val("");
                                 }
                             });
                         },
-                        onCancel: function(e) {
+                        onCancel: function (e) {
                             $(constant.DELETE_CACHE_KEYINPUT).val("");
                         }
                     });
@@ -159,11 +176,11 @@
                     $(constant.DETAIL_MODAL).modal({
                         relatedTarget: this,
                         width: 1000,
-                        onConfirm: function(options) {
+                        onConfirm: function (options) {
 
                         },
                         // closeOnConfirm: false,
-                        onCancel: function() {
+                        onCancel: function () {
 
                         }
                     });

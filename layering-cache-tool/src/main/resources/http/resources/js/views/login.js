@@ -15,7 +15,7 @@
                     data: $(constant.LOGIN_FORM).serialize(),
                     success: function (data) {
                         if (data.status == "SUCCESS") {
-                            window.location.href = "index.html";
+                            window.location.href = "index.html?token=" + data.data;
                         } else {
                             alert("用户名或密码错误");
                         }

@@ -12,6 +12,7 @@ import java.util.List;
  */
 public class InitServletData {
 
+    public static final String PARAM_NAME_TOKEN = "token";
     public static final String PARAM_NAME_USERNAME = "loginUsername";
     public static final String PARAM_NAME_PASSWORD = "loginPassword";
     public static final String PARAM_NAME_ALLOW = "allow";

@@ -12,20 +12,21 @@ import com.github.xiaolyuh.tool.support.Result;
 import com.github.xiaolyuh.tool.support.URLConstant;
 import com.github.xiaolyuh.tool.util.Utils;
 import com.github.xiaolyuh.util.BeanFactory;
+import com.github.xiaolyuh.util.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.util.CollectionUtils;
-import org.springframework.util.StringUtils;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+import java.util.UUID;
 
 /**
  * 统计的Servlet
@@ -36,6 +37,8 @@ public class LayeringCacheServlet extends HttpServlet {
     private static Logger logger = LoggerFactory.getLogger(LayeringCacheServlet.class);
 
     private InitServletData initServletData = new InitServletData();
+
+    private RedisTemplate<String, Object> redisTemplate;
 
     @Override
     public void init() throws ServletException {
@@ -50,7 +53,6 @@ public class LayeringCacheServlet extends HttpServlet {
 
         response.setCharacterEncoding("utf-8");
 
-        HttpSession session = request.getSession();
         // root context
         if (contextPath == null) {
             contextPath = "";
@@ -67,7 +69,8 @@ public class LayeringCacheServlet extends HttpServlet {
         }
 
         // 登录校验
-        boolean isLogin = BeanFactory.getBean(UserService.class).checkLogin(path, session);
+        String token = request.getParameter(InitServletData.PARAM_NAME_TOKEN);
+        boolean isLogin = BeanFactory.getBean(UserService.class).checkLogin(path, redisTemplate, token);
         if (!isLogin) {
             returnResourceFile("/login.html", uri, response);
             return;
@@ -77,19 +80,20 @@ public class LayeringCacheServlet extends HttpServlet {
         if (URLConstant.USER_SUBMIT_LOGIN.equals(path)) {
             String usernameParam = request.getParameter(InitServletData.PARAM_NAME_USERNAME);
             String passwordParam = request.getParameter(InitServletData.PARAM_NAME_PASSWORD);
-            boolean success = BeanFactory.getBean(UserService.class).login(initServletData, usernameParam, passwordParam, session);
+            token = UUID.randomUUID().toString();
+            boolean success = BeanFactory.getBean(UserService.class).login(initServletData, usernameParam, passwordParam, redisTemplate, token);
 
             if (success) {
-                response.getWriter().write(JSON.toJSONString(Result.success()));
+                response.getWriter().write(JSON.toJSONString(Result.success(token)));
             } else {
                 response.getWriter().write(JSON.toJSONString(Result.error("用户名或密码错误")));
             }
             return;
         }
 
-        // 登录
+        // 退出登录
         if (URLConstant.USER_LOGIN_OUT.equals(path)) {
-            boolean success = BeanFactory.getBean(UserService.class).loginOut(session);
+            boolean success = BeanFactory.getBean(UserService.class).loginOut(redisTemplate, token);
 
             if (success) {
                 response.getWriter().write(JSON.toJSONString(Result.success()));
@@ -110,6 +114,8 @@ public class LayeringCacheServlet extends HttpServlet {
                 cacheManager.resetCacheStat();
             }
             response.getWriter().write(JSON.toJSONString(Result.success()));
+            // 刷新session
+            BeanFactory.getBean(UserService.class).refreshSession(redisTemplate, token);
             return;
         }
 
@@ -125,6 +131,8 @@ public class LayeringCacheServlet extends HttpServlet {
                 }
             }
             response.getWriter().write(JSON.toJSONString(Result.success(statsList)));
+            // 刷新session
+            BeanFactory.getBean(UserService.class).refreshSession(redisTemplate, token);
             return;
         }
 
@@ -134,17 +142,19 @@ public class LayeringCacheServlet extends HttpServlet {
                 response.getWriter().write(JSON.toJSONString(Result.error("你没有开启更新数据的权限")));
                 return;
             }
-            
+
             String cacheNameParam = request.getParameter("cacheName");
             String internalKey = request.getParameter("internalKey");
             String key = request.getParameter("key");
             BeanFactory.getBean(CacheService.class).deleteCache(cacheNameParam, internalKey, key);
             response.getWriter().write(JSON.toJSONString(Result.success()));
+            // 刷新session
+            BeanFactory.getBean(UserService.class).refreshSession(redisTemplate, token);
             return;
         }
 
         // find file in http.resources path
-        returnResourceFile(path, uri, response);
+        returnResourceFile(path, uri, response, request, token);
     }
 
     private void initAuthEnv() {
@@ -180,6 +190,9 @@ public class LayeringCacheServlet extends HttpServlet {
         } catch (Exception e) {
             logger.error("initParameter config error, deny : {}", getInitParameter(InitServletData.PARAM_NAME_DENY), e);
         }
+
+        // 获取redisTemplate
+        redisTemplate = getRedisTemplate();
     }
 
     private List<IPRange> parseStringToIP(String ipStr) {
@@ -205,9 +218,19 @@ public class LayeringCacheServlet extends HttpServlet {
             throws ServletException,
             IOException {
 
+        returnResourceFile(fileName, uri, response, null, null);
+    }
+
+    protected void returnResourceFile(String fileName, String uri, HttpServletResponse response, HttpServletRequest request, String token)
+            throws ServletException,
+            IOException {
+
         String filePath = getFilePath(fileName);
 
         if (filePath.endsWith(".html")) {
+            if (request != null && StringUtils.isNotBlank(token)) {
+                request.setAttribute("token", token);
+            }
             response.setContentType("text/html; charset=utf-8");
         }
         if (fileName.endsWith(".jpg") || fileName.endsWith(".png")) {
@@ -235,6 +258,14 @@ public class LayeringCacheServlet extends HttpServlet {
     private boolean parseStringToBoolean(String enableUpdate) {
 
         return Boolean.parseBoolean(enableUpdate);
+    }
+
+    private RedisTemplate<String, Object> getRedisTemplate() {
+        Set<AbstractCacheManager> cacheManagers = AbstractCacheManager.getCacheManager();
+        for (AbstractCacheManager cacheManager : cacheManagers) {
+            return cacheManager.getRedisTemplate();
+        }
+        return null;
     }
 
     protected String getFilePath(String fileName) {

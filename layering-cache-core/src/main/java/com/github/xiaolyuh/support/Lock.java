@@ -268,7 +268,7 @@ public class Lock {
                 });
             } catch (Throwable e) {
                 logger.warn("Redis不支持EVAL命令，使用降级方式解锁：{}", e.getMessage());
-                String value = (String) redisTemplate.opsForValue().get(lockKey);
+                String value = this.get(lockKey, String.class);
                 if (lockValue.equals(value)) {
                     redisTemplate.delete(lockKey);
                     return true;
@@ -313,11 +313,29 @@ public class Lock {
     }
 
     /**
+     * 获取redis里面的值
+     *
+     * @param key    key
+     * @param aClass class
+     * @return T
+     */
+    private <T> T get(final String key, Class<T> aClass) {
+        Assert.isTrue(!StringUtils.isEmpty(key), "key不能为空");
+        return redisTemplate.execute((RedisConnection connection) -> {
+            Object nativeConnection = connection.getNativeConnection();
+            Object result = null;
+            if (nativeConnection instanceof JedisCommands) {
+                result = ((JedisCommands) nativeConnection).get(key);
+            }
+            return (T) result;
+        });
+    }
+
+    /**
      * 获取锁状态
      *
-     * @return Boolean
-     * @author yuhao.wang
      * @return boolean
+     * @author yuhao.wang
      */
     public boolean isLock() {
 

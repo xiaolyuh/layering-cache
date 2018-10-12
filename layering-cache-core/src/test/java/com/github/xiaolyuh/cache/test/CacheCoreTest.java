@@ -11,6 +11,7 @@ import com.github.xiaolyuh.setting.LayeringCacheSetting;
 import com.github.xiaolyuh.setting.SecondaryCacheSetting;
 import com.github.xiaolyuh.stats.CacheStats;
 import com.github.xiaolyuh.support.ExpireMode;
+import com.github.xiaolyuh.support.Lock;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -231,6 +232,16 @@ public class CacheCoreTest {
         Assert.assertEquals(cacheStats.getCacheRequestCount().longValue(), 4);
         Assert.assertEquals(cacheStats.getCachedMethodRequestCount().longValue(), 2);
         Assert.assertTrue(cacheStats.getCachedMethodRequestTime().longValue() >= 0);
+    }
+
+    /**
+     * 测试锁
+     */
+    @Test
+    public void testLock() {
+        Lock lock = new Lock(redisTemplate, "test:123");
+        lock.lock();
+        lock.unlock();
     }
 
     private <T> T initCache(Class<T> t) {

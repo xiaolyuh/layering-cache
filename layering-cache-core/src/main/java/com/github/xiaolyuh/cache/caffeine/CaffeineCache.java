@@ -130,7 +130,7 @@ public class CaffeineCache extends AbstractValueAdaptingCache {
             return toStoreValue(t);
         } catch (Exception e) {
             logger.error("加载缓存数据异常,{}", e.getMessage(), e);
-            throw new LoaderCacheValueException(key, valueLoader, e);
+            throw new LoaderCacheValueException(key, e);
         }
 
     }

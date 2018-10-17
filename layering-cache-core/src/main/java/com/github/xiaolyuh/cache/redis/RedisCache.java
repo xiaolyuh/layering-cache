@@ -212,7 +212,8 @@ public class RedisCache extends AbstractValueAdaptingCache {
                 logger.debug("redis缓存 key= {} 从数据库获取数据未获取到锁，进入等待状态，等待{}毫秒", redisCacheKey.getKey(), WAIT_TIME);
                 container.await(redisCacheKey.getKey(), WAIT_TIME);
             } catch (Exception e) {
-                logger.error(e.getMessage(), e);
+                container.signalAll(redisCacheKey.getKey());
+                throw new LoaderCacheValueException(redisCacheKey.getKey(), e);
             } finally {
                 redisLock.unlock();
             }
@@ -248,8 +249,7 @@ public class RedisCache extends AbstractValueAdaptingCache {
             }
             return (T) fromStoreValue(result);
         } catch (Exception e) {
-            logger.error("加载缓存数据异常,{}", e.getMessage(), e);
-            throw new LoaderCacheValueException(key, valueLoader, e);
+            throw new LoaderCacheValueException(key.getKey(), e);
         }
     }
 

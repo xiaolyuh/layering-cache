@@ -116,6 +116,10 @@ public class StatsService {
                                 CacheStats firstCacheStats = layeringCache.getFirstCache().getCacheStats();
                                 CacheStats secondCacheStats = layeringCache.getSecondCache().getCacheStats();
 
+                                // 清空加载缓存时间
+                                firstCacheStats.getAndResetCachedMethodRequestTime();
+                                secondCacheStats.getAndResetCachedMethodRequestTime();
+
                                 cacheStats.setRequestCount(cacheStats.getRequestCount() + layeringCacheStats.getAndResetCacheRequestCount());
                                 cacheStats.setMissCount(cacheStats.getMissCount() + layeringCacheStats.getAndResetCachedMethodRequestCount());
                                 cacheStats.setTotalLoadTime(cacheStats.getTotalLoadTime() + layeringCacheStats.getAndResetCachedMethodRequestTime());

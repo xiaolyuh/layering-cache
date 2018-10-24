@@ -367,6 +367,7 @@ public class CacheAspectTest {
         User user = testService.getUserById(userId);
         logger.debug(JSON.toJSONString(user));
         Assert.assertNotNull(user);
+        Assert.assertEquals(user.getUserId(), 11L);
     }
 
     @Test
@@ -374,6 +375,7 @@ public class CacheAspectTest {
         User user = testService.putUserNoParam();
         logger.debug(JSON.toJSONString(user));
         Assert.assertNotNull(user);
+        Assert.assertEquals(user.getUserId(), 11L);
     }
 
     @Test

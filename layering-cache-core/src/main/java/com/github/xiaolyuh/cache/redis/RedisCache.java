@@ -127,7 +127,7 @@ public class RedisCache extends AbstractValueAdaptingCache {
         logger.debug("redis缓存 key= {} 查询redis缓存如果没有命中，从数据库获取数据", redisCacheKey.getKey());
         // 先获取缓存，如果有直接返回
         Object result = redisTemplate.opsForValue().get(redisCacheKey.getKey());
-        if (result != null) {
+        if (result != null || redisTemplate.hasKey(redisCacheKey.getKey())) {
             // 刷新缓存
             refreshCache(redisCacheKey, valueLoader);
             return (T) fromStoreValue(result);

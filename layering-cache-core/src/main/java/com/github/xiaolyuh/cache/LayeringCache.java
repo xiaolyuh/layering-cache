@@ -131,18 +131,21 @@ public class LayeringCache extends AbstractValueAdaptingCache {
 
     @Override
     public void put(Object key, Object value) {
-        if (useFirstCache) {
-            firstCache.put(key, value);
-        }
         secondCache.put(key, value);
+        // 删除一级缓存
+        if (useFirstCache) {
+            deleteFirstCache(key);
+        }
     }
 
     @Override
     public Object putIfAbsent(Object key, Object value) {
+        Object result = secondCache.putIfAbsent(key, value);
+        // 删除一级缓存
         if (useFirstCache) {
-            firstCache.putIfAbsent(key, value);
+            deleteFirstCache(key);
         }
-        return secondCache.putIfAbsent(key, value);
+        return result;
     }
 
     @Override
@@ -151,13 +154,7 @@ public class LayeringCache extends AbstractValueAdaptingCache {
         secondCache.evict(key);
         // 删除一级缓存
         if (useFirstCache) {
-            // 删除一级缓存需要用到redis的Pub/Sub（订阅/发布）模式，否则集群中其他服服务器节点的一级缓存数据无法删除
-            RedisPubSubMessage message = new RedisPubSubMessage();
-            message.setCacheName(getName());
-            message.setKey(key);
-            message.setMessageType(RedisPubSubMessageType.EVICT);
-            // 发布消息
-            RedisPublisher.publisher(redisTemplate, new ChannelTopic(getName()), message);
+            deleteFirstCache(key);
         }
     }
 
@@ -173,6 +170,16 @@ public class LayeringCache extends AbstractValueAdaptingCache {
             // 发布消息
             RedisPublisher.publisher(redisTemplate, new ChannelTopic(getName()), message);
         }
+    }
+
+    private void deleteFirstCache(Object key) {
+        // 删除一级缓存需要用到redis的Pub/Sub（订阅/发布）模式，否则集群中其他服服务器节点的一级缓存数据无法删除
+        RedisPubSubMessage message = new RedisPubSubMessage();
+        message.setCacheName(getName());
+        message.setKey(key);
+        message.setMessageType(RedisPubSubMessageType.EVICT);
+        // 发布消息
+        RedisPublisher.publisher(redisTemplate, new ChannelTopic(getName()), message);
     }
 
     /**

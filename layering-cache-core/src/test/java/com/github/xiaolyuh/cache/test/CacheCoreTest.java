@@ -182,6 +182,9 @@ public class CacheCoreTest {
         Assert.assertEquals(str1, "test1");
 
         cache.put(cacheKey1, "test2");
+        Thread.sleep(2000);
+        Object value = cache.getFirstCache().get(cacheKey1);
+        Assert.assertNull(value);
         str1 = cache.get(cacheKey1, String.class);
         Assert.assertEquals(str1, "test2");
     }
@@ -193,6 +196,9 @@ public class CacheCoreTest {
         String cacheKey1 = "cache:key7";
         LayeringCache cache = (LayeringCache) cacheManager.getCache(cacheName, layeringCacheSetting1);
         cache.putIfAbsent(cacheKey1, "test1");
+        Thread.sleep(2000);
+        Object value = cache.getFirstCache().get(cacheKey1);
+        Assert.assertNull(value);
         String str1 = cache.get(cacheKey1, String.class);
         Assert.assertEquals(str1, "test1");
 

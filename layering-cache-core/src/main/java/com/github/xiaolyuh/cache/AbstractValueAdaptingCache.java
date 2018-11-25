@@ -33,11 +33,6 @@ import java.util.concurrent.Callable;
 public abstract class AbstractValueAdaptingCache implements Cache {
 
     /**
-     * 是否允许为NULL
-     */
-    private final boolean allowNullValues;
-
-    /**
      * 缓存名称
      */
     private final String name;
@@ -55,13 +50,11 @@ public abstract class AbstractValueAdaptingCache implements Cache {
     /**
      * 通过构造方法设置缓存配置
      *
-     * @param allowNullValues 是否允许为NULL
      * @param stats           是否开启监控统计
      * @param name            缓存名称
      */
-    protected AbstractValueAdaptingCache(boolean allowNullValues, boolean stats, String name) {
+    protected AbstractValueAdaptingCache(boolean stats, String name) {
         Assert.notNull(name, "缓存名称不能为NULL");
-        this.allowNullValues = allowNullValues;
         this.stats = stats;
         this.name = name;
     }
@@ -71,9 +64,7 @@ public abstract class AbstractValueAdaptingCache implements Cache {
      *
      * @return true:允许，false:不允许
      */
-    public final boolean isAllowNullValues() {
-        return this.allowNullValues;
-    }
+    public abstract boolean isAllowNullValues();
 
     @Override
     public String getName() {
@@ -94,7 +85,7 @@ public abstract class AbstractValueAdaptingCache implements Cache {
      * @return the value to return to the user
      */
     protected Object fromStoreValue(Object storeValue) {
-        if (this.allowNullValues && storeValue instanceof NullValue) {
+        if (isAllowNullValues() && storeValue instanceof NullValue) {
             return null;
         }
         return storeValue;
@@ -108,7 +99,7 @@ public abstract class AbstractValueAdaptingCache implements Cache {
      * @return the value to store
      */
     protected Object toStoreValue(Object userValue) {
-        if (this.allowNullValues && userValue == null) {
+        if (isAllowNullValues() && userValue == null) {
             return NullValue.INSTANCE;
         }
         return userValue;

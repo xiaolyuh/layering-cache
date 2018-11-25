@@ -67,8 +67,9 @@ public class FastJsonRedisSerializer<T> implements RedisSerializer<T> {
         try {
             return JSON.toJSONString(new FastJsonSerializerWrapper(t), SerializerFeature.WriteClassName).getBytes(DEFAULT_CHARSET);
         } catch (Exception e) {
-            logger.error("FastJsonRedisSerializer 序列化异常: {}，【{}】", e.getMessage(), JSON.toJSONString(t), e);
-            throw new SerializationException("FastJsonRedisSerializer 序列化异常: " + e.getMessage(), e);
+            throw new SerializationException(String.format("FastJsonRedisSerializer 序列化异常: %s, 【JSON：%s】",
+                    e.getMessage(), JSON.toJSONString(t)), e);
+
         }
 
     }
@@ -105,8 +106,8 @@ public class FastJsonRedisSerializer<T> implements RedisSerializer<T> {
                     throw new SerializationException("不支持反序列化的对象类型: " + wrapper.getType());
             }
         } catch (Exception e) {
-            logger.error("FastJsonRedisSerializer 反序列化异常:{}, 【{}】", e.getMessage(), str, e);
-            throw new SerializationException("FastJsonRedisSerializer 反序列化异常: " + e.getMessage(), e);
+            throw new SerializationException(String.format("FastJsonRedisSerializer 反序列化异常: %s, 【JSON：%s】",
+                    e.getMessage(), str), e);
         }
     }
 }

@@ -7,10 +7,10 @@ import com.github.benmanes.caffeine.cache.LoadingCache;
 import com.github.xiaolyuh.cache.AbstractValueAdaptingCache;
 import com.github.xiaolyuh.setting.FirstCacheSetting;
 import com.github.xiaolyuh.support.ExpireMode;
+import com.github.xiaolyuh.support.NullValue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.lang.UsesJava8;
-import org.springframework.util.Assert;
 
 import java.util.concurrent.Callable;
 
@@ -36,23 +36,9 @@ public class CaffeineCache extends AbstractValueAdaptingCache {
      * @param stats             是否开启统计模式
      */
     public CaffeineCache(String name, FirstCacheSetting firstCacheSetting, boolean stats) {
-        this(name, getCache(firstCacheSetting), true, stats);
-    }
 
-    /**
-     * 使用name和{@link Cache}创建一个 {@link CaffeineCache} 实例
-     *
-     * @param name            缓存名称
-     * @param cache           t一个 Caffeine Cache 的实例对象
-     * @param allowNullValues 缓存是否允许存NULL（true：允许）
-     * @param stats           是否开启统计模式
-     */
-    public CaffeineCache(String name, Cache<Object, Object> cache,
-                         boolean allowNullValues, boolean stats) {
-
-        super(allowNullValues, stats, name);
-        Assert.notNull(cache, "Cache 不能为NULL");
-        this.cache = cache;
+        super(stats, name);
+        this.cache = getCache(firstCacheSetting);
     }
 
     @Override
@@ -83,20 +69,36 @@ public class CaffeineCache extends AbstractValueAdaptingCache {
         }
 
         Object result = this.cache.get(key, (k) -> loaderValue(key, valueLoader));
+        // 如果不允许存NULL值 直接删除缓存值
+        if (!isAllowNullValues() && result == null) {
+            evict(key);
+        }
         return (T) fromStoreValue(result);
     }
 
     @Override
     public void put(Object key, Object value) {
         logger.debug("caffeine缓存 key={} put缓存，缓存值：{}", JSON.toJSONString(key), JSON.toJSONString(value));
+        if (value == null && !isAllowNullValues()) {
+            logger.debug("缓存值为NULL并且不允许存NULL值，不缓存数据");
+            return;
+        }
+        if (value instanceof NullValue) {
+            logger.debug("缓存值为NULL但允许存NULL值，缓存数据");
+
+            return;
+        }
         this.cache.put(key, toStoreValue(value));
     }
 
     @Override
     public Object putIfAbsent(Object key, Object value) {
         logger.debug("caffeine缓存 key={} putIfAbsent 缓存，缓存值：{}", JSON.toJSONString(key), JSON.toJSONString(value));
-        Object result = this.cache.get(key, k -> toStoreValue(value));
-        return fromStoreValue(result);
+        if (value != null || isAllowNullValues()) {
+            Object result = this.cache.get(key, k -> toStoreValue(value));
+            return fromStoreValue(result);
+        }
+        return null;
     }
 
     @Override
@@ -129,7 +131,6 @@ public class CaffeineCache extends AbstractValueAdaptingCache {
             }
             return toStoreValue(t);
         } catch (Exception e) {
-            logger.error("加载缓存数据异常,{}", e.getMessage(), e);
             throw new LoaderCacheValueException(key, e);
         }
 
@@ -153,5 +154,10 @@ public class CaffeineCache extends AbstractValueAdaptingCache {
         }
         // 根据Caffeine builder创建 Cache 对象
         return builder.build();
+    }
+
+    @Override
+    public boolean isAllowNullValues() {
+        return false;
     }
 }

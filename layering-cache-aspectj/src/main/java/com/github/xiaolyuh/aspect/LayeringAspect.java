@@ -90,8 +90,6 @@ public class LayeringAspect {
                 logger.warn(e.getMessage(), e);
                 return aopAllianceInvoker.invoke();
             }
-
-            logger.error(e.getMessage(), e);
             throw e;
         } catch (Exception e) {
             // 忽略操作缓存过程中遇到的异常
@@ -99,8 +97,6 @@ public class LayeringAspect {
                 logger.warn(e.getMessage(), e);
                 return aopAllianceInvoker.invoke();
             }
-
-            logger.error(e.getMessage(), e);
             throw e;
         }
     }
@@ -123,8 +119,6 @@ public class LayeringAspect {
                 logger.warn(e.getMessage(), e);
                 return aopAllianceInvoker.invoke();
             }
-
-            logger.error(e.getMessage(), e);
             throw e;
         }
     }
@@ -147,8 +141,6 @@ public class LayeringAspect {
                 logger.warn(e.getMessage(), e);
                 return aopAllianceInvoker.invoke();
             }
-
-            logger.error(e.getMessage(), e);
             throw e;
         }
     }
@@ -181,7 +173,8 @@ public class LayeringAspect {
 
         SecondaryCacheSetting secondaryCacheSetting = new SecondaryCacheSetting(secondaryCache.expireTime(),
                 secondaryCache.preloadTime(), secondaryCache.timeUnit(), secondaryCache.forceRefresh());
-        LayeringCacheSetting layeringCacheSetting = new LayeringCacheSetting(firstCacheSetting, secondaryCacheSetting, cacheable.depict());
+        LayeringCacheSetting layeringCacheSetting = new LayeringCacheSetting(firstCacheSetting, secondaryCacheSetting,
+                cacheable.depict(), cacheable.isAllowNullValue(), cacheable.magnification());
 
         // 通过cacheName和缓存配置获取Cache
         Cache cache = cacheManager.getCache(cacheName, layeringCacheSetting);
@@ -271,7 +264,8 @@ public class LayeringAspect {
 
         SecondaryCacheSetting secondaryCacheSetting = new SecondaryCacheSetting(secondaryCache.expireTime(),
                 secondaryCache.preloadTime(), secondaryCache.timeUnit(), secondaryCache.forceRefresh());
-        LayeringCacheSetting layeringCacheSetting = new LayeringCacheSetting(firstCacheSetting, secondaryCacheSetting, cachePut.depict());
+        LayeringCacheSetting layeringCacheSetting = new LayeringCacheSetting(firstCacheSetting, secondaryCacheSetting,
+                cachePut.depict(), cachePut.isAllowNullValue(), cachePut.magnification());
 
         // 指定调用方法获取缓存值
         Object result = invoker.invoke();
@@ -290,7 +284,6 @@ public class LayeringAspect {
             try {
                 return joinPoint.proceed();
             } catch (Throwable ex) {
-                logger.error(ex.getMessage(), ex);
                 throw new CacheOperationInvoker.ThrowableWrapperException(ex);
             }
         };

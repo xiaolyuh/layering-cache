@@ -5,6 +5,7 @@ import com.github.xiaolyuh.cache.AbstractValueAdaptingCache;
 import com.github.xiaolyuh.setting.SecondaryCacheSetting;
 import com.github.xiaolyuh.support.AwaitThreadContainer;
 import com.github.xiaolyuh.support.Lock;
+import com.github.xiaolyuh.support.NullValue;
 import com.github.xiaolyuh.support.ThreadTaskUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -66,17 +67,34 @@ public class RedisCache extends AbstractValueAdaptingCache {
     private boolean usePrefix;
 
     /**
+     * 是否允许为NULL
+     */
+    private final boolean allowNullValues;
+
+    /**
+     * 非空值和null值之间的时间倍率，默认是1。allowNullValue=true才有效
+     * <p>
+     * 如配置缓存的有效时间是200秒，倍率这设置成10，
+     * 那么当缓存value为null时，缓存的有效时间将是20秒，非空时为200秒
+     * <p/>
+     */
+    private final int magnification;
+
+    /**
      * @param name                  缓存名称
      * @param redisTemplate         redis客户端 redis 客户端
      * @param secondaryCacheSetting 二级缓存配置{@link SecondaryCacheSetting}
+     * @param allowNullValues       是否允许存NULL值，模式允许
+     * @param magnification         非空值和null值之间的时间倍率
      * @param stats                 是否开启统计模式
      */
-    public RedisCache(String name, RedisTemplate<String, Object> redisTemplate, SecondaryCacheSetting secondaryCacheSetting, boolean stats) {
+    public RedisCache(String name, RedisTemplate<String, Object> redisTemplate, SecondaryCacheSetting secondaryCacheSetting,
+                      boolean allowNullValues, int magnification, boolean stats) {
 
         this(name, redisTemplate, secondaryCacheSetting.getTimeUnit().toMillis(secondaryCacheSetting.getExpiration()),
                 secondaryCacheSetting.getTimeUnit().toMillis(secondaryCacheSetting.getPreloadTime()),
                 secondaryCacheSetting.isForceRefresh(), secondaryCacheSetting.isUsePrefix(),
-                secondaryCacheSetting.isAllowNullValues(), stats);
+                allowNullValues, magnification, stats);
     }
 
     /**
@@ -87,11 +105,12 @@ public class RedisCache extends AbstractValueAdaptingCache {
      * @param forceRefresh    是否强制刷新（执行被缓存的方法），默认是false
      * @param usePrefix       是否使用缓存名称作为前缀
      * @param allowNullValues 是否允许存NULL值，模式允许
+     * @param magnification   非空值和null值之间的时间倍率
      * @param stats           是否开启统计模式
      */
     public RedisCache(String name, RedisTemplate<String, Object> redisTemplate, long expiration, long preloadTime,
-                      boolean forceRefresh, boolean usePrefix, boolean allowNullValues, boolean stats) {
-        super(allowNullValues, stats, name);
+                      boolean forceRefresh, boolean usePrefix, boolean allowNullValues, int magnification, boolean stats) {
+        super(stats, name);
 
         Assert.notNull(redisTemplate, "RedisTemplate 不能为NULL");
         this.redisTemplate = redisTemplate;
@@ -99,6 +118,8 @@ public class RedisCache extends AbstractValueAdaptingCache {
         this.preloadTime = preloadTime;
         this.forceRefresh = forceRefresh;
         this.usePrefix = usePrefix;
+        this.allowNullValues = allowNullValues;
+        this.magnification = magnification;
     }
 
     @Override
@@ -140,7 +161,7 @@ public class RedisCache extends AbstractValueAdaptingCache {
     public void put(Object key, Object value) {
         RedisCacheKey redisCacheKey = getRedisCacheKey(key);
         logger.debug("redis缓存 key= {} put缓存，缓存值：{}", redisCacheKey.getKey(), JSON.toJSONString(value));
-        redisTemplate.opsForValue().set(redisCacheKey.getKey(), toStoreValue(value), expiration, TimeUnit.MILLISECONDS);
+        putValue(redisCacheKey, value);
     }
 
     @Override
@@ -219,8 +240,7 @@ public class RedisCache extends AbstractValueAdaptingCache {
             }
         }
         logger.debug("redis缓存 key={} 等待{}次，共{}毫秒，任未获取到缓存，直接去执行被缓存的方法", redisCacheKey.getKey(), RETRY_COUNT, RETRY_COUNT * WAIT_TIME, WAIT_TIME);
-        T t = loaderAndPutValue(redisCacheKey, valueLoader, true);
-        return t;
+        return loaderAndPutValue(redisCacheKey, valueLoader, true);
     }
 
     /**
@@ -234,14 +254,7 @@ public class RedisCache extends AbstractValueAdaptingCache {
 
         try {
             // 加载数据
-            Object result = toStoreValue(valueLoader.call());
-            // redis 缓存不允许直接存NULL，如果结果返回NULL需要删除缓存
-            if (result == null) {
-                redisTemplate.delete(key.getKey());
-            } else {
-                // 缓存值不为NULL，将数据放到缓存
-                redisTemplate.opsForValue().set(key.getKey(), result, expiration, TimeUnit.MILLISECONDS);
-            }
+            Object result = putValue(key, valueLoader.call());
             logger.debug("redis缓存 key={} 执行被缓存的方法，并将其放入缓存, 耗时：{}。数据:{}", key.getKey(), System.currentTimeMillis() - start, JSON.toJSONString(result));
 
             if (isLoad && isStats()) {
@@ -251,6 +264,24 @@ public class RedisCache extends AbstractValueAdaptingCache {
         } catch (Exception e) {
             throw new LoaderCacheValueException(key.getKey(), e);
         }
+    }
+
+    private Object putValue(RedisCacheKey key, Object value) {
+        Object result = toStoreValue(value);
+        // redis 缓存不允许直接存NULL，如果结果返回NULL需要删除缓存
+        if (result == null) {
+            redisTemplate.delete(key.getKey());
+        } else {
+            long expiration = this.expiration;
+            // 缓存值不为NULL，将数据放到缓存
+            if (isAllowNullValues() && result instanceof NullValue) {
+                // 缓存为值为null时需要重新计算缓存时间
+                expiration = expiration / getMagnification();
+            }
+            redisTemplate.opsForValue().set(key.getKey(), result, expiration, TimeUnit.MILLISECONDS);
+        }
+
+        return result;
     }
 
     /**
@@ -324,5 +355,19 @@ public class RedisCache extends AbstractValueAdaptingCache {
      */
     private boolean getForceRefresh() {
         return forceRefresh;
+    }
+
+    /**
+     * 非空值和null值之间的时间倍率，默认是1。
+     *
+     * @return int
+     */
+    public int getMagnification() {
+        return magnification;
+    }
+
+    @Override
+    public boolean isAllowNullValues() {
+        return allowNullValues;
     }
 }

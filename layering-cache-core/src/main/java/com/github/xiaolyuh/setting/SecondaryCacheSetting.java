@@ -34,11 +34,6 @@ public class SecondaryCacheSetting implements Serializable {
      */
     private boolean usePrefix;
 
-    /**
-     * 是否允许存NULL值
-     */
-    private boolean allowNullValues;
-
     public SecondaryCacheSetting() {
     }
 
@@ -54,7 +49,6 @@ public class SecondaryCacheSetting implements Serializable {
         this.timeUnit = timeUnit;
         this.forceRefresh = forceRefresh;
         this.usePrefix = true;
-        this.allowNullValues = true;
     }
 
     public long getExpiration() {
@@ -95,13 +89,5 @@ public class SecondaryCacheSetting implements Serializable {
 
     public void setUsePrefix(boolean usePrefix) {
         this.usePrefix = usePrefix;
-    }
-
-    public boolean isAllowNullValues() {
-        return allowNullValues;
-    }
-
-    public void setAllowNullValues(boolean allowNullValues) {
-        this.allowNullValues = allowNullValues;
     }
 }

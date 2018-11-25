@@ -44,8 +44,8 @@ public class KryoRedisSerializer<T> implements RedisSerializer<T> {
             output.flush();
             return baos.toByteArray();
         } catch (Exception e) {
-            logger.error("KryoRedisSerializer 序列化异常: {}, 【{}】", e.getMessage(), JSON.toJSONString(t), e);
-            throw new SerializationException("KryoRedisSerializer 序列化异常: " + e.getMessage(), e);
+            throw new SerializationException(String.format("KryoRedisSerializer 序列化异常: %s, 【JSON：%s】",
+                    e.getMessage(), JSON.toJSONString(t)), e);
         } finally {
             kryos.remove();
         }
@@ -70,8 +70,8 @@ public class KryoRedisSerializer<T> implements RedisSerializer<T> {
             }
             return (T) result;
         } catch (Exception e) {
-            logger.error("KryoRedisSerializer 反序列化异常: {}, 【{}】", e.getMessage(), JSON.toJSONString(bytes), e);
-            throw new SerializationException("KryoRedisSerializer 反序列化异常: " + e.getMessage(), e);
+            throw new SerializationException(String.format("FastJsonRedisSerializer 反序列化异常: %s, 【JSON：%s】",
+                    e.getMessage(), JSON.toJSONString(bytes)), e);
         } finally {
             kryos.remove();
         }

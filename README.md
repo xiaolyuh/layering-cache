@@ -15,6 +15,8 @@ layering-cache是在Spring Cache基础上扩展而来的一个缓存框架，主
 - 新增FastJsonRedisSerializer，KryoRedisSerializer序列化，重写String序列化。
 - 支持同一个缓存名称设置不同的过期时间
 - 输出INFO级别的监控统计日志
+- 二级缓存新增是否允许存NULL值的配置
+- 二级缓存新增NULL值的时间倍率
 
 
 # 文档

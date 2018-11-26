@@ -30,12 +30,12 @@ public class LayeringCache extends AbstractValueAdaptingCache {
     /**
      * 一级缓存
      */
-    private Cache firstCache;
+    private AbstractValueAdaptingCache firstCache;
 
     /**
      * 二级缓存
      */
-    private Cache secondCache;
+    private AbstractValueAdaptingCache secondCache;
 
     /**
      * 多级缓存配置
@@ -56,7 +56,8 @@ public class LayeringCache extends AbstractValueAdaptingCache {
      * @param stats                是否开启统计
      * @param layeringCacheSetting 多级缓存配置
      */
-    public LayeringCache(RedisTemplate<String, Object> redisTemplate, Cache firstCache, Cache secondCache, boolean stats, LayeringCacheSetting layeringCacheSetting) {
+    public LayeringCache(RedisTemplate<String, Object> redisTemplate, AbstractValueAdaptingCache firstCache,
+                         AbstractValueAdaptingCache secondCache, boolean stats, LayeringCacheSetting layeringCacheSetting) {
         this(redisTemplate, firstCache, secondCache, true, stats, secondCache.getName(), layeringCacheSetting);
     }
 
@@ -69,8 +70,9 @@ public class LayeringCache extends AbstractValueAdaptingCache {
      * @param name                 缓存名称
      * @param layeringCacheSetting 多级缓存配置
      */
-    public LayeringCache(RedisTemplate<String, Object> redisTemplate, Cache firstCache, Cache secondCache, boolean useFirstCache, boolean stats, String name, LayeringCacheSetting layeringCacheSetting) {
-        super(true, stats, name);
+    public LayeringCache(RedisTemplate<String, Object> redisTemplate, AbstractValueAdaptingCache firstCache,
+                         AbstractValueAdaptingCache secondCache, boolean useFirstCache, boolean stats, String name, LayeringCacheSetting layeringCacheSetting) {
+        super(stats, name);
         this.redisTemplate = redisTemplate;
         this.firstCache = firstCache;
         this.secondCache = secondCache;
@@ -215,5 +217,10 @@ public class LayeringCache extends AbstractValueAdaptingCache {
 
     public LayeringCacheSetting getLayeringCacheSetting() {
         return layeringCacheSetting;
+    }
+
+    @Override
+    public boolean isAllowNullValues() {
+        return secondCache.isAllowNullValues();
     }
 }

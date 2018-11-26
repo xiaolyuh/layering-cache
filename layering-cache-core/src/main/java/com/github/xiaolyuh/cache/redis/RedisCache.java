@@ -84,17 +84,14 @@ public class RedisCache extends AbstractValueAdaptingCache {
      * @param name                  缓存名称
      * @param redisTemplate         redis客户端 redis 客户端
      * @param secondaryCacheSetting 二级缓存配置{@link SecondaryCacheSetting}
-     * @param allowNullValues       是否允许存NULL值，模式允许
-     * @param magnification         非空值和null值之间的时间倍率
      * @param stats                 是否开启统计模式
      */
-    public RedisCache(String name, RedisTemplate<String, Object> redisTemplate, SecondaryCacheSetting secondaryCacheSetting,
-                      boolean allowNullValues, int magnification, boolean stats) {
+    public RedisCache(String name, RedisTemplate<String, Object> redisTemplate, SecondaryCacheSetting secondaryCacheSetting, boolean stats) {
 
         this(name, redisTemplate, secondaryCacheSetting.getTimeUnit().toMillis(secondaryCacheSetting.getExpiration()),
                 secondaryCacheSetting.getTimeUnit().toMillis(secondaryCacheSetting.getPreloadTime()),
                 secondaryCacheSetting.isForceRefresh(), secondaryCacheSetting.isUsePrefix(),
-                allowNullValues, magnification, stats);
+                secondaryCacheSetting.isAllowNullValue(), secondaryCacheSetting.getMagnification(), stats);
     }
 
     /**
@@ -150,7 +147,7 @@ public class RedisCache extends AbstractValueAdaptingCache {
         Object result = redisTemplate.opsForValue().get(redisCacheKey.getKey());
         if (result != null || redisTemplate.hasKey(redisCacheKey.getKey())) {
             // 刷新缓存
-            refreshCache(redisCacheKey, valueLoader);
+            refreshCache(redisCacheKey, valueLoader, result);
             return (T) fromStoreValue(result);
         }
         // 执行缓存方法
@@ -271,25 +268,37 @@ public class RedisCache extends AbstractValueAdaptingCache {
         // redis 缓存不允许直接存NULL，如果结果返回NULL需要删除缓存
         if (result == null) {
             redisTemplate.delete(key.getKey());
-        } else {
-            long expiration = this.expiration;
-            // 缓存值不为NULL，将数据放到缓存
-            if (isAllowNullValues() && result instanceof NullValue) {
-                // 缓存为值为null时需要重新计算缓存时间
-                expiration = expiration / getMagnification();
-            }
-            redisTemplate.opsForValue().set(key.getKey(), result, expiration, TimeUnit.MILLISECONDS);
+            return result;
+        }
+        // 不允许缓存NULL值，删除缓存
+        if (!isAllowNullValues() && result instanceof NullValue) {
+            redisTemplate.delete(key.getKey());
+            return result;
         }
 
+        // 允许缓存NULL值
+        long expirationTime = this.expiration;
+        // 允许缓存NULL值且缓存为值为null时需要重新计算缓存时间
+        if (isAllowNullValues() && result instanceof NullValue) {
+            expirationTime = expirationTime / getMagnification();
+        }
+        // 将数据放到缓存
+        redisTemplate.opsForValue().set(key.getKey(), result, expirationTime, TimeUnit.MILLISECONDS);
         return result;
     }
 
     /**
      * 刷新缓存数据
      */
-    private <T> void refreshCache(RedisCacheKey redisCacheKey, Callable<T> valueLoader) {
+    private <T> void refreshCache(RedisCacheKey redisCacheKey, Callable<T> valueLoader, Object result) {
         Long ttl = redisTemplate.getExpire(redisCacheKey.getKey());
-        if (null != ttl && ttl > 0 && TimeUnit.SECONDS.toMillis(ttl) <= preloadTime) {
+        Long preload = preloadTime;
+        // 允许缓存NULL值，则自动刷新时间也要除以倍数
+        boolean flag = isAllowNullValues() && (result instanceof NullValue || result == null);
+        if (flag) {
+            preload = preload / getMagnification();
+        }
+        if (null != ttl && ttl > 0 && TimeUnit.SECONDS.toMillis(ttl) <= preload) {
             // 判断是否需要强制刷新在开启刷新线程
             if (!getForceRefresh()) {
                 logger.debug("redis缓存 key={} 软刷新缓存模式", redisCacheKey.getKey());

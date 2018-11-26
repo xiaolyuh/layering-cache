@@ -17,7 +17,8 @@ public class TestService {
 
     @Cacheable(value = "user:info", key = "#userId", ignoreException = false,
             firstCache = @FirstCache(expireTime = 4, timeUnit = TimeUnit.SECONDS),
-            secondaryCache = @SecondaryCache(expireTime = 10, preloadTime = 3, forceRefresh = true, timeUnit = TimeUnit.SECONDS))
+            secondaryCache = @SecondaryCache(expireTime = 10, preloadTime = 3,
+                    forceRefresh = true, timeUnit = TimeUnit.SECONDS))
     public User getUserById(long userId) {
         logger.debug("测试正常配置的缓存方法，参数是基本类型");
         User user = new User();
@@ -69,7 +70,7 @@ public class TestService {
         return user;
     }
 
-    @Cacheable(value = "user:info", key = "#user.userId",ignoreException = false,
+    @Cacheable(value = "user:info", key = "#user.userId", ignoreException = false,
             firstCache = @FirstCache(expireTime = 4, timeUnit = TimeUnit.SECONDS),
             secondaryCache = @SecondaryCache(expireTime = 10, preloadTime = 3, forceRefresh = true, timeUnit = TimeUnit.SECONDS))
     public User getNullObjectPram(User user) {
@@ -87,8 +88,27 @@ public class TestService {
 
     @Cacheable(value = "user:info", key = "#userId", ignoreException = false,
             firstCache = @FirstCache(expireTime = 4, timeUnit = TimeUnit.SECONDS),
-            secondaryCache = @SecondaryCache(expireTime = 10, preloadTime = 3, forceRefresh = true, timeUnit = TimeUnit.SECONDS))
+            secondaryCache = @SecondaryCache(expireTime = 10, preloadTime = 3, forceRefresh = true,
+                    timeUnit = TimeUnit.SECONDS, isAllowNullValue = true, magnification = 1))
     public User getNullUser(Long userId) {
+        logger.debug("缓存方法返回NULL");
+        return null;
+    }
+
+    @Cacheable(value = "user:info", key = "#userId", ignoreException = false,
+            firstCache = @FirstCache(expireTime = 4, timeUnit = TimeUnit.SECONDS),
+            secondaryCache = @SecondaryCache(expireTime = 100, preloadTime = 70, forceRefresh = true,
+                    timeUnit = TimeUnit.SECONDS, isAllowNullValue = true, magnification = 10))
+    public User getNullUserAllowNullValueTrueMagnification(Long userId) {
+        logger.debug("缓存方法返回NULL");
+        return null;
+    }
+
+    @Cacheable(value = "user:info", key = "#userId", ignoreException = false,
+            firstCache = @FirstCache(expireTime = 4, timeUnit = TimeUnit.SECONDS),
+            secondaryCache = @SecondaryCache(expireTime = 10, preloadTime = 7, forceRefresh = true,
+                    timeUnit = TimeUnit.SECONDS, isAllowNullValue = false))
+    public User getNullUserAllowNullValueFalse(Long userId) {
         logger.debug("缓存方法返回NULL");
         return null;
     }
@@ -250,7 +270,7 @@ public class TestService {
 
     @CachePut(value = "user:info", key = "#userId", ignoreException = false,
             firstCache = @FirstCache(expireTime = 4, timeUnit = TimeUnit.SECONDS),
-            secondaryCache = @SecondaryCache(expireTime = 1000, preloadTime = 3, forceRefresh = true, timeUnit = TimeUnit.SECONDS))
+            secondaryCache = @SecondaryCache(expireTime = 10, preloadTime = 3, forceRefresh = true, timeUnit = TimeUnit.SECONDS))
     public User putUser(long userId) {
         return new User();
     }
@@ -265,11 +285,31 @@ public class TestService {
 
     @CachePut(value = "user:info", key = "#userId", ignoreException = false,
             firstCache = @FirstCache(expireTime = 4, timeUnit = TimeUnit.SECONDS),
-            secondaryCache = @SecondaryCache(expireTime = 10, preloadTime = 3, forceRefresh = true, timeUnit = TimeUnit.SECONDS))
+            secondaryCache = @SecondaryCache(expireTime = 10, preloadTime = 3, forceRefresh = true,
+                    timeUnit = TimeUnit.SECONDS, isAllowNullValue = true))
     public User putNullUser(long userId) {
 
         return null;
     }
+
+    @CachePut(value = "user:info", key = "#userId", ignoreException = false,
+            firstCache = @FirstCache(expireTime = 4, timeUnit = TimeUnit.SECONDS),
+            secondaryCache = @SecondaryCache(expireTime = 40, preloadTime = 30, forceRefresh = true,
+                    timeUnit = TimeUnit.SECONDS, isAllowNullValue = true, magnification = 10))
+    public User putNullUserAllowNullValueTrueMagnification(long userId) {
+
+        return null;
+    }
+
+    @CachePut(value = "user:info", key = "#userId", ignoreException = false,
+            firstCache = @FirstCache(expireTime = 4, timeUnit = TimeUnit.SECONDS),
+            secondaryCache = @SecondaryCache(expireTime = 10, preloadTime = 7, forceRefresh = true, timeUnit = TimeUnit.SECONDS))
+    public User putNullUserAllowNullValueFalse(long userId) {
+
+        return null;
+    }
+
+
 
     @CachePut(value = "user:info", key = "#userId", ignoreException = false,
             firstCache = @FirstCache(expireTime = 4, timeUnit = TimeUnit.SECONDS),

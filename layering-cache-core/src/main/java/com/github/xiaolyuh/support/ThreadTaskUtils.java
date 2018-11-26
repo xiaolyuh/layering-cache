@@ -13,9 +13,9 @@ public class ThreadTaskUtils {
     static {
         taskExecutor = new MdcThreadPoolTaskExecutor();
         // 核心线程数
-        taskExecutor.setCorePoolSize(5);
+        taskExecutor.setCorePoolSize(8);
         // 最大线程数
-        taskExecutor.setMaxPoolSize(50);
+        taskExecutor.setMaxPoolSize(64);
         // 队列最大长度
         taskExecutor.setQueueCapacity(1000);
         // 线程池维护线程所允许的空闲时间(单位秒)

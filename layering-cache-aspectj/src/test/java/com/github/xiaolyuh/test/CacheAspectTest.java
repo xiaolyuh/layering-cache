@@ -344,6 +344,27 @@ public class CacheAspectTest {
     }
 
     @Test
+    public void testGetNullUserAllowNullValueTrueMagnification() {
+        User user = testService.getNullUserAllowNullValueTrueMagnification(1181L);
+        user = testService.getNullUserAllowNullValueTrueMagnification(1181L);
+        sleep(5);
+        user = testService.getNullUserAllowNullValueTrueMagnification(1181L);
+
+        Assert.assertNull(user);
+    }
+
+    @Test
+    public void testGetNullUserAllowNullValueFalse() {
+        User user = testService.getNullUserAllowNullValueFalse(1182L);
+        user = testService.getNullUserAllowNullValueFalse(1182L);
+        sleep(5);
+        user = testService.getNullUserAllowNullValueFalse(1182L);
+
+        Assert.assertNull(user);
+    }
+
+
+    @Test
     public void testGetNullObjectPram() {
         try {
             User user = testService.getNullObjectPram(null);
@@ -380,11 +401,37 @@ public class CacheAspectTest {
 
     @Test
     public void testPutNullUser() {
-        long userId = 1117;
+        long userId = 118_1117_10_1;
         testService.putNullUser(userId);
+        sleep(1);
         User user = testService.getUserById(userId);
         logger.debug(JSON.toJSONString(user));
         Assert.assertNull(user);
+    }
+
+
+    @Test
+    public void testPutNullUserAllowNullValueTrueMagnification() {
+        long userId = 118_1117_1;
+        testService.putNullUserAllowNullValueTrueMagnification(userId);
+        User user = testService.getUserById(userId);
+        logger.debug(JSON.toJSONString(user));
+        Assert.assertNull(user);
+        sleep(3);
+        user = testService.getUserById(userId);
+        Assert.assertNull(user);
+        sleep(2);
+        user = testService.getUserById(userId);
+        Assert.assertNotNull(user);
+    }
+
+    @Test
+    public void testPutNullUserAllowNullValueFalse() {
+        long userId = 118_1117_6;
+        testService.putNullUserAllowNullValueFalse(userId);
+        User user = testService.getUserById(userId);
+        logger.debug(JSON.toJSONString(user));
+        Assert.assertNotNull(user);
     }
 
     @Test

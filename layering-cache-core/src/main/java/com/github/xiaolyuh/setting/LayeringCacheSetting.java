@@ -27,20 +27,6 @@ public class LayeringCacheSetting implements Serializable {
     boolean useFirstCache = true;
 
     /**
-     * 是否允许存NULL值
-     */
-    boolean allowNullValue = false;
-
-    /**
-     * 非空值和null值之间的时间倍率，默认是1。allowNullValue=true才有效
-     * <p>
-     * 如配置缓存的有效时间是200秒，倍率这设置成10，
-     * 那么当缓存value为null时，缓存的有效时间将是20秒，非空时为200秒
-     * <p/>
-     */
-    int magnification = 1;
-
-    /**
      * 一级缓存配置
      */
     private FirstCacheSetting firstCacheSetting;
@@ -54,12 +40,10 @@ public class LayeringCacheSetting implements Serializable {
     }
 
     public LayeringCacheSetting(FirstCacheSetting firstCacheSetting, SecondaryCacheSetting secondaryCacheSetting,
-                                String depict, boolean isAllowNullValue, int magnification) {
+                                String depict) {
         this.firstCacheSetting = firstCacheSetting;
         this.secondaryCacheSetting = secondaryCacheSetting;
         this.depict = depict;
-        this.allowNullValue = isAllowNullValue;
-        this.magnification = magnification;
         internalKey();
     }
 
@@ -121,21 +105,5 @@ public class LayeringCacheSetting implements Serializable {
 
     public void setDepict(String depict) {
         this.depict = depict;
-    }
-
-    public boolean getAllowNullValue() {
-        return allowNullValue;
-    }
-
-    public void setAllowNullValue(boolean allowNullValue) {
-        this.allowNullValue = allowNullValue;
-    }
-
-    public int getMagnification() {
-        return magnification;
-    }
-
-    public void setMagnification(int magnification) {
-        this.magnification = magnification;
     }
 }

@@ -69,8 +69,9 @@ public class CaffeineCache extends AbstractValueAdaptingCache {
         }
 
         Object result = this.cache.get(key, (k) -> loaderValue(key, valueLoader));
-        // 如果不允许存NULL值 直接删除缓存值
-        if (!isAllowNullValues() && result == null) {
+        // 如果不允许存NULL值 直接删除NULL值缓存
+        boolean isEvict = !isAllowNullValues() && (result == null || result instanceof NullValue);
+        if (isEvict) {
             evict(key);
         }
         return (T) fromStoreValue(result);
@@ -78,27 +79,30 @@ public class CaffeineCache extends AbstractValueAdaptingCache {
 
     @Override
     public void put(Object key, Object value) {
-        logger.debug("caffeine缓存 key={} put缓存，缓存值：{}", JSON.toJSONString(key), JSON.toJSONString(value));
-        if (value == null && !isAllowNullValues()) {
-            logger.debug("缓存值为NULL并且不允许存NULL值，不缓存数据");
+        // 允许存NULL值
+        if (isAllowNullValues()) {
+            logger.debug("caffeine缓存 key={} put缓存，缓存值：{}", JSON.toJSONString(key), JSON.toJSONString(value));
+            this.cache.put(key, toStoreValue(value));
             return;
         }
-        if (value instanceof NullValue) {
-            logger.debug("缓存值为NULL但允许存NULL值，缓存数据");
 
-            return;
+        // 不允许存NULL值
+        if (value != null && value instanceof NullValue) {
+            logger.debug("caffeine缓存 key={} put缓存，缓存值：{}", JSON.toJSONString(key), JSON.toJSONString(value));
+            this.cache.put(key, toStoreValue(value));
         }
-        this.cache.put(key, toStoreValue(value));
+        logger.debug("缓存值为NULL并且不允许存NULL值，不缓存数据");
     }
 
     @Override
     public Object putIfAbsent(Object key, Object value) {
         logger.debug("caffeine缓存 key={} putIfAbsent 缓存，缓存值：{}", JSON.toJSONString(key), JSON.toJSONString(value));
-        if (value != null || isAllowNullValues()) {
-            Object result = this.cache.get(key, k -> toStoreValue(value));
-            return fromStoreValue(result);
+        boolean flag = !isAllowNullValues() && (value == null || value instanceof NullValue);
+        if (flag) {
+            return null;
         }
-        return null;
+        Object result = this.cache.get(key, k -> toStoreValue(value));
+        return fromStoreValue(result);
     }
 
     @Override

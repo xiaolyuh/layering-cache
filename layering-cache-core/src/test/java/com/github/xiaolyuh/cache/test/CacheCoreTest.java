@@ -41,17 +41,32 @@ public class CacheCoreTest {
 
     private LayeringCacheSetting layeringCacheSetting1;
     private LayeringCacheSetting layeringCacheSetting2;
+    private LayeringCacheSetting layeringCacheSetting4;
+    private LayeringCacheSetting layeringCacheSetting5;
 
     @Before
     public void testGetCache() {
         // 测试 CacheManager getCache方法
         FirstCacheSetting firstCacheSetting1 = new FirstCacheSetting(10, 1000, 4, TimeUnit.SECONDS, ExpireMode.WRITE);
-        SecondaryCacheSetting secondaryCacheSetting1 = new SecondaryCacheSetting(10, 4, TimeUnit.SECONDS, true);
+        SecondaryCacheSetting secondaryCacheSetting1 = new SecondaryCacheSetting(10, 4, TimeUnit.SECONDS, true, true, 1);
         layeringCacheSetting1 = new LayeringCacheSetting(firstCacheSetting1, secondaryCacheSetting1, "");
 
+        // 二级缓存可以缓存null,时间倍率是1
         FirstCacheSetting firstCacheSetting2 = new FirstCacheSetting(10, 1000, 5, TimeUnit.SECONDS, ExpireMode.WRITE);
-        SecondaryCacheSetting secondaryCacheSetting2 = new SecondaryCacheSetting(3000, 14, TimeUnit.SECONDS, true);
+        SecondaryCacheSetting secondaryCacheSetting2 = new SecondaryCacheSetting(3000, 14, TimeUnit.SECONDS, true, true, 1);
         layeringCacheSetting2 = new LayeringCacheSetting(firstCacheSetting2, secondaryCacheSetting2, "");
+
+        // 二级缓存可以缓存null,时间倍率是10
+        FirstCacheSetting firstCacheSetting4 = new FirstCacheSetting(10, 1000, 5, TimeUnit.SECONDS, ExpireMode.WRITE);
+        SecondaryCacheSetting secondaryCacheSetting4 = new SecondaryCacheSetting(100, 70, TimeUnit.SECONDS, true, true, 10);
+        layeringCacheSetting4 = new LayeringCacheSetting(firstCacheSetting4, secondaryCacheSetting4, "");
+
+
+        // 二级缓存不可以缓存null
+        FirstCacheSetting firstCacheSetting5 = new FirstCacheSetting(10, 1000, 5, TimeUnit.SECONDS, ExpireMode.WRITE);
+        SecondaryCacheSetting secondaryCacheSetting5 = new SecondaryCacheSetting(10, 7, TimeUnit.SECONDS, true, false, 1);
+        layeringCacheSetting5 = new LayeringCacheSetting(firstCacheSetting5, secondaryCacheSetting5, "");
+
 
         String cacheName = "cache:name";
         Cache cache1 = cacheManager.getCache(cacheName, layeringCacheSetting1);
@@ -100,6 +115,60 @@ public class CacheCoreTest {
         ttl = redisTemplate.getExpire(redisCacheKey.getKey());
         logger.debug("========================ttl 2:{}", ttl);
         Assert.assertNull(cache1.getSecondCache().get(cacheKey1));
+    }
+
+    @Test
+    public void testGetCacheNullUserAllowNullValueTrue() {
+        logger.info("测试二级缓存允许为NULL，NULL值时间倍率是10");
+        // 测试 缓存过期时间
+        String cacheName = "cache:name:118_1";
+        String cacheKey1 = "cache:key1:118_1";
+        LayeringCache cache1 = (LayeringCache) cacheManager.getCache(cacheName, layeringCacheSetting4);
+        cache1.get(cacheKey1, () -> initNullCache());
+        // 测试一级缓存值不能缓存NULL
+        String str1 = cache1.getFirstCache().get(cacheKey1, String.class);
+        com.github.benmanes.caffeine.cache.Cache<Object, Object> nativeCache = (com.github.benmanes.caffeine.cache.Cache<Object, Object>) cache1.getFirstCache().getNativeCache();
+        Assert.assertTrue(str1 == null);
+        Assert.assertTrue(0 == nativeCache.asMap().size());
+
+        // 测试二级缓存可以存NULL值，NULL值时间倍率是10
+        String st2 = cache1.getSecondCache().get(cacheKey1, String.class);
+        RedisCacheKey redisCacheKey = ((RedisCache) cache1.getSecondCache()).getRedisCacheKey(cacheKey1);
+        Long ttl = redisTemplate.getExpire(redisCacheKey.getKey());
+        Assert.assertTrue(redisTemplate.hasKey(redisCacheKey.getKey()));
+        Assert.assertTrue(st2 == null);
+        Assert.assertTrue(ttl <= 10);
+        sleep(5);
+        st2 = cache1.getSecondCache().get(cacheKey1, String.class);
+        Assert.assertTrue(st2 == null);
+        cache1.getSecondCache().get(cacheKey1, () -> initNullCache());
+        sleep(1);
+        ttl = redisTemplate.getExpire(redisCacheKey.getKey());
+        Assert.assertTrue(ttl <= 10 && ttl > 5);
+
+        st2 = cache1.get(cacheKey1, String.class);
+        Assert.assertTrue(st2 == null);
+    }
+
+    @Test
+    public void testGetCacheNullUserAllowNullValueFalse() {
+        logger.info("测试二级缓存不允许为NULL");
+        // 测试 缓存过期时间
+        String cacheName = "cache:name:118_2";
+        String cacheKey1 = "cache:key1:118_2";
+        LayeringCache cache1 = (LayeringCache) cacheManager.getCache(cacheName, layeringCacheSetting5);
+        cache1.get(cacheKey1, () -> initNullCache());
+        // 测试一级缓存值不能缓存NULL
+        String str1 = cache1.getFirstCache().get(cacheKey1, String.class);
+        com.github.benmanes.caffeine.cache.Cache<Object, Object> nativeCache = (com.github.benmanes.caffeine.cache.Cache<Object, Object>) cache1.getFirstCache().getNativeCache();
+        Assert.assertTrue(str1 == null);
+        Assert.assertTrue(0 == nativeCache.asMap().size());
+
+        // 测试二级缓存不可以存NULL值，NULL值时间倍率是10
+        String st2 = cache1.getSecondCache().get(cacheKey1, String.class);
+        RedisCacheKey redisCacheKey = ((RedisCache) cache1.getSecondCache()).getRedisCacheKey(cacheKey1);
+        Assert.assertTrue(!redisTemplate.hasKey(redisCacheKey.getKey()));
+        Assert.assertTrue(st2 == null);
     }
 
     @Test
@@ -190,6 +259,60 @@ public class CacheCoreTest {
     }
 
     @Test
+    public void testPutCacheNullUserAllowNullValueTrue() {
+        logger.info("测试Put二级缓存允许为NULL，NULL值时间倍率是10");
+        // 测试 缓存过期时间
+        String cacheName = "cache:name:118_3";
+        String cacheKey1 = "cache:key1:118_3";
+        LayeringCache cache1 = (LayeringCache) cacheManager.getCache(cacheName, layeringCacheSetting4);
+        cache1.put(cacheKey1, initNullCache());
+        // 测试一级缓存值不能缓存NULL
+        String str1 = cache1.getFirstCache().get(cacheKey1, String.class);
+        com.github.benmanes.caffeine.cache.Cache<Object, Object> nativeCache = (com.github.benmanes.caffeine.cache.Cache<Object, Object>) cache1.getFirstCache().getNativeCache();
+        Assert.assertTrue(str1 == null);
+        Assert.assertTrue(0 == nativeCache.asMap().size());
+
+        // 测试二级缓存可以存NULL值，NULL值时间倍率是10
+        String st2 = cache1.getSecondCache().get(cacheKey1, String.class);
+        RedisCacheKey redisCacheKey = ((RedisCache) cache1.getSecondCache()).getRedisCacheKey(cacheKey1);
+        Long ttl = redisTemplate.getExpire(redisCacheKey.getKey());
+        Assert.assertTrue(redisTemplate.hasKey(redisCacheKey.getKey()));
+        Assert.assertTrue(st2 == null);
+        Assert.assertTrue(ttl <= 10);
+        sleep(5);
+        st2 = cache1.getSecondCache().get(cacheKey1, String.class);
+        Assert.assertTrue(st2 == null);
+        cache1.getSecondCache().get(cacheKey1, () -> initNullCache());
+        sleep(1);
+        ttl = redisTemplate.getExpire(redisCacheKey.getKey());
+        Assert.assertTrue(ttl <= 10 && ttl > 5);
+
+        st2 = cache1.get(cacheKey1, String.class);
+        Assert.assertTrue(st2 == null);
+    }
+
+    @Test
+    public void testCacheNullUserAllowNullValueFalse() {
+        logger.info("测试Put二级缓存不允许为NULL");
+        // 测试 缓存过期时间
+        String cacheName = "cache:name:118_4";
+        String cacheKey1 = "cache:key1:118_4";
+        LayeringCache cache1 = (LayeringCache) cacheManager.getCache(cacheName, layeringCacheSetting5);
+        cache1.put(cacheKey1, initNullCache());
+        // 测试一级缓存值不能缓存NULL
+        String str1 = cache1.getFirstCache().get(cacheKey1, String.class);
+        com.github.benmanes.caffeine.cache.Cache<Object, Object> nativeCache = (com.github.benmanes.caffeine.cache.Cache<Object, Object>) cache1.getFirstCache().getNativeCache();
+        Assert.assertTrue(str1 == null);
+        Assert.assertTrue(0 == nativeCache.asMap().size());
+
+        // 测试二级缓存不可以存NULL值，NULL值时间倍率是10
+        String st2 = cache1.getSecondCache().get(cacheKey1, String.class);
+        RedisCacheKey redisCacheKey = ((RedisCache) cache1.getSecondCache()).getRedisCacheKey(cacheKey1);
+        Assert.assertTrue(!redisTemplate.hasKey(redisCacheKey.getKey()));
+        Assert.assertTrue(st2 == null);
+    }
+
+    @Test
     public void testCachePutIfAbsent() throws Exception {
         // 测试 缓存过期时间
         String cacheName = "cache:name";
@@ -225,8 +348,8 @@ public class CacheCoreTest {
         sleep(11);
         cache1.get(cacheKey1, () -> initCache(String.class));
 
-        CacheStats cacheStats  = cache1.getCacheStats();
-        CacheStats cacheStats2  = cache1.getCacheStats();
+        CacheStats cacheStats = cache1.getCacheStats();
+        CacheStats cacheStats2 = cache1.getCacheStats();
         Assert.assertEquals(cacheStats.getCacheRequestCount().longValue(), cacheStats2.getCacheRequestCount().longValue());
         Assert.assertEquals(cacheStats.getCachedMethodRequestCount().longValue(), cacheStats2.getCachedMethodRequestCount().longValue());
         Assert.assertEquals(cacheStats.getCachedMethodRequestTime().longValue(), cacheStats2.getCachedMethodRequestTime().longValue());
@@ -254,6 +377,12 @@ public class CacheCoreTest {
         logger.debug("加载缓存");
         return (T) "test";
     }
+
+    private <T> T initNullCache() {
+        logger.debug("加载缓存,空值");
+        return null;
+    }
+
 
     private void sleep(int time) {
         try {

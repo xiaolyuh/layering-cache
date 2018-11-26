@@ -19,11 +19,9 @@ public class LayeringCacheManager extends AbstractCacheManager {
     @Override
     protected Cache getMissingCache(String name, LayeringCacheSetting layeringCacheSetting) {
         // 创建一级缓存
-        CaffeineCache caffeineCache = new CaffeineCache(name, layeringCacheSetting.getFirstCacheSetting(),
-                layeringCacheSetting.getAllowNullValue(), layeringCacheSetting.getMagnification(), getStats());
+        CaffeineCache caffeineCache = new CaffeineCache(name, layeringCacheSetting.getFirstCacheSetting(), getStats());
         // 创建二级缓存
-        RedisCache redisCache = new RedisCache(name, redisTemplate, layeringCacheSetting.getSecondaryCacheSetting(),
-                layeringCacheSetting.getAllowNullValue(), layeringCacheSetting.getMagnification(), getStats());
+        RedisCache redisCache = new RedisCache(name, redisTemplate, layeringCacheSetting.getSecondaryCacheSetting(), getStats());
         return new LayeringCache(redisTemplate, caffeineCache, redisCache, super.getStats(), layeringCacheSetting);
     }
 

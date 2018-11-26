@@ -41,4 +41,22 @@ public @interface SecondaryCache {
      * @return boolean
      */
     boolean forceRefresh() default false;
+
+    /**
+     * 是否允许存NULL值
+     *
+     * @return boolean
+     */
+    boolean isAllowNullValue() default false;
+
+    /**
+     * 非空值和null值之间的时间倍率，默认是1。isAllowNullValue=true才有效
+     * <p>
+     * 如配置缓存的有效时间是200秒，倍率这设置成10，
+     * 那么当缓存value为null时，缓存的有效时间将是20秒，非空时为200秒
+     * <p/>
+     *
+     * @return int
+     */
+    int magnification() default 1;
 }

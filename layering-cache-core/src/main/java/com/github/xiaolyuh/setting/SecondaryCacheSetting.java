@@ -34,6 +34,20 @@ public class SecondaryCacheSetting implements Serializable {
      */
     private boolean usePrefix;
 
+    /**
+     * 是否允许存NULL值
+     */
+    boolean allowNullValue = false;
+
+    /**
+     * 非空值和null值之间的时间倍率，默认是1。allowNullValue=true才有效
+     * <p>
+     * 如配置缓存的有效时间是200秒，倍率这设置成10，
+     * 那么当缓存value为null时，缓存的有效时间将是20秒，非空时为200秒
+     * <p/>
+     */
+    int magnification = 1;
+
     public SecondaryCacheSetting() {
     }
 
@@ -43,11 +57,14 @@ public class SecondaryCacheSetting implements Serializable {
      * @param timeUnit     时间单位 {@link TimeUnit}
      * @param forceRefresh 是否强制刷新
      */
-    public SecondaryCacheSetting(long expiration, long preloadTime, TimeUnit timeUnit, boolean forceRefresh) {
+    public SecondaryCacheSetting(long expiration, long preloadTime, TimeUnit timeUnit, boolean forceRefresh,
+                                 boolean isAllowNullValue, int magnification) {
         this.expiration = expiration;
         this.preloadTime = preloadTime;
         this.timeUnit = timeUnit;
         this.forceRefresh = forceRefresh;
+        this.allowNullValue = isAllowNullValue;
+        this.magnification = magnification;
         this.usePrefix = true;
     }
 
@@ -89,5 +106,21 @@ public class SecondaryCacheSetting implements Serializable {
 
     public void setUsePrefix(boolean usePrefix) {
         this.usePrefix = usePrefix;
+    }
+
+    public boolean isAllowNullValue() {
+        return allowNullValue;
+    }
+
+    public void setAllowNullValue(boolean allowNullValue) {
+        this.allowNullValue = allowNullValue;
+    }
+
+    public int getMagnification() {
+        return magnification;
+    }
+
+    public void setMagnification(int magnification) {
+        this.magnification = magnification;
     }
 }

@@ -172,9 +172,11 @@ public class LayeringAspect {
                 firstCache.expireTime(), firstCache.timeUnit(), firstCache.expireMode());
 
         SecondaryCacheSetting secondaryCacheSetting = new SecondaryCacheSetting(secondaryCache.expireTime(),
-                secondaryCache.preloadTime(), secondaryCache.timeUnit(), secondaryCache.forceRefresh());
+                secondaryCache.preloadTime(), secondaryCache.timeUnit(), secondaryCache.forceRefresh(),
+                secondaryCache.isAllowNullValue(), secondaryCache.magnification());
+
         LayeringCacheSetting layeringCacheSetting = new LayeringCacheSetting(firstCacheSetting, secondaryCacheSetting,
-                cacheable.depict(), cacheable.isAllowNullValue(), cacheable.magnification());
+                cacheable.depict());
 
         // 通过cacheName和缓存配置获取Cache
         Cache cache = cacheManager.getCache(cacheName, layeringCacheSetting);
@@ -263,9 +265,11 @@ public class LayeringAspect {
                 firstCache.expireTime(), firstCache.timeUnit(), firstCache.expireMode());
 
         SecondaryCacheSetting secondaryCacheSetting = new SecondaryCacheSetting(secondaryCache.expireTime(),
-                secondaryCache.preloadTime(), secondaryCache.timeUnit(), secondaryCache.forceRefresh());
+                secondaryCache.preloadTime(), secondaryCache.timeUnit(), secondaryCache.forceRefresh(),
+                secondaryCache.isAllowNullValue(), secondaryCache.magnification());
+
         LayeringCacheSetting layeringCacheSetting = new LayeringCacheSetting(firstCacheSetting, secondaryCacheSetting,
-                cachePut.depict(), cachePut.isAllowNullValue(), cachePut.magnification());
+                cachePut.depict());
 
         // 指定调用方法获取缓存值
         Object result = invoker.invoke();

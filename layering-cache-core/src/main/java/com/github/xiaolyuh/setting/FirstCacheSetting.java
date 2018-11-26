@@ -37,11 +37,6 @@ public class FirstCacheSetting implements Serializable {
      */
     private ExpireMode expireMode;
 
-    /**
-     * 是否允许存NULL值
-     */
-    private boolean allowNullValues;
-
     public FirstCacheSetting() {
     }
 
@@ -58,7 +53,6 @@ public class FirstCacheSetting implements Serializable {
         this.expireTime = expireTime;
         this.timeUnit = timeUnit;
         this.expireMode = expireMode;
-        this.allowNullValues = true;
     }
 
     public int getInitialCapacity() {
@@ -102,10 +96,6 @@ public class FirstCacheSetting implements Serializable {
     }
 
     public boolean isAllowNullValues() {
-        return allowNullValues;
-    }
-
-    public void setAllowNullValues(boolean allowNullValues) {
-        this.allowNullValues = allowNullValues;
+        return false;
     }
 }

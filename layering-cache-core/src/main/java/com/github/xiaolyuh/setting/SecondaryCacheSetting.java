@@ -44,7 +44,7 @@ public class SecondaryCacheSetting implements Serializable {
      * <p>
      * 如配置缓存的有效时间是200秒，倍率这设置成10，
      * 那么当缓存value为null时，缓存的有效时间将是20秒，非空时为200秒
-     * <p/>
+     * </p>
      */
     int magnification = 1;
 
@@ -52,18 +52,20 @@ public class SecondaryCacheSetting implements Serializable {
     }
 
     /**
-     * @param expiration   缓存有效时间
-     * @param preloadTime  缓存刷新时间
-     * @param timeUnit     时间单位 {@link TimeUnit}
-     * @param forceRefresh 是否强制刷新
+     * @param expiration      缓存有效时间
+     * @param preloadTime     缓存刷新时间
+     * @param timeUnit        时间单位 {@link TimeUnit}
+     * @param forceRefresh    是否强制刷新
+     * @param allowNullValues 是否允许存NULL值，模式允许
+     * @param magnification   非空值和null值之间的时间倍率
      */
     public SecondaryCacheSetting(long expiration, long preloadTime, TimeUnit timeUnit, boolean forceRefresh,
-                                 boolean isAllowNullValue, int magnification) {
+                                 boolean allowNullValues, int magnification) {
         this.expiration = expiration;
         this.preloadTime = preloadTime;
         this.timeUnit = timeUnit;
         this.forceRefresh = forceRefresh;
-        this.allowNullValue = isAllowNullValue;
+        this.allowNullValue = allowNullValues;
         this.magnification = magnification;
         this.usePrefix = true;
     }

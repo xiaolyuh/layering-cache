@@ -76,7 +76,7 @@ public class RedisCache extends AbstractValueAdaptingCache {
      * <p>
      * 如配置缓存的有效时间是200秒，倍率这设置成10，
      * 那么当缓存value为null时，缓存的有效时间将是20秒，非空时为200秒
-     * <p/>
+     * </p>
      */
     private final int magnification;
 

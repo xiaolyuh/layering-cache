@@ -43,7 +43,7 @@ public @interface SecondaryCache {
     boolean forceRefresh() default false;
 
     /**
-     * 是否允许存NULL值
+     * 是否允许缓存NULL值
      *
      * @return boolean
      */

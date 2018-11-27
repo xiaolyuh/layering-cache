@@ -18,7 +18,7 @@ public class TestService {
     @Cacheable(value = "user:info", key = "#userId", ignoreException = false,
             firstCache = @FirstCache(expireTime = 4, timeUnit = TimeUnit.SECONDS),
             secondaryCache = @SecondaryCache(expireTime = 10, preloadTime = 3,
-                    forceRefresh = true, timeUnit = TimeUnit.SECONDS))
+                    forceRefresh = true, timeUnit = TimeUnit.SECONDS, isAllowNullValue = true))
     public User getUserById(long userId) {
         logger.debug("测试正常配置的缓存方法，参数是基本类型");
         User user = new User();
@@ -283,13 +283,26 @@ public class TestService {
         return user;
     }
 
-    @CachePut(value = "user:info", key = "#userId", ignoreException = false,
+    @CachePut(value = "user:info:118", key = "#userId", ignoreException = false,
             firstCache = @FirstCache(expireTime = 4, timeUnit = TimeUnit.SECONDS),
             secondaryCache = @SecondaryCache(expireTime = 10, preloadTime = 3, forceRefresh = true,
                     timeUnit = TimeUnit.SECONDS, isAllowNullValue = true))
-    public User putNullUser(long userId) {
+    public User putNullUser1118(long userId) {
 
         return null;
+    }
+
+    @Cacheable(value = "user:info:118", key = "#userId", ignoreException = false,
+            firstCache = @FirstCache(expireTime = 4, timeUnit = TimeUnit.SECONDS),
+            secondaryCache = @SecondaryCache(expireTime = 10, preloadTime = 3,
+                    forceRefresh = true, timeUnit = TimeUnit.SECONDS, isAllowNullValue = true))
+    public User getUserById118(long userId) {
+        logger.debug("1.1.8版本测试正常配置的缓存方法，参数是基本类型");
+        User user = new User();
+        user.setUserId(userId);
+        user.setAge(31);
+        user.setLastName(new String[]{"w", "y", "h"});
+        return user;
     }
 
     @CachePut(value = "user:info", key = "#userId", ignoreException = false,
@@ -308,7 +321,6 @@ public class TestService {
 
         return null;
     }
-
 
 
     @CachePut(value = "user:info", key = "#userId", ignoreException = false,

@@ -402,9 +402,9 @@ public class CacheAspectTest {
     @Test
     public void testPutNullUser() {
         long userId = 118_1117_10_1;
-        testService.putNullUser(userId);
+        testService.putNullUser1118(userId);
         sleep(1);
-        User user = testService.getUserById(userId);
+        User user = testService.getUserById118(userId);
         logger.debug(JSON.toJSONString(user));
         Assert.assertNull(user);
     }

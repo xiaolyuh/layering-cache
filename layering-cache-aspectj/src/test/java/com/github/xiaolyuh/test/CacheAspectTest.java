@@ -3,6 +3,8 @@ package com.github.xiaolyuh.test;
 import com.alibaba.fastjson.JSON;
 import com.github.xiaolyuh.config.CacheConfig;
 import com.github.xiaolyuh.domain.User;
+import com.github.xiaolyuh.manager.CacheManager;
+import com.github.xiaolyuh.manager.LayeringCacheManager;
 import com.github.xiaolyuh.support.CacheMode;
 import org.junit.Assert;
 import org.junit.Test;
@@ -32,6 +34,9 @@ public class CacheAspectTest {
 
     @Autowired
     private RedisTemplate redisTemplate;
+
+    @Autowired
+    private CacheManager cacheManager;
 
     @Test
     public void testGetUserNameLongParam() {
@@ -455,10 +460,35 @@ public class CacheAspectTest {
         sleep(5);
         testService.evictAllUser();
         sleep(3);
-        Object result1 = redisTemplate.opsForValue().get("user:info:119:119");
-        Object result2 = redisTemplate.opsForValue().get("user:info:121:121");
+        Object result1 = redisTemplate.opsForValue().get("user:info:119");
+        Object result2 = redisTemplate.opsForValue().get("user:info:121");
         Assert.assertNull(result1);
         Assert.assertNull(result2);
+    }
+
+    @Test
+    public void testEvictAllUserNoCacheMannger() {
+        testService.putUserById(119_119);
+        testService.putUserById(119_120);
+        testService.putUserById(119_121);
+        sleep(2);
+        ((LayeringCacheManager) cacheManager).getCacheContainer().clear();
+        Assert.assertTrue(((LayeringCacheManager) cacheManager).getCacheContainer().size() == 0);
+        testService.evictUser(119_119);
+        sleep(2);
+        Object result1 = redisTemplate.opsForValue().get("user:info:119119");
+        Object result2 = redisTemplate.opsForValue().get("user:info:119121");
+        Assert.assertNull(result1);
+        Assert.assertNotNull(result2);
+
+        ((LayeringCacheManager) cacheManager).getCacheContainer().clear();
+        Assert.assertTrue(((LayeringCacheManager) cacheManager).getCacheContainer().size() == 0);
+        testService.evictAllUser();
+        sleep(2);
+        result2 = redisTemplate.opsForValue().get("user:info:119121");
+        Object result3 = redisTemplate.opsForValue().get("user:info:119122");
+        Assert.assertNull(result2);
+        Assert.assertNull(result3);
     }
 
 

@@ -325,7 +325,7 @@ public class TestService {
 
     @CachePut(value = "user:info", key = "#userId", ignoreException = false,
             firstCache = @FirstCache(expireTime = 4, timeUnit = TimeUnit.SECONDS),
-            secondaryCache = @SecondaryCache(expireTime = 10, preloadTime = 3, forceRefresh = true, timeUnit = TimeUnit.SECONDS))
+            secondaryCache = @SecondaryCache(expireTime = 100, preloadTime = 3, forceRefresh = true, timeUnit = TimeUnit.SECONDS))
     public User putUserById(long userId) {
         User user = new User();
         user.setUserId(userId);

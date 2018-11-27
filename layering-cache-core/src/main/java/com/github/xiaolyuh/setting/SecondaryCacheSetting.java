@@ -12,17 +12,17 @@ public class SecondaryCacheSetting implements Serializable {
     /**
      * 缓存有效时间
      */
-    private long expiration;
+    private long expiration = 0;
 
     /**
      * 缓存主动在失效前强制刷新缓存的时间
      */
-    private long preloadTime;
+    private long preloadTime = 0;
 
     /**
      * 时间单位 {@link TimeUnit}
      */
-    private TimeUnit timeUnit;
+    private TimeUnit timeUnit = TimeUnit.MICROSECONDS;
 
     /**
      * 是否强制刷新（走数据库），默认是false
@@ -32,7 +32,7 @@ public class SecondaryCacheSetting implements Serializable {
     /**
      * 是否使用缓存名称作为 redis key 前缀
      */
-    private boolean usePrefix;
+    private boolean usePrefix = true;
 
     /**
      * 是否允许存NULL值

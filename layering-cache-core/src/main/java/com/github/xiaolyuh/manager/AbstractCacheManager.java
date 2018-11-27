@@ -167,7 +167,7 @@ public abstract class AbstractCacheManager implements CacheManager, Initializing
      *
      * @return 返回缓存容器
      */
-    protected ConcurrentMap<String, ConcurrentMap<String, Cache>> getCacheContainer() {
+    public ConcurrentMap<String, ConcurrentMap<String, Cache>> getCacheContainer() {
         return cacheContainer;
     }
 

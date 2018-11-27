@@ -26,6 +26,7 @@ import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.expression.EvaluationContext;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
+import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
 import java.lang.reflect.Method;
@@ -206,8 +207,15 @@ public class LayeringAspect {
             // 删除所有缓存数据（清空）
             for (String cacheName : cacheNames) {
                 Collection<Cache> caches = cacheManager.getCache(cacheName);
-                for (Cache cache : caches) {
+                if (CollectionUtils.isEmpty(caches)) {
+                    // 如果没有找到Cache就新建一个默认的
+                    Cache cache = cacheManager.getCache(cacheName,
+                            new LayeringCacheSetting(new FirstCacheSetting(), new SecondaryCacheSetting(), "默认缓存配置（清除时生成）"));
                     cache.clear();
+                } else {
+                    for (Cache cache : caches) {
+                        cache.clear();
+                    }
                 }
             }
         } else {
@@ -233,8 +241,15 @@ public class LayeringAspect {
         Assert.notNull(key, String.format(CACHE_KEY_ERROR_MESSAGE, keySpEL));
         for (String cacheName : cacheNames) {
             Collection<Cache> caches = cacheManager.getCache(cacheName);
-            for (Cache cache : caches) {
+            if (CollectionUtils.isEmpty(caches)) {
+                // 如果没有找到Cache就新建一个默认的
+                Cache cache = cacheManager.getCache(cacheName,
+                        new LayeringCacheSetting(new FirstCacheSetting(), new SecondaryCacheSetting(), "默认缓存配置（删除时生成）"));
                 cache.evict(key);
+            } else {
+                for (Cache cache : caches) {
+                    cache.evict(key);
+                }
             }
         }
     }

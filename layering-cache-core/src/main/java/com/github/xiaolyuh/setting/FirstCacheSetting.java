@@ -15,27 +15,27 @@ public class FirstCacheSetting implements Serializable {
     /**
      * 缓存初始Size
      */
-    private int initialCapacity;
+    private int initialCapacity = 10;
 
     /**
      * 缓存最大Size
      */
-    private int maximumSize;
+    private int maximumSize = 500;
 
     /**
      * 缓存有效时间
      */
-    private int expireTime;
+    private int expireTime = 0;
 
     /**
      * 缓存时间单位
      */
-    private TimeUnit timeUnit;
+    private TimeUnit timeUnit = TimeUnit.MILLISECONDS;
 
     /**
      * 缓存失效模式{@link ExpireMode}
      */
-    private ExpireMode expireMode;
+    private ExpireMode expireMode = ExpireMode.WRITE;
 
     public FirstCacheSetting() {
     }

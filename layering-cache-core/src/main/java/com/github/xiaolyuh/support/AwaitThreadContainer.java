@@ -6,6 +6,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentSkipListSet;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.LockSupport;
 
@@ -30,7 +31,7 @@ public class AwaitThreadContainer {
         Set<Thread> threadSet = threadMap.get(key);
         // 判断线程容器是否是null，如果是就新创建一个
         if (threadSet == null) {
-            threadSet = new HashSet<>();
+            threadSet = new ConcurrentSkipListSet<>();
             threadMap.put(key, threadSet);
         }
         // 将线程放到容器

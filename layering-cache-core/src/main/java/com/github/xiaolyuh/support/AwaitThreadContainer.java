@@ -2,6 +2,7 @@ package com.github.xiaolyuh.support;
 
 import org.springframework.util.CollectionUtils;
 
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -31,7 +32,7 @@ public class AwaitThreadContainer {
         Set<Thread> threadSet = threadMap.get(key);
         // 判断线程容器是否是null，如果是就新创建一个
         if (threadSet == null) {
-            threadSet = new ConcurrentSkipListSet<>();
+            threadSet = new ConcurrentSkipListSet<>(Comparator.comparing(Thread::toString));
             threadMap.put(key, threadSet);
         }
         // 将线程放到容器

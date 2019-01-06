@@ -36,13 +36,17 @@ public class LayeringCacheStartDemoTests {
     }
 
     @Test
-    public void testRemoveAll() {
+    public void testRemoveAll() throws InterruptedException {
         Person p = new Person(6, "name1", 12, "address1");
         personService.save(p);
 
-        personService.removeAll();
         Person person = personService.findOne(p);
         Assert.assertEquals(person.getId(), 6);
+        personService.removeAll();
+
+        Thread.sleep(1000);
+        person = personService.findOne(p);
+        Assert.assertEquals(person.getId(), 2);
     }
 
     @Test

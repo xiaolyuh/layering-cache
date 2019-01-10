@@ -33,6 +33,7 @@ layering-cache是在Spring Cache基础上扩展而来的一个缓存框架，主
 - layering-cache支持同一个缓存名称设置不同的过期时间，但是一定要保证key唯一，否则会出现缓存过期时间错乱的情况
 - 删除缓存的时候会将同一个缓存名称的不同的过期时间的缓存都删掉
 - 在集成layering-cache之前还需要添加以下的依赖，主要是为了减少jar包冲突([依赖jar列表](https://github.com/xiaolyuh/layering-cache/wiki/%E4%BE%9D%E8%B5%96jar%E5%88%97%E8%A1%A8))。
+- redis的key序列化方式必须StringRedisSerializer
 
 # 更新日志
 

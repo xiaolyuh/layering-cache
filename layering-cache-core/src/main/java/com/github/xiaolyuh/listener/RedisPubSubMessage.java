@@ -1,11 +1,13 @@
 package com.github.xiaolyuh.listener;
 
+import java.io.Serializable;
+
 /**
  * redis pub/sub 消息
  *
  * @author yuhao.wang3
  */
-public class RedisPubSubMessage {
+public class RedisPubSubMessage implements Serializable {
     /**
      * 缓存名称
      */

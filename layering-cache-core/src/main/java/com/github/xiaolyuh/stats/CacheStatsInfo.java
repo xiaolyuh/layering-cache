@@ -2,12 +2,14 @@ package com.github.xiaolyuh.stats;
 
 import com.github.xiaolyuh.setting.LayeringCacheSetting;
 
+import java.io.Serializable;
+
 /**
  * 缓存命中率统计实体类
  *
  * @author yuhao.wang3
  */
-public class CacheStatsInfo {
+public class CacheStatsInfo implements Serializable {
 
     /**
      * 缓存名称

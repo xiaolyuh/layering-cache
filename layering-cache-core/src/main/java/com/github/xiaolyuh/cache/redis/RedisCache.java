@@ -175,7 +175,7 @@ public class RedisCache extends AbstractValueAdaptingCache {
     @Override
     public void evict(Object key) {
         RedisCacheKey redisCacheKey = getRedisCacheKey(key);
-        logger.info("redis缓存 key= {} 清除缓存", redisCacheKey.getKey());
+        logger.info("清除redis缓存 key= {} ", redisCacheKey.getKey());
         redisTemplate.delete(redisCacheKey.getKey());
     }
 
@@ -183,7 +183,7 @@ public class RedisCache extends AbstractValueAdaptingCache {
     public void clear() {
         // 必须开启了使用缓存名称作为前缀，clear才有效
         if (usePrefix) {
-            logger.debug("redis缓存 ，除前缀为{}的缓存", getName());
+            logger.info("清空redis缓存 ，缓存前缀为{}", getName());
             Set<String> keys = redisTemplate.keys(getName() + "*");
             if (!CollectionUtils.isEmpty(keys)) {
                 redisTemplate.delete(keys);

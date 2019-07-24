@@ -10,7 +10,6 @@ import com.github.xiaolyuh.support.ExpireMode;
 import com.github.xiaolyuh.support.NullValue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.lang.UsesJava8;
 
 import java.util.concurrent.Callable;
 
@@ -19,7 +18,6 @@ import java.util.concurrent.Callable;
  *
  * @author yuhao.wang
  */
-@UsesJava8
 public class CaffeineCache extends AbstractValueAdaptingCache {
     protected static final Logger logger = LoggerFactory.getLogger(CaffeineCache.class);
 
@@ -61,6 +59,7 @@ public class CaffeineCache extends AbstractValueAdaptingCache {
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public <T> T get(Object key, Callable<T> valueLoader) {
         logger.debug("caffeine缓存 key={} 获取缓存， 如果没有命中就走库加载缓存", JSON.toJSONString(key));
 
@@ -68,7 +67,7 @@ public class CaffeineCache extends AbstractValueAdaptingCache {
             getCacheStats().addCacheRequestCount(1);
         }
 
-        Object result = this.cache.get(key, (k) -> loaderValue(key, valueLoader));
+        Object result = this.cache.get(key, k -> loaderValue(key, valueLoader));
         // 如果不允许存NULL值 直接删除NULL值缓存
         boolean isEvict = !isAllowNullValues() && (result == null || result instanceof NullValue);
         if (isEvict) {

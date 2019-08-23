@@ -12,7 +12,6 @@
 .recommenders
 bin
 build
-lib/
 target
 .factorypath
 .springBeans

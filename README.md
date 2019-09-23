@@ -4,7 +4,7 @@
 [![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.github.xiaolyuh/layering-cache/badge.svg)](https://search.maven.org/artifact/com.github.xiaolyuh/layering-cache/)
 [![License](https://img.shields.io/badge/license-Apache%202-4EB1BA.svg)](https://www.apache.org/licenses/LICENSE-2.0.html)
 
-layering-cache是多级缓存框架，使用方式和spring-cache类似，主要目的是在使用注解的时候支持配置过期时间。layering-cache其实是一个两级缓存，一级缓存使用Caffeine作为本地缓存，二级缓存使用redis作为集中式缓存。并且基于redis的Pub/Sub做缓存的删除，所以它是一个适用于分布式环境下的一个缓存系统。
+layering-cache是一个多级缓存框架，使用方式和spring-cache类似，主要目的是在使用注解的时候支持配置过期时间。layering-cache其实是一个两级缓存，一级缓存使用Caffeine作为本地缓存，二级缓存使用redis作为集中式缓存。并且基于redis的Pub/Sub做缓存的删除，所以它是一个适用于分布式环境下的一个缓存系统。
 
 # 支持
 - 支持缓存监控统计

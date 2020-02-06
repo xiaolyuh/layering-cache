@@ -44,7 +44,7 @@ layering-cache是一个支持分布式环境的多级缓存框架，使用方式
 
 # 作者信息
 
-作者博客：https://www.jianshu.com/u/4e6e80b98daa
+作者博客：https://xiaolyuh.blog.csdn.net/
 
 作者邮箱： xiaolyuh@163.com  
 

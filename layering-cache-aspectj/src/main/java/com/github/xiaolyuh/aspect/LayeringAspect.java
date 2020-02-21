@@ -166,7 +166,7 @@ public class LayeringAspect {
         Object key = generateKey(cacheable.key(), method, args, target);
         Assert.notNull(key, String.format(CACHE_KEY_ERROR_MESSAGE, cacheable.key()));
 
-        // 从解决中获取缓存配置
+        // 从注解中获取缓存配置
         FirstCache firstCache = cacheable.firstCache();
         SecondaryCache secondaryCache = cacheable.secondaryCache();
         FirstCacheSetting firstCacheSetting = new FirstCacheSetting(firstCache.initialCapacity(), firstCache.maximumSize(),

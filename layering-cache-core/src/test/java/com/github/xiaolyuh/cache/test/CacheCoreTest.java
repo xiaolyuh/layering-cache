@@ -79,7 +79,6 @@ public class CacheCoreTest {
         Assert.assertNotEquals(cache1, cache3);
     }
 
-
     @Test
     public void testCacheExpiration() {
         // 测试 缓存过期时间

@@ -7,6 +7,7 @@ import com.github.xiaolyuh.support.AwaitThreadContainer;
 import com.github.xiaolyuh.support.Lock;
 import com.github.xiaolyuh.support.NullValue;
 import com.github.xiaolyuh.support.ThreadTaskUtils;
+import com.github.xiaolyuh.util.RedisHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -184,7 +185,8 @@ public class RedisCache extends AbstractValueAdaptingCache {
         // 必须开启了使用缓存名称作为前缀，clear才有效
         if (usePrefix) {
             logger.info("清空redis缓存 ，缓存前缀为{}", getName());
-            Set<String> keys = redisTemplate.keys(getName() + "*");
+
+            Set<String> keys = RedisHelper.scan(redisTemplate, getName() + "*");
             if (!CollectionUtils.isEmpty(keys)) {
                 redisTemplate.delete(keys);
             }

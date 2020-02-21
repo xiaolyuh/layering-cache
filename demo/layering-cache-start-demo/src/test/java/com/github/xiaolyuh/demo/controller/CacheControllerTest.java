@@ -21,7 +21,7 @@ public class CacheControllerTest {
     String host = "http://localhost:8081/";
 
     @Test
-//    @Ignore
+    @Ignore
     public void testPut() throws IOException {
 
         Person person = new Person(1, "name1", 12, "address1");
@@ -32,7 +32,7 @@ public class CacheControllerTest {
     }
 
     @Test
-    @Ignore
+//    @Ignore
     public void cacheable() throws IOException {
 
         Person person = new Person(1, "name1", 12, "address1");

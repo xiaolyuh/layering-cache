@@ -44,7 +44,7 @@ layering-cache是一个支持分布式环境的多级缓存框架，使用方式
 
 # 作者信息
 
-作者博客：https://www.jianshu.com/u/4e6e80b98daa
+作者博客：https://xiaolyuh.blog.csdn.net/
 
 作者邮箱： xiaolyuh@163.com  
 
@@ -54,5 +54,6 @@ github 地址：https://github.com/wyh-chenfeng/layering-cache
 # 捐赠
 项目的发展离不开你的支持，请作者喝杯咖啡吧！
 
-![微信-支付宝](https://upload-images.jianshu.io/upload_images/6464086-cf0fb1b2facf4a14.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
+![微信-支付宝](https://img-blog.csdnimg.cn/20200218152559645.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3hpYW9seXVoMTIz,size_16,color_FFFFFF,t_70)
+
 

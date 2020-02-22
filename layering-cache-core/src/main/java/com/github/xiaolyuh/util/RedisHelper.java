@@ -1,7 +1,5 @@
 package com.github.xiaolyuh.util;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.data.redis.core.Cursor;
 import org.springframework.data.redis.core.RedisCallback;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -17,8 +15,6 @@ import java.util.Set;
  * @since 2020/2/21 23:35
  */
 public abstract class RedisHelper {
-    private static Logger logger = LoggerFactory.getLogger(RedisHelper.class);
-
     /**
      * scan 实现
      *
@@ -36,10 +32,10 @@ public abstract class RedisHelper {
                     keysTmp.add(new String(cursor.next(), "Utf-8"));
                 }
             } catch (Exception e) {
-                logger.error(e.getMessage(), e);
                 throw new RuntimeException(e);
             }
             return keysTmp;
         });
     }
 }
+

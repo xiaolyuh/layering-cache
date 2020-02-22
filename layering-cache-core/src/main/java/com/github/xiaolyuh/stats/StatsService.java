@@ -30,7 +30,7 @@ public class StatsService {
     /**
      * 缓存统计数据前缀
      */
-    private static final String CACHE_STATS_KEY_PREFIX = "layering-cache:cache_stats_info:xiaolyuh:";
+    public static final String CACHE_STATS_KEY_PREFIX = "layering-cache:cache_stats_info:xiaolyuh:";
 
     /**
      * 定时任务线程池
@@ -83,7 +83,7 @@ public class StatsService {
             Set<AbstractCacheManager> cacheManagers = AbstractCacheManager.getCacheManager();
             for (AbstractCacheManager abstractCacheManager : cacheManagers) {
                 // 获取CacheManager
-                CacheManager cacheManager = ((CacheManager) abstractCacheManager);
+                CacheManager cacheManager = abstractCacheManager;
                 Collection<String> cacheNames = cacheManager.getCacheNames();
                 for (String cacheName : cacheNames) {
                     // 获取Cache
@@ -130,7 +130,7 @@ public class StatsService {
                                 cacheStats.setSecondCacheMissCount(cacheStats.getSecondCacheMissCount() + secondCacheStats.getAndResetCachedMethodRequestCount());
 
                                 // 将缓存统计数据写到redis
-                                redisTemplate.opsForValue().set(redisKey, cacheStats, 1, TimeUnit.HOURS);
+                                redisTemplate.opsForValue().set(redisKey, cacheStats, 24, TimeUnit.HOURS);
 
                                 logger.info("Layering Cache 统计信息：{}", JSON.toJSONString(cacheStats));
                             }
@@ -162,24 +162,23 @@ public class StatsService {
         Set<String> layeringCacheKeys = RedisHelper.scan(redisTemplate, CACHE_STATS_KEY_PREFIX + "*");
 
         for (String key : layeringCacheKeys) {
-            CacheStatsInfo cacheStats = (CacheStatsInfo) cacheManager.getRedisTemplate().opsForValue().get(key);
-            if (Objects.nonNull(cacheStats)) {
-                cacheStats.setRequestCount(0);
-                cacheStats.setMissCount(0);
-                cacheStats.setTotalLoadTime(0);
-                cacheStats.setHitRate(0);
-
-                cacheStats.setFirstCacheRequestCount(0);
-                cacheStats.setFirstCacheMissCount(0);
-
-                cacheStats.setSecondCacheRequestCount(0);
-                cacheStats.setSecondCacheMissCount(0);
-                // 将缓存统计数据写到redis
-                redisTemplate.opsForValue().set(key, cacheStats, 1, TimeUnit.HOURS);
-            }
+            resetCacheStat(key);
         }
+    }
 
-
+    /**
+     * 重置缓存统计数据
+     *
+     * @param redisKey redisKey
+     */
+    public void resetCacheStat(String redisKey) {
+        RedisTemplate<String, Object> redisTemplate = cacheManager.getRedisTemplate();
+        CacheStatsInfo cacheStats = (CacheStatsInfo) redisTemplate.opsForValue().get(redisKey);
+        if (Objects.nonNull(cacheStats)) {
+            cacheStats.clearStatsInfo();
+            // 将缓存统计数据写到redis
+            redisTemplate.opsForValue().set(redisKey, cacheStats, 24, TimeUnit.HOURS);
+        }
     }
 
     public void setCacheManager(AbstractCacheManager cacheManager) {

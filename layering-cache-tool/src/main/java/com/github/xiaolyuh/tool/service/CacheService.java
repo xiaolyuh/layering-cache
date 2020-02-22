@@ -5,6 +5,8 @@ import com.github.xiaolyuh.manager.AbstractCacheManager;
 import com.github.xiaolyuh.setting.FirstCacheSetting;
 import com.github.xiaolyuh.setting.LayeringCacheSetting;
 import com.github.xiaolyuh.setting.SecondaryCacheSetting;
+import com.github.xiaolyuh.stats.StatsService;
+import com.github.xiaolyuh.util.BeanFactory;
 import com.github.xiaolyuh.util.StringUtils;
 import org.springframework.util.CollectionUtils;
 
@@ -28,20 +30,25 @@ public class CacheService {
         if (StringUtils.isBlank(cacheName) || StringUtils.isBlank(internalKey)) {
             return;
         }
-
+        LayeringCacheSetting defaultSetting = new LayeringCacheSetting(new FirstCacheSetting(), new SecondaryCacheSetting(), "默认缓存配置（删除时生成）");
         Set<AbstractCacheManager> cacheManagers = AbstractCacheManager.getCacheManager();
         if (StringUtils.isBlank(key)) {
             // 清空缓存
             for (AbstractCacheManager cacheManager : cacheManagers) {
-                LayeringCacheSetting layeringCacheSetting = new LayeringCacheSetting();
-                layeringCacheSetting.setInternalKey(internalKey);
+                // 删除缓存统计信息
+                String redisKey = StatsService.CACHE_STATS_KEY_PREFIX + cacheName + internalKey;
+                BeanFactory.getBean(StatsService.class).resetCacheStat(redisKey);
 
+                // 删除缓存
                 Collection<Cache> caches = cacheManager.getCache(cacheName);
                 if (CollectionUtils.isEmpty(caches)) {
                     // 如果没有找到Cache就新建一个默认的
-                    Cache cache = cacheManager.getCache(cacheName,
-                            new LayeringCacheSetting(new FirstCacheSetting(), new SecondaryCacheSetting(), "默认缓存配置（删除时生成）"));
+                    Cache cache = cacheManager.getCache(cacheName, defaultSetting);
                     cache.clear();
+
+                    // 删除统计信息
+                    redisKey = StatsService.CACHE_STATS_KEY_PREFIX + cacheName + defaultSetting.getInternalKey();
+                    BeanFactory.getBean(StatsService.class).resetCacheStat(redisKey);
                 } else {
                     for (Cache cache : caches) {
                         cache.clear();
@@ -57,8 +64,7 @@ public class CacheService {
             Collection<Cache> caches = cacheManager.getCache(cacheName);
             if (CollectionUtils.isEmpty(caches)) {
                 // 如果没有找到Cache就新建一个默认的
-                Cache cache = cacheManager.getCache(cacheName,
-                        new LayeringCacheSetting(new FirstCacheSetting(), new SecondaryCacheSetting(), "默认缓存配置（删除时生成）"));
+                Cache cache = cacheManager.getCache(cacheName, defaultSetting);
                 cache.evict(key);
             } else {
                 for (Cache cache : caches) {

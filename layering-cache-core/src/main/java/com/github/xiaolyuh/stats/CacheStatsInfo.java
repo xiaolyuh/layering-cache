@@ -191,4 +191,20 @@ public class CacheStatsInfo implements Serializable {
         result = 31 * result + (internalKey != null ? internalKey.hashCode() : 0);
         return result;
     }
+
+    /**
+     * 清空统计信息
+     */
+    public void clearStatsInfo() {
+        this.setRequestCount(0);
+        this.setMissCount(0);
+        this.setTotalLoadTime(0);
+        this.setHitRate(0);
+
+        this.setFirstCacheRequestCount(0);
+        this.setFirstCacheMissCount(0);
+
+        this.setSecondCacheRequestCount(0);
+        this.setSecondCacheMissCount(0);
+    }
 }

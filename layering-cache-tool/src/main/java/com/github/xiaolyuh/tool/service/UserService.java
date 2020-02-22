@@ -16,7 +16,7 @@ import java.util.concurrent.TimeUnit;
  * @author yuhao.wang3
  */
 public class UserService {
-    private static final String SESSION_USER_KEY = "layering-cache-user";
+    private static final String SESSION_USER_KEY = "layering-cache:user_login:";
 
     /**
      * 权限校验

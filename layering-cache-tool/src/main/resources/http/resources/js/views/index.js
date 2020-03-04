@@ -108,7 +108,12 @@
     var format = {
         formatInit: function (cacheStats) {
             $.each(cacheStats, function (i, cs) {
-                cs.hitRate = cs.hitRate().toFixed(2) + "%";
+                if (cs.hitRate()) {
+                    cs.hitRate = cs.hitRate().toFixed(2) + "%";
+                } else {
+                    cs.hitRate = (0).toFixed(2) + "%";
+                }
+
                 if (cs.firstCacheRequestCount() > 0) {
                     cs.firstHitRate = ((cs.firstCacheRequestCount() - cs.firstCacheMissCount()) / cs.firstCacheRequestCount() * 100 ).toFixed(2) + "%";
                 } else {

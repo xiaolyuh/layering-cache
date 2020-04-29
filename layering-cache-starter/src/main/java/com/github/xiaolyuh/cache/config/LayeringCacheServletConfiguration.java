@@ -17,7 +17,7 @@ import javax.servlet.Servlet;
 @ConditionalOnProperty(name = "spring.layering-cache.layering-cache-servlet-enabled", havingValue = "true", matchIfMissing = false)
 public class LayeringCacheServletConfiguration {
     @Bean
-    public ServletRegistrationBean<Servlet> statViewServletRegistrationBean(LayeringCacheProperties properties) {
+    public ServletRegistrationBean<Servlet> layeringCacheStatViewServletRegistrationBean(LayeringCacheProperties properties) {
         ServletRegistrationBean<Servlet> registrationBean = new ServletRegistrationBean<>();
         registrationBean.setServlet(new LayeringCacheServlet());
         registrationBean.addUrlMappings(!StringUtils.isEmpty(properties.getUrlPattern()) ? properties.getUrlPattern() : "/layering-cache/*");

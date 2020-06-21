@@ -15,7 +15,7 @@ public class PersonServiceImpl implements PersonService {
     @CachePut(value = "people", key = "#person.id", depict = "用户信息缓存")
     public Person save(Person person) {
         logger.info("为id、key为:" + person.getId() + "数据做了缓存");
-        return person;
+        return null;
     }
 
     @Override

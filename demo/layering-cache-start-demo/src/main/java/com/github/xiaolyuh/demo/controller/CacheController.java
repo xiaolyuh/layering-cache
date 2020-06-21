@@ -16,7 +16,7 @@ public class CacheController {
     @RequestMapping("/put")
     public long put(@RequestBody Person person) {
         Person p = personService.save(person);
-        return p.getId();
+        return 1L;
     }
 
     @RequestMapping("/able")

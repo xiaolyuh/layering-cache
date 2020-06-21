@@ -86,9 +86,10 @@ public class CaffeineCache extends AbstractValueAdaptingCache {
         }
 
         // 不允许存NULL值
-        if (value != null && value instanceof NullValue) {
+        if (value != null && !(value instanceof NullValue)) {
             logger.debug("caffeine缓存 key={} put缓存，缓存值：{}", JSON.toJSONString(key), JSON.toJSONString(value));
             this.cache.put(key, toStoreValue(value));
+            return;
         }
         logger.debug("缓存值为NULL并且不允许存NULL值，不缓存数据");
     }

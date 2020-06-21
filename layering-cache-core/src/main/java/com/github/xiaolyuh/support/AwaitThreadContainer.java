@@ -49,11 +49,15 @@ public class AwaitThreadContainer {
         Set<Thread> threadSet = threadMap.get(key);
         // 判断key所对应的等待线程容器是否是null
         if (!CollectionUtils.isEmpty(threadSet)) {
-            for (Thread thread : threadSet) {
-                LockSupport.unpark(thread);
+            synchronized (threadMap){
+                if (!CollectionUtils.isEmpty(threadSet)) {
+                    for (Thread thread : threadSet) {
+                        LockSupport.unpark(thread);
+                    }
+                    // 清空等待线程容器
+                    threadSet.clear();
+                }
             }
-            // 清空等待线程容器
-            threadSet.clear();
         }
     }
 

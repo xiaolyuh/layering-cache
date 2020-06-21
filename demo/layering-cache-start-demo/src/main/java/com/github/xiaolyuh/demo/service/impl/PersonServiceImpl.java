@@ -26,14 +26,14 @@ public class PersonServiceImpl implements PersonService {
     }
 
     @Override
-    @CacheEvict(value = "people", allEntries = true)//2
+    @CacheEvict(value = "cache-prefix", allEntries = true)//2
     public void removeAll() {
         logger.info("删除了所有缓存的数据缓存");
         //这里不做实际删除操作
     }
 
     @Override
-    @Cacheable(value = "people", key = "#person.id", depict = "用户信息缓存",
+    @Cacheable(value = "cache-prefix:people", key = "#person.id", depict = "用户信息缓存",
             firstCache = @FirstCache(expireTime = 4),
             secondaryCache = @SecondaryCache(expireTime = 15, preloadTime = 8, forceRefresh = true))
     public Person findOne(Person person) {

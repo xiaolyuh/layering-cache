@@ -70,7 +70,7 @@ public class KryoRedisSerializer<T> implements RedisSerializer<T> {
             }
             return (T) result;
         } catch (Exception e) {
-            throw new SerializationException(String.format("FastJsonRedisSerializer 反序列化异常: %s, 【JSON：%s】",
+            throw new SerializationException(String.format("KryoRedisSerializer 反序列化异常: %s, 【JSON：%s】",
                     e.getMessage(), JSON.toJSONString(bytes)), e);
         } finally {
             kryos.remove();

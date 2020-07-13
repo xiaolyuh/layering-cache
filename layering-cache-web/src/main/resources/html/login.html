@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+  <meta charset="UTF-8">
+  <title>Layering Cache</title>
+  <meta http-equiv="X-UA-Compatible" data="IE=edge">
+  <meta name="viewport" data="width=device-width, initial-scale=1">
+  <meta name="format-detection" data="telephone=no">
+  <meta name="renderer" data="webkit">
+  <meta http-equiv="Cache-Control" data="no-siteapp" />
+  <link rel="alternate icon" type="image/png" href="i/favicon.png">
+  <link rel="stylesheet" href="css/amazeui.min.css"/>
+  <style>
+    .header {
+      text-align: center;
+    }
+    .header h1 {
+      font-size: 200%;
+      color: #333;
+      margin-top: 30px;
+    }
+    .header p {
+      font-size: 14px;
+    }
+  </style>
+</head>
+<body>
+<div class="header">
+  <div class="am-g">
+    <h1>Layering Cache</h1>
+    <p><b>为监控而生的多级缓存框架</b></p>
+  </div>
+  <hr />
+</div>
+<div class="am-g">
+  <div class="am-u-lg-6 am-u-md-8 am-u-sm-centered">
+    <h3>登录</h3>
+    <hr>
+    <div class="am-btn-group">
+      <a href="https://github.com/xiaolyuh/layering-cache" class="am-btn am-btn-secondary am-btn-sm"><i class="am-icon-github am-icon-sm"></i> Github</a>
+    </div>
+    <br>
+    <br>
+
+    <form id="login-form" class="am-form">
+      <label for="loginUsername">用户名:</label>
+      <input type="text" name="loginUsername" id="loginUsername" value="">
+      <br>
+      <label for="loginPassword">密码:</label>
+      <input type="password" name="loginPassword" id="loginPassword" value="">
+      <br>
+      <div class="am-cf">
+        <input type="button" name="" value="登 录" id="login-button" class="am-btn am-btn-primary am-btn-sm am-fl">
+      </div>
+    </form>
+  </div>
+</div>
+</body>
+<script src="js/lib/jquery.min.js"></script>
+<script src="js/views/login.js"></script>
+</html>

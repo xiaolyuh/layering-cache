@@ -83,7 +83,7 @@
         <dependency>
             <groupId>com.github.xiaolyuh</groupId>
             <artifactId>layering-cache-starter</artifactId>
-            <version>2.1.1</version>
+            <version>3.0.0</version>
         </dependency>
     </dependencies>
 

@@ -4,12 +4,11 @@ import com.alibaba.fastjson.JSON;
 import com.github.xiaolyuh.listener.RedisPubSubMessage;
 import com.github.xiaolyuh.listener.RedisPubSubMessageType;
 import com.github.xiaolyuh.listener.RedisPublisher;
+import com.github.xiaolyuh.redis.clinet.RedisClient;
 import com.github.xiaolyuh.setting.LayeringCacheSetting;
 import com.github.xiaolyuh.stats.CacheStats;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.data.redis.listener.ChannelTopic;
 
 import java.util.concurrent.Callable;
 
@@ -24,7 +23,7 @@ public class LayeringCache extends AbstractValueAdaptingCache {
     /**
      * redis 客户端
      */
-    private RedisTemplate<String, Object> redisTemplate;
+    private RedisClient redisClient;
 
 
     /**
@@ -50,19 +49,19 @@ public class LayeringCache extends AbstractValueAdaptingCache {
     /**
      * 创建一个多级缓存对象
      *
-     * @param redisTemplate        redisTemplate
+     * @param redisClient          redisTemplate
      * @param firstCache           一级缓存
      * @param secondCache          二级缓存
      * @param stats                是否开启统计
      * @param layeringCacheSetting 多级缓存配置
      */
-    public LayeringCache(RedisTemplate<String, Object> redisTemplate, AbstractValueAdaptingCache firstCache,
+    public LayeringCache(RedisClient redisClient, AbstractValueAdaptingCache firstCache,
                          AbstractValueAdaptingCache secondCache, boolean stats, LayeringCacheSetting layeringCacheSetting) {
-        this(redisTemplate, firstCache, secondCache, true, stats, secondCache.getName(), layeringCacheSetting);
+        this(redisClient, firstCache, secondCache, true, stats, secondCache.getName(), layeringCacheSetting);
     }
 
     /**
-     * @param redisTemplate        redisTemplate
+     * @param redisClient          redisTemplate
      * @param firstCache           一级缓存
      * @param secondCache          二级缓存
      * @param useFirstCache        是否使用一级缓存，默认是
@@ -70,10 +69,10 @@ public class LayeringCache extends AbstractValueAdaptingCache {
      * @param name                 缓存名称
      * @param layeringCacheSetting 多级缓存配置
      */
-    public LayeringCache(RedisTemplate<String, Object> redisTemplate, AbstractValueAdaptingCache firstCache,
+    public LayeringCache(RedisClient redisClient, AbstractValueAdaptingCache firstCache,
                          AbstractValueAdaptingCache secondCache, boolean useFirstCache, boolean stats, String name, LayeringCacheSetting layeringCacheSetting) {
         super(stats, name);
-        this.redisTemplate = redisTemplate;
+        this.redisClient = redisClient;
         this.firstCache = firstCache;
         this.secondCache = secondCache;
         this.useFirstCache = useFirstCache;
@@ -86,7 +85,7 @@ public class LayeringCache extends AbstractValueAdaptingCache {
     }
 
     @Override
-    public Object get(Object key) {
+    public Object get(String key) {
         Object result = null;
         if (useFirstCache) {
             result = firstCache.get(key);
@@ -101,7 +100,7 @@ public class LayeringCache extends AbstractValueAdaptingCache {
     }
 
     @Override
-    public <T> T get(Object key, Class<T> type) {
+    public <T> T get(String key, Class<T> type) {
         if (useFirstCache) {
             Object result = firstCache.get(key, type);
             logger.debug("查询一级缓存。 key={},返回值是:{}", key, JSON.toJSONString(result));
@@ -117,7 +116,7 @@ public class LayeringCache extends AbstractValueAdaptingCache {
     }
 
     @Override
-    public <T> T get(Object key, Callable<T> valueLoader) {
+    public <T> T get(String key, Callable<T> valueLoader) {
         if (useFirstCache) {
             Object result = firstCache.get(key);
             logger.debug("查询一级缓存。 key={},返回值是:{}", key, JSON.toJSONString(result));
@@ -132,7 +131,7 @@ public class LayeringCache extends AbstractValueAdaptingCache {
     }
 
     @Override
-    public void put(Object key, Object value) {
+    public void put(String key, Object value) {
         secondCache.put(key, value);
         // 删除一级缓存
         if (useFirstCache) {
@@ -141,7 +140,7 @@ public class LayeringCache extends AbstractValueAdaptingCache {
     }
 
     @Override
-    public Object putIfAbsent(Object key, Object value) {
+    public Object putIfAbsent(String key, Object value) {
         Object result = secondCache.putIfAbsent(key, value);
         // 删除一级缓存
         if (useFirstCache) {
@@ -151,7 +150,7 @@ public class LayeringCache extends AbstractValueAdaptingCache {
     }
 
     @Override
-    public void evict(Object key) {
+    public void evict(String key) {
         // 删除的时候要先删除二级缓存再删除一级缓存，否则有并发问题
         secondCache.evict(key);
         // 删除一级缓存
@@ -170,18 +169,18 @@ public class LayeringCache extends AbstractValueAdaptingCache {
             message.setCacheName(getName());
             message.setMessageType(RedisPubSubMessageType.CLEAR);
             // 发布消息
-            RedisPublisher.publisher(redisTemplate, new ChannelTopic(getName()), message);
+            RedisPublisher.publisher(redisClient, message);
         }
     }
 
-    private void deleteFirstCache(Object key) {
+    private void deleteFirstCache(String key) {
         // 删除一级缓存需要用到redis的Pub/Sub（订阅/发布）模式，否则集群中其他服服务器节点的一级缓存数据无法删除
         RedisPubSubMessage message = new RedisPubSubMessage();
         message.setCacheName(getName());
         message.setKey(key);
         message.setMessageType(RedisPubSubMessageType.EVICT);
         // 发布消息
-        RedisPublisher.publisher(redisTemplate, new ChannelTopic(getName()), message);
+        RedisPublisher.publisher(redisClient, message);
     }
 
     /**

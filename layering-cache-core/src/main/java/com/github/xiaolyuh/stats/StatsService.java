@@ -5,13 +5,12 @@ import com.github.xiaolyuh.cache.Cache;
 import com.github.xiaolyuh.cache.LayeringCache;
 import com.github.xiaolyuh.manager.AbstractCacheManager;
 import com.github.xiaolyuh.manager.CacheManager;
+import com.github.xiaolyuh.redis.clinet.RedisClient;
 import com.github.xiaolyuh.setting.LayeringCacheSetting;
-import com.github.xiaolyuh.support.Lock;
-import com.github.xiaolyuh.util.RedisHelper;
+import com.github.xiaolyuh.support.LayeringCacheRedisLock;
 import com.github.xiaolyuh.util.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.util.CollectionUtils;
 
 import java.util.*;
@@ -35,7 +34,7 @@ public class StatsService {
     /**
      * 定时任务线程池
      */
-    private static ScheduledThreadPoolExecutor executor = new ScheduledThreadPoolExecutor(50);
+    private static ScheduledThreadPoolExecutor executor = new ScheduledThreadPoolExecutor(1 );
 
     /**
      * {@link AbstractCacheManager }
@@ -51,7 +50,7 @@ public class StatsService {
     public List<CacheStatsInfo> listCacheStats(String cacheNameParam) {
         logger.debug("获取缓存统计数据");
 
-        Set<String> layeringCacheKeys = RedisHelper.scan(cacheManager.getRedisTemplate(), CACHE_STATS_KEY_PREFIX + "*");
+        Set<String> layeringCacheKeys = cacheManager.getRedisClient().scan(CACHE_STATS_KEY_PREFIX + "*");
         if (CollectionUtils.isEmpty(layeringCacheKeys)) {
             return Collections.emptyList();
         }
@@ -62,7 +61,7 @@ public class StatsService {
                 continue;
             }
 
-            CacheStatsInfo cacheStats = (CacheStatsInfo) cacheManager.getRedisTemplate().opsForValue().get(key);
+            CacheStatsInfo cacheStats = (CacheStatsInfo) cacheManager.getRedisClient().get(key);
             if (!Objects.isNull(cacheStats)) {
                 statsList.add(cacheStats);
             }
@@ -75,7 +74,7 @@ public class StatsService {
      * 同步缓存统计list
      */
     public void syncCacheStats() {
-        RedisTemplate<String, Object> redisTemplate = cacheManager.getRedisTemplate();
+        RedisClient redisClient = cacheManager.getRedisClient();
         // 清空统计数据
         resetCacheStat();
         executor.scheduleWithFixedDelay(() -> {
@@ -93,10 +92,10 @@ public class StatsService {
                         LayeringCacheSetting layeringCacheSetting = layeringCache.getLayeringCacheSetting();
                         // 加锁并增量缓存统计数据，缓存key=固定前缀 +缓存名称加 + 内部缓存名
                         String redisKey = CACHE_STATS_KEY_PREFIX + cacheName + layeringCacheSetting.getInternalKey();
-                        Lock lock = new Lock(redisTemplate, redisKey, 60, 5000);
+                        LayeringCacheRedisLock lock = new LayeringCacheRedisLock(redisClient, redisKey, 60, 5000);
                         try {
                             if (lock.tryLock()) {
-                                CacheStatsInfo cacheStats = (CacheStatsInfo) redisTemplate.opsForValue().get(redisKey);
+                                CacheStatsInfo cacheStats = (CacheStatsInfo) redisClient.get(redisKey);
                                 if (Objects.isNull(cacheStats)) {
                                     cacheStats = new CacheStatsInfo();
                                 }
@@ -130,7 +129,7 @@ public class StatsService {
                                 cacheStats.setSecondCacheMissCount(cacheStats.getSecondCacheMissCount() + secondCacheStats.getAndResetCachedMethodRequestCount());
 
                                 // 将缓存统计数据写到redis
-                                redisTemplate.opsForValue().set(redisKey, cacheStats, 24, TimeUnit.HOURS);
+                                redisClient.set(redisKey, cacheStats, 24, TimeUnit.HOURS);
 
                                 logger.info("Layering Cache 统计信息：{}", JSON.toJSONString(cacheStats));
                             }
@@ -158,8 +157,8 @@ public class StatsService {
      * 重置缓存统计数据
      */
     public void resetCacheStat() {
-        RedisTemplate<String, Object> redisTemplate = cacheManager.getRedisTemplate();
-        Set<String> layeringCacheKeys = RedisHelper.scan(redisTemplate, CACHE_STATS_KEY_PREFIX + "*");
+        RedisClient redisClient = cacheManager.getRedisClient();
+        Set<String> layeringCacheKeys = redisClient.scan(CACHE_STATS_KEY_PREFIX + "*");
 
         for (String key : layeringCacheKeys) {
             resetCacheStat(key);
@@ -172,12 +171,16 @@ public class StatsService {
      * @param redisKey redisKey
      */
     public void resetCacheStat(String redisKey) {
-        RedisTemplate<String, Object> redisTemplate = cacheManager.getRedisTemplate();
-        CacheStatsInfo cacheStats = (CacheStatsInfo) redisTemplate.opsForValue().get(redisKey);
-        if (Objects.nonNull(cacheStats)) {
-            cacheStats.clearStatsInfo();
-            // 将缓存统计数据写到redis
-            redisTemplate.opsForValue().set(redisKey, cacheStats, 24, TimeUnit.HOURS);
+        RedisClient redisClient = cacheManager.getRedisClient();
+        try {
+            CacheStatsInfo cacheStats = (CacheStatsInfo) redisClient.get(redisKey);
+            if (Objects.nonNull(cacheStats)) {
+                cacheStats.clearStatsInfo();
+                // 将缓存统计数据写到redis
+                redisClient.set(redisKey, cacheStats, 24, TimeUnit.HOURS);
+            }
+        } catch (Exception e) {
+            redisClient.delete(redisKey);
         }
     }
 

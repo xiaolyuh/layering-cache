@@ -9,8 +9,9 @@ import com.github.xiaolyuh.setting.LayeringCacheSetting;
 import com.github.xiaolyuh.setting.SecondaryCacheSetting;
 import com.github.xiaolyuh.support.CacheOperationInvoker;
 import com.github.xiaolyuh.support.KeyGenerator;
-import com.github.xiaolyuh.support.SerializationException;
+import com.github.xiaolyuh.redis.serializer.SerializationException;
 import com.github.xiaolyuh.support.SimpleKeyGenerator;
+import com.github.xiaolyuh.util.ToStringUtils;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
@@ -81,17 +82,19 @@ public class LayeringAspect {
             // 执行查询缓存方法
             return executeCacheable(aopAllianceInvoker, cacheable, method, joinPoint.getArgs(), joinPoint.getTarget());
         } catch (SerializationException e) {
-            // 如果是序列化异常需要先删除原有缓存
+            // 如果是序列化异常需要先删除原有缓存,在执行缓存方法
             String[] cacheNames = cacheable.cacheNames();
-            // 删除缓存
             delete(cacheNames, cacheable.key(), method, joinPoint.getArgs(), joinPoint.getTarget());
-
-            // 忽略操作缓存过程中遇到的异常
-            if (cacheable.ignoreException()) {
-                logger.warn(e.getMessage(), e);
-                return aopAllianceInvoker.invoke();
+            try {
+                return executeCacheable(aopAllianceInvoker, cacheable, method, joinPoint.getArgs(), joinPoint.getTarget());
+            } catch (Exception exception) {
+                // 忽略操作缓存过程中遇到的异常
+                if (cacheable.ignoreException()) {
+                    logger.warn(e.getMessage(), e);
+                    return aopAllianceInvoker.invoke();
+                }
+                throw e;
             }
-            throw e;
         } catch (Exception e) {
             // 忽略操作缓存过程中遇到的异常
             if (cacheable.ignoreException()) {
@@ -183,7 +186,7 @@ public class LayeringAspect {
         Cache cache = cacheManager.getCache(cacheName, layeringCacheSetting);
 
         // 通Cache获取值
-        return cache.get(key, () -> invoker.invoke());
+        return cache.get(ToStringUtils.toString(key), invoker::invoke);
     }
 
     /**
@@ -198,7 +201,10 @@ public class LayeringAspect {
      */
     private Object executeEvict(CacheOperationInvoker invoker, CacheEvict cacheEvict,
                                 Method method, Object[] args, Object target) {
+        // 执行删除方法
+        Object result  = invoker.invoke();
 
+        // 删除缓存
         // 解析SpEL表达式获取cacheName和key
         String[] cacheNames = cacheEvict.cacheNames();
         Assert.notEmpty(cacheEvict.cacheNames(), CACHE_NAME_ERROR_MESSAGE);
@@ -223,8 +229,7 @@ public class LayeringAspect {
             delete(cacheNames, cacheEvict.key(), method, args, target);
         }
 
-        // 执行方法
-        return invoker.invoke();
+        return result;
     }
 
     /**
@@ -245,10 +250,10 @@ public class LayeringAspect {
                 // 如果没有找到Cache就新建一个默认的
                 Cache cache = cacheManager.getCache(cacheName,
                         new LayeringCacheSetting(new FirstCacheSetting(), new SecondaryCacheSetting(), "默认缓存配置（删除时生成）"));
-                cache.evict(key);
+                cache.evict(ToStringUtils.toString(key));
             } else {
                 for (Cache cache : caches) {
-                    cache.evict(key);
+                    cache.evict(ToStringUtils.toString(key));
                 }
             }
         }
@@ -265,7 +270,6 @@ public class LayeringAspect {
      * @return {@link Object}
      */
     private Object executePut(CacheOperationInvoker invoker, CachePut cachePut, Method method, Object[] args, Object target) {
-
 
         String[] cacheNames = cachePut.cacheNames();
         Assert.notEmpty(cachePut.cacheNames(), CACHE_NAME_ERROR_MESSAGE);
@@ -292,7 +296,7 @@ public class LayeringAspect {
         for (String cacheName : cacheNames) {
             // 通过cacheName和缓存配置获取Cache
             Cache cache = cacheManager.getCache(cacheName, layeringCacheSetting);
-            cache.put(key, result);
+            cache.put(ToStringUtils.toString(key), result);
         }
 
         return result;

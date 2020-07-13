@@ -32,7 +32,7 @@ public interface Cache {
      * @param key key
      * @return 缓存key对应的值
      */
-    Object get(Object key);
+    Object get(String key);
 
     /**
      * 根据KEY返回缓存中对应的值，并将其返回类型转换成对应类型，如果对应key不存在返回NULL
@@ -42,7 +42,7 @@ public interface Cache {
      * @param <T>  Object
      * @return 缓存key对应的值
      */
-    <T> T get(Object key, Class<T> type);
+    <T> T get(String key, Class<T> type);
 
     /**
      * 根据KEY返回缓存中对应的值，并将其返回类型转换成对应类型，如果对应key不存在则调用valueLoader加载数据
@@ -52,7 +52,7 @@ public interface Cache {
      * @param <T>         Object
      * @return 缓存key对应的值
      */
-    <T> T get(Object key, Callable<T> valueLoader);
+    <T> T get(String key, Callable<T> valueLoader);
 
     /**
      * 将对应key-value放到缓存，如果key原来有值就直接覆盖
@@ -60,7 +60,7 @@ public interface Cache {
      * @param key   缓存key
      * @param value 缓存的值
      */
-    void put(Object key, Object value);
+    void put(String key, Object value);
 
     /**
      * 如果缓存key没有对应的值就将值put到缓存，如果有就直接返回原有的值
@@ -86,14 +86,14 @@ public interface Cache {
      * 所以如果返回NULL就表示已经将key-value键值对放到了缓存中
      * @since 4.1
      */
-    Object putIfAbsent(Object key, Object value);
+    Object putIfAbsent(String key, Object value);
 
     /**
      * 在缓存中删除对应的key
      *
      * @param key 缓存key
      */
-    void evict(Object key);
+    void evict(String key);
 
     /**
      * 清楚缓存

@@ -20,6 +20,7 @@ public class ThreadTaskUtils {
         taskExecutor.setQueueCapacity(1000);
         // 线程池维护线程所允许的空闲时间(单位秒)
         taskExecutor.setKeepAliveSeconds(120);
+        taskExecutor.setThreadNamePrefix("layering-cache-thread");
         /*
          * 线程池对拒绝任务(无限程可用)的处理策略
          * ThreadPoolExecutor.AbortPolicy:丢弃任务并抛出RejectedExecutionException异常。

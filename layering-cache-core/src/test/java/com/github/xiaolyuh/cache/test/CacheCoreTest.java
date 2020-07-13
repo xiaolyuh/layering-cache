@@ -6,12 +6,13 @@ import com.github.xiaolyuh.cache.config.CacheConfig;
 import com.github.xiaolyuh.cache.redis.RedisCache;
 import com.github.xiaolyuh.cache.redis.RedisCacheKey;
 import com.github.xiaolyuh.manager.CacheManager;
+import com.github.xiaolyuh.redis.clinet.RedisClient;
 import com.github.xiaolyuh.setting.FirstCacheSetting;
 import com.github.xiaolyuh.setting.LayeringCacheSetting;
 import com.github.xiaolyuh.setting.SecondaryCacheSetting;
 import com.github.xiaolyuh.stats.CacheStats;
 import com.github.xiaolyuh.support.ExpireMode;
-import com.github.xiaolyuh.support.Lock;
+import com.github.xiaolyuh.support.LayeringCacheRedisLock;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -19,7 +20,6 @@ import org.junit.runner.RunWith;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
@@ -37,7 +37,7 @@ public class CacheCoreTest {
     private CacheManager cacheManager;
 
     @Autowired
-    private RedisTemplate<String, Object> redisTemplate;
+    private RedisClient redisClient;
 
     private LayeringCacheSetting layeringCacheSetting1;
     private LayeringCacheSetting layeringCacheSetting2;
@@ -107,11 +107,11 @@ public class CacheCoreTest {
         RedisCacheKey redisCacheKey = ((RedisCache) cache1.getSecondCache()).getRedisCacheKey(cacheKey1);
         cache1.get(cacheKey1, () -> initCache(String.class));
         sleep(6);
-        Long ttl = redisTemplate.getExpire(redisCacheKey.getKey());
+        Long ttl = redisClient.getExpire(redisCacheKey.getKey());
         logger.debug("========================ttl 1:{}", ttl);
         Assert.assertNotNull(cache1.getSecondCache().get(cacheKey1));
         sleep(5);
-        ttl = redisTemplate.getExpire(redisCacheKey.getKey());
+        ttl = redisClient.getExpire(redisCacheKey.getKey());
         logger.debug("========================ttl 2:{}", ttl);
         Assert.assertNull(cache1.getSecondCache().get(cacheKey1));
     }
@@ -133,8 +133,8 @@ public class CacheCoreTest {
         // 测试二级缓存可以存NULL值，NULL值时间倍率是10
         String st2 = cache1.getSecondCache().get(cacheKey1, String.class);
         RedisCacheKey redisCacheKey = ((RedisCache) cache1.getSecondCache()).getRedisCacheKey(cacheKey1);
-        Long ttl = redisTemplate.getExpire(redisCacheKey.getKey());
-        Assert.assertTrue(redisTemplate.hasKey(redisCacheKey.getKey()));
+        Long ttl = redisClient.getExpire(redisCacheKey.getKey());
+        Assert.assertTrue(redisClient.hasKey(redisCacheKey.getKey()));
         Assert.assertTrue(st2 == null);
         Assert.assertTrue(ttl <= 10);
         sleep(5);
@@ -142,7 +142,7 @@ public class CacheCoreTest {
         Assert.assertTrue(st2 == null);
         cache1.getSecondCache().get(cacheKey1, () -> initNullCache());
         sleep(1);
-        ttl = redisTemplate.getExpire(redisCacheKey.getKey());
+        ttl = redisClient.getExpire(redisCacheKey.getKey());
         Assert.assertTrue(ttl <= 10 && ttl > 5);
 
         st2 = cache1.get(cacheKey1, String.class);
@@ -166,7 +166,7 @@ public class CacheCoreTest {
         // 测试二级缓存不可以存NULL值，NULL值时间倍率是10
         String st2 = cache1.getSecondCache().get(cacheKey1, String.class);
         RedisCacheKey redisCacheKey = ((RedisCache) cache1.getSecondCache()).getRedisCacheKey(cacheKey1);
-        Assert.assertTrue(!redisTemplate.hasKey(redisCacheKey.getKey()));
+        Assert.assertTrue(!redisClient.hasKey(redisCacheKey.getKey()));
         Assert.assertTrue(st2 == null);
     }
 
@@ -274,8 +274,8 @@ public class CacheCoreTest {
         // 测试二级缓存可以存NULL值，NULL值时间倍率是10
         String st2 = cache1.getSecondCache().get(cacheKey1, String.class);
         RedisCacheKey redisCacheKey = ((RedisCache) cache1.getSecondCache()).getRedisCacheKey(cacheKey1);
-        Long ttl = redisTemplate.getExpire(redisCacheKey.getKey());
-        Assert.assertTrue(redisTemplate.hasKey(redisCacheKey.getKey()));
+        Long ttl = redisClient.getExpire(redisCacheKey.getKey());
+        Assert.assertTrue(redisClient.hasKey(redisCacheKey.getKey()));
         Assert.assertTrue(st2 == null);
         Assert.assertTrue(ttl <= 10);
         sleep(5);
@@ -283,7 +283,7 @@ public class CacheCoreTest {
         Assert.assertTrue(st2 == null);
         cache1.getSecondCache().get(cacheKey1, () -> initNullCache());
         sleep(1);
-        ttl = redisTemplate.getExpire(redisCacheKey.getKey());
+        ttl = redisClient.getExpire(redisCacheKey.getKey());
         Assert.assertTrue(ttl <= 10 && ttl > 5);
 
         st2 = cache1.get(cacheKey1, String.class);
@@ -307,7 +307,7 @@ public class CacheCoreTest {
         // 测试二级缓存不可以存NULL值，NULL值时间倍率是10
         String st2 = cache1.getSecondCache().get(cacheKey1, String.class);
         RedisCacheKey redisCacheKey = ((RedisCache) cache1.getSecondCache()).getRedisCacheKey(cacheKey1);
-        Assert.assertTrue(!redisTemplate.hasKey(redisCacheKey.getKey()));
+        Assert.assertTrue(!redisClient.hasKey(redisCacheKey.getKey()));
         Assert.assertTrue(st2 == null);
     }
 
@@ -367,7 +367,7 @@ public class CacheCoreTest {
      */
     @Test
     public void testLock() {
-        Lock lock = new Lock(redisTemplate, "test:123");
+        LayeringCacheRedisLock lock = new LayeringCacheRedisLock(redisClient, "test:123");
         lock.lock();
         lock.unlock();
     }

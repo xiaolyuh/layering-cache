@@ -7,7 +7,7 @@
     <groupId>com.github.xiaolyuh</groupId>
     <artifactId>layering-cache</artifactId>
     <packaging>pom</packaging>
-    <version>2.1.1</version>
+    <version>3.0.0</version>
 
     <parent>
         <groupId>org.sonatype.oss</groupId>
@@ -15,9 +15,9 @@
         <version>7</version>
     </parent>
 
+
     <modules>
         <module>layering-cache-core</module>
-        <module>layering-cache-tool</module>
         <module>layering-cache-aspectj</module>
         <module>layering-cache-starter</module>
     </modules>
@@ -54,14 +54,13 @@
         <maven.compiler.target>1.8</maven.compiler.target>
 
         <caffeine.version>2.6.2</caffeine.version>
-        <spring.data.redis.version>2.1.3.RELEASE</spring.data.redis.version>
-        <lettuce.version>5.1.3.RELEASE</lettuce.version>
         <jedis.version>2.9.0</jedis.version>
         <spring.version>5.1.3.RELEASE</spring.version>
         <slf4j.version>1.7.25</slf4j.version>
         <fastjson.version>1.2.58</fastjson.version>
         <aspectj.version>1.9.2</aspectj.version>
         <servlet.version>4.0.1</servlet.version>
+        <lombok.version>1.18.12</lombok.version>
         <jackson.version>2.10.0.pr1</jackson.version>
         <kryo.version>3.0.3</kryo.version>
         <protostuff.version>1.6.0</protostuff.version>
@@ -77,18 +76,6 @@
                 <groupId>com.github.ben-manes.caffeine</groupId>
                 <artifactId>caffeine</artifactId>
                 <version>${caffeine.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>org.springframework.data</groupId>
-                <artifactId>spring-data-redis</artifactId>
-                <version>${spring.data.redis.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>io.lettuce</groupId>
-                <artifactId>lettuce-core</artifactId>
-                <version>${lettuce.version}</version>
             </dependency>
 
             <dependency>
@@ -112,6 +99,12 @@
             <dependency>
                 <groupId>org.springframework</groupId>
                 <artifactId>spring-core</artifactId>
+                <version>${spring.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.springframework</groupId>
+                <artifactId>spring-beans</artifactId>
                 <version>${spring.version}</version>
             </dependency>
 
@@ -173,7 +166,7 @@
 
             <dependency>
                 <groupId>org.springframework.boot</groupId>
-                <artifactId>spring-boot-starter-data-redis</artifactId>
+                <artifactId>spring-boot-configuration-processor</artifactId>
                 <version>${spring.boot.version}</version>
             </dependency>
 
@@ -194,6 +187,14 @@
                 <groupId>javax.servlet</groupId>
                 <artifactId>javax.servlet-api</artifactId>
                 <version>${servlet.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.projectlombok</groupId>
+                <artifactId>lombok</artifactId>
+                <version>${lombok.version}</version>
+                <optional>true</optional>
+                <scope>provided</scope>
             </dependency>
         </dependencies>
     </dependencyManagement>

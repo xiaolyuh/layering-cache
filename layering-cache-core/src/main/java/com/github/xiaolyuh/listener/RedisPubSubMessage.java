@@ -8,6 +8,8 @@ import java.io.Serializable;
  * @author yuhao.wang3
  */
 public class RedisPubSubMessage implements Serializable {
+    public static final String SOURCE = "web-manage";
+
     /**
      * 缓存名称
      */
@@ -16,12 +18,17 @@ public class RedisPubSubMessage implements Serializable {
     /**
      * 缓存key
      */
-    private Object key;
+    private String key;
 
     /**
      * 消息类型
      */
     private RedisPubSubMessageType messageType;
+
+    /**
+     * 消息来源
+     */
+    private String source;
 
     public String getCacheName() {
         return cacheName;
@@ -31,11 +38,11 @@ public class RedisPubSubMessage implements Serializable {
         this.cacheName = cacheName;
     }
 
-    public Object getKey() {
+    public String getKey() {
         return key;
     }
 
-    public void setKey(Object key) {
+    public void setKey(String key) {
         this.key = key;
     }
 
@@ -45,5 +52,13 @@ public class RedisPubSubMessage implements Serializable {
 
     public void setMessageType(RedisPubSubMessageType messageType) {
         this.messageType = messageType;
+    }
+
+    public String getSource() {
+        return source;
+    }
+
+    public void setSource(String source) {
+        this.source = source;
     }
 }

@@ -1,10 +1,10 @@
 package com.github.xiaolyuh.tool.service;
 
+import com.github.xiaolyuh.redis.clinet.RedisClient;
 import com.github.xiaolyuh.tool.support.IPAddress;
 import com.github.xiaolyuh.tool.support.IPRange;
 import com.github.xiaolyuh.tool.support.InitServletData;
 import com.github.xiaolyuh.tool.support.URLConstant;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.util.CollectionUtils;
 
 import java.io.IOException;
@@ -69,7 +69,7 @@ public class UserService {
      * @param redisTemplate redis客户端
      * @param token         唯一标示
      */
-    public boolean checkLogin(String path, RedisTemplate<String, Object> redisTemplate, String token) {
+    public boolean checkLogin(String path, RedisClient redisTemplate, String token) {
         // 不需要权限的就可以访问的资源
         if (isIgnoreSource(path)) {
             return true;
@@ -94,10 +94,10 @@ public class UserService {
      * @return
      * @throws IOException
      */
-    public boolean login(InitServletData initServletData, String usernameParam, String passwordParam, RedisTemplate<String, Object> redisTemplate, String token) throws IOException {
+    public boolean login(InitServletData initServletData, String usernameParam, String passwordParam, RedisClient redisTemplate, String token) throws IOException {
         if (initServletData.getUsername().equals(usernameParam) &&
                 initServletData.getPassword().equals(passwordParam)) {
-            redisTemplate.opsForValue().set(SESSION_USER_KEY + token, initServletData.getUsername(), 30, TimeUnit.MINUTES);
+            redisTemplate.set(SESSION_USER_KEY + token, initServletData.getUsername(), 30, TimeUnit.MINUTES);
             return true;
         }
         return false;
@@ -110,8 +110,8 @@ public class UserService {
      * @param token         唯一标示
      * @return
      */
-    public boolean isLogin(RedisTemplate<String, Object> redisTemplate, String token) {
-        return redisTemplate != null && redisTemplate.opsForValue().get(SESSION_USER_KEY + token) != null;
+    public boolean isLogin(RedisClient redisTemplate, String token) {
+        return redisTemplate != null && redisTemplate.get(SESSION_USER_KEY + token) != null;
     }
 
     /**
@@ -137,7 +137,7 @@ public class UserService {
      * @param token         唯一标示
      * @return boolean
      */
-    public boolean loginOut(RedisTemplate<String, Object> redisTemplate, String token) {
+    public boolean loginOut(RedisClient redisTemplate, String token) {
         redisTemplate.delete(SESSION_USER_KEY + token);
         return true;
     }
@@ -149,7 +149,7 @@ public class UserService {
      * @param token         唯一标示
      * @return boolean
      */
-    public boolean refreshSession(RedisTemplate<String, Object> redisTemplate, String token) {
+    public boolean refreshSession(RedisClient redisTemplate, String token) {
         redisTemplate.expire(SESSION_USER_KEY + token, 30, TimeUnit.MINUTES);
         return true;
     }

@@ -5,14 +5,15 @@ import com.github.xiaolyuh.config.CacheConfig;
 import com.github.xiaolyuh.domain.User;
 import com.github.xiaolyuh.manager.CacheManager;
 import com.github.xiaolyuh.manager.LayeringCacheManager;
+import com.github.xiaolyuh.redis.clinet.RedisClient;
 import com.github.xiaolyuh.support.CacheMode;
+import javafx.scene.input.DataFormat;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
@@ -33,7 +34,7 @@ public class CacheAspectTest {
     private TestService testService;
 
     @Autowired
-    private RedisTemplate redisTemplate;
+    private RedisClient redisClient;
 
     @Autowired
     private CacheManager cacheManager;
@@ -50,7 +51,7 @@ public class CacheAspectTest {
         user = testService.getUserById(userId);
         sleep(10);
 
-        Object result = redisTemplate.opsForValue().get("user:info:113:113");
+        Object result = redisClient.get("user:info:113:113");
         Assert.assertNull(result);
 
         user = testService.getUserById(userId);
@@ -69,7 +70,7 @@ public class CacheAspectTest {
         sleep(4);
         user = testService.getUserNoKey(userId, lastName);
         sleep(10);
-        Object result = redisTemplate.opsForValue().get("user:info:113:113");
+        Object result = redisClient.get("user:info:113:113");
         Assert.assertNull(result);
 
         user = testService.getUserNoKey(userId, lastName);
@@ -90,7 +91,7 @@ public class CacheAspectTest {
         sleep(4);
         user = testService.getUserObjectPram(user);
         sleep(11);
-        Object result = redisTemplate.opsForValue().get("user:info:113:113");
+        Object result = redisClient.get("user:info:113:113");
         Assert.assertNull(result);
 
         user = testService.getUserObjectPram(user);
@@ -112,7 +113,7 @@ public class CacheAspectTest {
         sleep(4);
         user = testService.getUser(user, user.getAge());
         sleep(11);
-        Object result = redisTemplate.opsForValue().get("user:info:114:114");
+        Object result = redisClient.get("user:info:114:114");
         Assert.assertNull(result);
 
         user = testService.getUser(user, user.getAge());
@@ -132,7 +133,7 @@ public class CacheAspectTest {
         sleep(4);
         user = testService.getNullUser(userId);
         sleep(11);
-        Object result = redisTemplate.opsForValue().get("user:info:115:115");
+        Object result = redisClient.get("user:info:115:115");
         Assert.assertNull(result);
 
         user = testService.getNullUser(userId);
@@ -151,7 +152,7 @@ public class CacheAspectTest {
         sleep(4);
         testService.getUserNoParam();
         sleep(11);
-        Object result = redisTemplate.opsForValue().get("user:info:{params:[]}");
+        Object result = redisClient.get("user:info:{params:[]}");
         Assert.assertNull(result);
 
         user = testService.getUserNoParam();
@@ -446,10 +447,26 @@ public class CacheAspectTest {
         sleep(3);
         testService.evictUser(userId);
         sleep(3);
-        Object result = redisTemplate.opsForValue().get("user:info:118:118");
+        Object result = redisClient.get("user:info:118:118");
         Assert.assertNull(result);
+    }
 
-
+    @Test
+    public void testEvictUserNoKey() {
+        long userId = 300_118;
+        User user = new User();
+        user.setUserId(userId);
+        user.setBirthday(new Date(1593530584170L));
+        testService.putUserNoKey(userId, user.getLastName(), user);
+        String key = "user:info:params:[300118,[w,四川,~！@#%……&*（）——+：“？》:''\\>?《~!@#$%^&*()_+\\\\],address:addredd:成都,age:122,birthday:1593530584170,height:18.2,income:22.22,lastName:[w,四川,~！@#%……&*（）——+：“？》:''\\>?《~!@#$%^&*()_+\\\\],lastNameList:[W,成都],lastNameSet:[成都,W],name:name,userId:300118]";
+        User result =(User) redisClient.get(key);
+        Assert.assertNotNull(result);
+        Assert.assertEquals(result.getUserId(), user.getUserId());
+        sleep(3);
+        testService.evictUserNoKey(userId, user.getLastName(), user);
+        sleep(3);
+        Object result2 = redisClient.get(key);
+        Assert.assertNull(result2);
     }
 
     @Test
@@ -460,8 +477,8 @@ public class CacheAspectTest {
         sleep(5);
         testService.evictAllUser();
         sleep(3);
-        Object result1 = redisTemplate.opsForValue().get("user:info:119");
-        Object result2 = redisTemplate.opsForValue().get("user:info:121");
+        Object result1 = redisClient.get("user:info:119");
+        Object result2 = redisClient.get("user:info:121");
         Assert.assertNull(result1);
         Assert.assertNull(result2);
     }
@@ -476,8 +493,8 @@ public class CacheAspectTest {
         Assert.assertTrue(((LayeringCacheManager) cacheManager).getCacheContainer().size() == 0);
         testService.evictUser(119_119);
         sleep(2);
-        Object result1 = redisTemplate.opsForValue().get("user:info:119119");
-        Object result2 = redisTemplate.opsForValue().get("user:info:119121");
+        Object result1 = redisClient.get("user:info:119119");
+        Object result2 = redisClient.get("user:info:119121");
         Assert.assertNull(result1);
         Assert.assertNotNull(result2);
 
@@ -485,8 +502,8 @@ public class CacheAspectTest {
         Assert.assertTrue(((LayeringCacheManager) cacheManager).getCacheContainer().size() == 0);
         testService.evictAllUser();
         sleep(2);
-        result2 = redisTemplate.opsForValue().get("user:info:119121");
-        Object result3 = redisTemplate.opsForValue().get("user:info:119122");
+        result2 = redisClient.get("user:info:119121");
+        Object result3 = redisClient.get("user:info:119122");
         Assert.assertNull(result2);
         Assert.assertNull(result3);
     }

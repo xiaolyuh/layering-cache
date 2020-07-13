@@ -1,7 +1,7 @@
 package com.github.xiaolyuh.cache.redis;
 
-import com.github.xiaolyuh.serializer.StringRedisSerializer;
-import org.springframework.data.redis.serializer.RedisSerializer;
+import com.github.xiaolyuh.redis.serializer.RedisSerializer;
+import com.github.xiaolyuh.redis.serializer.StringRedisSerializer;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
@@ -17,7 +17,7 @@ public class RedisCacheKey {
     /**
      * 前缀序列化器
      */
-    private final RedisSerializer prefixSerializer1 = new StringRedisSerializer();
+    private final RedisSerializer<String> prefixSerializer1 = new StringRedisSerializer();
 
     /**
      * 缓存key

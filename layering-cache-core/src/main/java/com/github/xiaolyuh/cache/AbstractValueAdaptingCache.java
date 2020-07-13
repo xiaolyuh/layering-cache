@@ -73,7 +73,7 @@ public abstract class AbstractValueAdaptingCache implements Cache {
 
     @Override
     @SuppressWarnings("unchecked")
-    public <T> T get(Object key, Class<T> type) {
+    public <T> T get(String key, Class<T> type) {
         return (T) fromStoreValue(get(key));
     }
 
@@ -107,7 +107,7 @@ public abstract class AbstractValueAdaptingCache implements Cache {
 
 
     /**
-     * {@link #get(Object, Callable)} 方法加载缓存值的包装异常
+     * {@link #get(String, Callable)} 方法加载缓存值的包装异常
      */
     public class LoaderCacheValueException extends RuntimeException {
 

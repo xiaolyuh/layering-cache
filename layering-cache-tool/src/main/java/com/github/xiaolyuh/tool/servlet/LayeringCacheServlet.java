@@ -3,6 +3,7 @@ package com.github.xiaolyuh.tool.servlet;
 
 import com.alibaba.fastjson.JSON;
 import com.github.xiaolyuh.manager.AbstractCacheManager;
+import com.github.xiaolyuh.redis.clinet.RedisClient;
 import com.github.xiaolyuh.stats.CacheStatsInfo;
 import com.github.xiaolyuh.tool.service.CacheService;
 import com.github.xiaolyuh.tool.service.UserService;
@@ -15,7 +16,6 @@ import com.github.xiaolyuh.util.BeanFactory;
 import com.github.xiaolyuh.util.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.util.CollectionUtils;
 
 import javax.servlet.ServletException;
@@ -38,7 +38,7 @@ public class LayeringCacheServlet extends HttpServlet {
 
     private InitServletData initServletData = new InitServletData();
 
-    private RedisTemplate<String, Object> redisTemplate;
+    private RedisClient redisClient;
 
     @Override
     public void init() throws ServletException {
@@ -70,7 +70,7 @@ public class LayeringCacheServlet extends HttpServlet {
 
         // 登录校验
         String token = request.getParameter(InitServletData.PARAM_NAME_TOKEN);
-        boolean isLogin = BeanFactory.getBean(UserService.class).checkLogin(path, redisTemplate, token);
+        boolean isLogin = BeanFactory.getBean(UserService.class).checkLogin(path, redisClient, token);
         if (!isLogin) {
             returnResourceFile("/login.html", uri, response);
             return;
@@ -81,7 +81,7 @@ public class LayeringCacheServlet extends HttpServlet {
             String usernameParam = request.getParameter(InitServletData.PARAM_NAME_USERNAME);
             String passwordParam = request.getParameter(InitServletData.PARAM_NAME_PASSWORD);
             token = UUID.randomUUID().toString();
-            boolean success = BeanFactory.getBean(UserService.class).login(initServletData, usernameParam, passwordParam, redisTemplate, token);
+            boolean success = BeanFactory.getBean(UserService.class).login(initServletData, usernameParam, passwordParam, redisClient, token);
 
             if (success) {
                 response.getWriter().write(JSON.toJSONString(Result.success(token)));
@@ -93,7 +93,7 @@ public class LayeringCacheServlet extends HttpServlet {
 
         // 退出登录
         if (URLConstant.USER_LOGIN_OUT.equals(path)) {
-            boolean success = BeanFactory.getBean(UserService.class).loginOut(redisTemplate, token);
+            boolean success = BeanFactory.getBean(UserService.class).loginOut(redisClient, token);
 
             if (success) {
                 response.getWriter().write(JSON.toJSONString(Result.success()));
@@ -115,7 +115,7 @@ public class LayeringCacheServlet extends HttpServlet {
             }
             response.getWriter().write(JSON.toJSONString(Result.success()));
             // 刷新session
-            BeanFactory.getBean(UserService.class).refreshSession(redisTemplate, token);
+            BeanFactory.getBean(UserService.class).refreshSession(redisClient, token);
             return;
         }
 
@@ -132,7 +132,7 @@ public class LayeringCacheServlet extends HttpServlet {
             }
             response.getWriter().write(JSON.toJSONString(Result.success(statsList)));
             // 刷新session
-            BeanFactory.getBean(UserService.class).refreshSession(redisTemplate, token);
+            BeanFactory.getBean(UserService.class).refreshSession(redisClient, token);
             return;
         }
 
@@ -149,7 +149,7 @@ public class LayeringCacheServlet extends HttpServlet {
             BeanFactory.getBean(CacheService.class).deleteCache(cacheNameParam, internalKey, key);
             response.getWriter().write(JSON.toJSONString(Result.success()));
             // 刷新session
-            BeanFactory.getBean(UserService.class).refreshSession(redisTemplate, token);
+            BeanFactory.getBean(UserService.class).refreshSession(redisClient, token);
             return;
         }
 
@@ -192,7 +192,7 @@ public class LayeringCacheServlet extends HttpServlet {
         }
 
         // 获取redisTemplate
-        redisTemplate = getRedisTemplate();
+        redisClient = getRedisClient();
     }
 
     private List<IPRange> parseStringToIP(String ipStr) {
@@ -260,10 +260,10 @@ public class LayeringCacheServlet extends HttpServlet {
         return Boolean.parseBoolean(enableUpdate);
     }
 
-    private RedisTemplate<String, Object> getRedisTemplate() {
+    private RedisClient getRedisClient() {
         Set<AbstractCacheManager> cacheManagers = AbstractCacheManager.getCacheManager();
         for (AbstractCacheManager cacheManager : cacheManagers) {
-            return cacheManager.getRedisTemplate();
+            return cacheManager.getRedisClient();
         }
         return null;
     }

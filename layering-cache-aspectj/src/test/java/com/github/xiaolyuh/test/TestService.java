@@ -292,6 +292,13 @@ public class TestService {
         return null;
     }
 
+    @CachePut(value = "user:info", ignoreException = false,
+            firstCache = @FirstCache(expireTime = 40, timeUnit = TimeUnit.SECONDS),
+            secondaryCache = @SecondaryCache(expireTime = 100, preloadTime = 30, forceRefresh = true, timeUnit = TimeUnit.SECONDS))
+    public User putUserNoKey(long userId,String[] lastName, User user) {
+        return user;
+    }
+
     @Cacheable(value = "user:info:118", key = "#userId", ignoreException = false,
             firstCache = @FirstCache(expireTime = 4, timeUnit = TimeUnit.SECONDS),
             secondaryCache = @SecondaryCache(expireTime = 10, preloadTime = 3,
@@ -337,6 +344,11 @@ public class TestService {
 
     @CacheEvict(value = "user:info", key = "#userId", ignoreException = false)
     public void evictUser(long userId) {
+
+    }
+
+    @CacheEvict(value = "user:info",  ignoreException = false)
+    public void evictUserNoKey(long userId, String[] lastName, User user) {
 
     }
 

@@ -3,11 +3,9 @@ package com.github.xiaolyuh.manager;
 import com.github.xiaolyuh.cache.Cache;
 import com.github.xiaolyuh.setting.LayeringCacheSetting;
 import com.github.xiaolyuh.stats.CacheStatsInfo;
-import org.springframework.data.redis.core.RedisTemplate;
 
 import java.util.Collection;
 import java.util.List;
-import java.util.Set;
 
 /**
  * 缓存管理器
@@ -43,6 +41,7 @@ public interface CacheManager {
 
     /**
      * 获取缓存命中率统计信息
+     *
      * @param cacheName 缓存名称，为Blank则查询全部
      * @return List&lt;CacheStatsInfo&gt;
      */

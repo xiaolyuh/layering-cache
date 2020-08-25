@@ -71,14 +71,10 @@ public interface RedisClient {
      *
      * @param key   key
      * @param value value
-     * @param nxxx  NX|XX, NX -- Only set the key if it does not already exist. XX -- Only set the key
-     *              if it already exist.
-     * @param expx  EX|PX, expire time units: EX = seconds; PX = milliseconds
      * @param time  expire time in the units of <code>expx</code>
      * @return Status code reply
      */
-    String set(final String key, final Object value, final String nxxx, final String expx,
-               final long time);
+    String setNxEx(final String key, final Object value, final long time);
 
     /**
      * <p>
@@ -121,7 +117,7 @@ public interface RedisClient {
      * @param timeUnit 时间单位
      * @return 成功返回1 如果存在 和 发生异常 返回 0
      */
-    Long expire(String key, long timeout, TimeUnit timeUnit);
+    Boolean expire(String key, long timeout, TimeUnit timeUnit);
 
 
     /**

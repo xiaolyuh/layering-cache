@@ -52,11 +52,6 @@ public class LayeringCacheAutoConfig {
         redisProperties.setCluster(layeringCacheRedisProperties.getCluster());
         redisProperties.setPassword(StringUtils.isBlank(layeringCacheRedisProperties.getPassword()) ? null : layeringCacheRedisProperties.getPassword());
         redisProperties.setPort(layeringCacheRedisProperties.getPort());
-        redisProperties.setMaxIdle(layeringCacheRedisProperties.getMaxIdle());
-        redisProperties.setMinIdle(layeringCacheRedisProperties.getMinIdle());
-        redisProperties.setMaxTotal(layeringCacheRedisProperties.getMaxTotal());
-        redisProperties.setMaxWaitMillis(layeringCacheRedisProperties.getMaxWaitMillis());
-
 
         KryoRedisSerializer<Object> kryoRedisSerializer = new KryoRedisSerializer<>(Object.class);
         StringRedisSerializer keyRedisSerializer = new StringRedisSerializer();

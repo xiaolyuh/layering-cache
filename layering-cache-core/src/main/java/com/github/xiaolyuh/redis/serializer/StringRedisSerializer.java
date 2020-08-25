@@ -1,9 +1,9 @@
 package com.github.xiaolyuh.redis.serializer;
 
-import com.alibaba.fastjson.JSON;
 import org.springframework.util.Assert;
 
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 
 /**
  * 必须重写序列化器，否则@Cacheable注解的key会报类型转换错误
@@ -15,7 +15,7 @@ public class StringRedisSerializer implements RedisSerializer<String> {
     private final Charset charset;
 
     public StringRedisSerializer() {
-        this(Charset.forName("UTF8"));
+        this(StandardCharsets.UTF_8);
     }
 
     public StringRedisSerializer(Charset charset) {

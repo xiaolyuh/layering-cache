@@ -7,6 +7,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
+import java.util.concurrent.TimeUnit;
+
 @Service
 public class PersonServiceImpl implements PersonService {
     Logger logger = LoggerFactory.getLogger(PersonServiceImpl.class);
@@ -34,8 +36,8 @@ public class PersonServiceImpl implements PersonService {
 
     @Override
     @Cacheable(value = "cache-prefix:people", key = "#person.id", depict = "用户信息缓存",
-            firstCache = @FirstCache(expireTime = 4),
-            secondaryCache = @SecondaryCache(expireTime = 15, preloadTime = 8, forceRefresh = true))
+            firstCache = @FirstCache(expireTime = 4, timeUnit = TimeUnit.SECONDS),
+            secondaryCache = @SecondaryCache(expireTime = 15, preloadTime = 8, forceRefresh = true, timeUnit = TimeUnit.SECONDS))
     public Person findOne(Person person) {
         Person p = new Person(2L, "name2", 12,"address2");
         logger.info("为id、key为:" + p.getId() + "数据做了缓存");

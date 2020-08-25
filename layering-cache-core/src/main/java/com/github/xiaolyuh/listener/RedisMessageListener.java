@@ -4,9 +4,9 @@ import com.alibaba.fastjson.JSON;
 import com.github.xiaolyuh.cache.Cache;
 import com.github.xiaolyuh.cache.LayeringCache;
 import com.github.xiaolyuh.manager.AbstractCacheManager;
+import io.lettuce.core.pubsub.RedisPubSubListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import redis.clients.jedis.JedisPubSub;
 
 import java.util.Collection;
 
@@ -15,7 +15,7 @@ import java.util.Collection;
  *
  * @author yuhao.wang
  */
-public class RedisMessageListener extends JedisPubSub {
+public class RedisMessageListener implements RedisPubSubListener<String, String> {
     private static final Logger log = LoggerFactory.getLogger(RedisMessageListener.class);
 
     public static final String CHANNEL = "layering-cache-channel";
@@ -27,7 +27,7 @@ public class RedisMessageListener extends JedisPubSub {
 
 
     @Override
-    public void onMessage(String channel, String message) {
+    public void message(String channel, String message) {
         try {
             log.debug("redis消息订阅者接收到频道【{}】发布的消息。消息内容：{}", channel, message);
             RedisPubSubMessage redisPubSubMessage = JSON.parseObject(message, RedisPubSubMessage.class);
@@ -66,6 +66,31 @@ public class RedisMessageListener extends JedisPubSub {
             e.printStackTrace();
             log.error("layering-cache 清楚一级缓存异常：{}", e.getMessage(), e);
         }
+    }
+
+    @Override
+    public void message(String pattern, String channel, String message) {
+
+    }
+
+    @Override
+    public void subscribed(String channel, long count) {
+
+    }
+
+    @Override
+    public void psubscribed(String pattern, long count) {
+
+    }
+
+    @Override
+    public void unsubscribed(String channel, long count) {
+
+    }
+
+    @Override
+    public void punsubscribed(String pattern, long count) {
+
     }
 
     public void setCacheManager(AbstractCacheManager cacheManager) {

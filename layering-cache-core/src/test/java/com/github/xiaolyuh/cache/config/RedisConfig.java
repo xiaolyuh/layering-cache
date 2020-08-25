@@ -27,18 +27,6 @@ public class RedisConfig {
     @Value("${spring.redis.port:6379}")
     private int port;
 
-    @Value("${spring.redis.pool.max-idle:200}")
-    private int maxIdle;
-
-    @Value("${spring.redis.pool.min-idle:10}")
-    private int minIdle;
-
-    @Value("${spring.redis.pool.max-active:80}")
-    private int maxActive;
-
-    @Value("${spring.redis.pool.max-wait:-1}")
-    private long maxWait;
-
     @Bean
     public RedisClient layeringCacheRedisClient() {
         RedisProperties redisProperties = new RedisProperties();
@@ -46,11 +34,6 @@ public class RedisConfig {
         redisProperties.setHost(host);
         redisProperties.setPassword(StringUtils.isBlank(password) ? null : password);
         redisProperties.setPort(port);
-        redisProperties.setMaxIdle(maxIdle);
-        redisProperties.setMinIdle(minIdle);
-        redisProperties.setMaxTotal(maxActive);
-        redisProperties.setMaxWaitMillis(maxWait);
-
 
         KryoRedisSerializer<Object> kryoRedisSerializer = new KryoRedisSerializer<>(Object.class);
         StringRedisSerializer keyRedisSerializer = new StringRedisSerializer();

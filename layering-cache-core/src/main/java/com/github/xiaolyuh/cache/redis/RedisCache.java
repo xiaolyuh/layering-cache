@@ -200,7 +200,7 @@ public class RedisCache extends AbstractValueAdaptingCache {
     }
 
     /**
-     * 同一个线程循环5次查询缓存，每次等待20毫秒，如果还是没有数据直接去执行被缓存的方法
+     * 获取锁的线程等待500ms,如果500ms都没返回，则直接释放锁放下一个请求进来，防止第一个线程异常挂掉
      */
     private <T> T executeCacheMethod(RedisCacheKey redisCacheKey, Callable<T> valueLoader) {
         LayeringCacheRedisLock redisLock = new LayeringCacheRedisLock(redisClient, redisCacheKey.getKey() + "_sync_lock", 1);

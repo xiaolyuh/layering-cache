@@ -6,13 +6,19 @@ import com.github.xiaolyuh.redis.serializer.KryoRedisSerializer;
 import com.github.xiaolyuh.redis.serializer.RedisSerializer;
 import com.github.xiaolyuh.redis.serializer.SerializationException;
 import com.github.xiaolyuh.redis.serializer.StringRedisSerializer;
+import com.github.xiaolyuh.util.StringUtils;
+import io.lettuce.core.*;
+import io.lettuce.core.api.StatefulRedisConnection;
+import io.lettuce.core.api.sync.RedisCommands;
+import io.lettuce.core.codec.ByteArrayCodec;
+import io.lettuce.core.pubsub.StatefulRedisPubSubConnection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import redis.clients.jedis.*;
-import redis.clients.util.SafeEncoder;
 
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 /**
  * 单机版Redis客户端
@@ -31,29 +37,32 @@ public class SingleRedisClient implements RedisClient {
      */
     private RedisSerializer valueSerializer = new KryoRedisSerializer(Object.class);
 
-    private JedisPool jedisPool;
+    private io.lettuce.core.RedisClient client;
+
+    private StatefulRedisConnection<byte[], byte[]> connection;
+
+    StatefulRedisPubSubConnection<String, String> pubSubConnection;
 
     public SingleRedisClient(RedisProperties properties) {
-        String ip = properties.getHost();
-        int port = properties.getPort();
-        int database = properties.getDatabase();
-        String password = properties.getPassword();
+        RedisURI redisURI = RedisURI.builder().withHost(properties.getHost())
+                .withDatabase(properties.getDatabase())
+                .withPort(properties.getPort())
+                .build();
+        if (StringUtils.isNotBlank(properties.getPassword())) {
+            redisURI.setPassword(properties.getPassword());
+        }
 
-        JedisPoolConfig jedisPoolConfig = new JedisPoolConfig();
-        jedisPoolConfig.setMaxTotal(properties.getMaxTotal());
-        jedisPoolConfig.setMaxIdle(properties.getMaxIdle());
-        jedisPoolConfig.setMaxWaitMillis(properties.getMaxWaitMillis());
-        jedisPoolConfig.setTestOnBorrow(properties.getTestOnBorrow());
-        jedisPoolConfig.setMinIdle(properties.getMinIdle());
         logger.info("layering-cache redis配置" + JSON.toJSONString(properties));
-        jedisPool = new JedisPool(jedisPoolConfig, ip, port, 10000, password, database);
+        this.client = io.lettuce.core.RedisClient.create(redisURI);
+        this.connection = client.connect(new ByteArrayCodec());
+        this.pubSubConnection = client.connectPubSub();
     }
 
     @Override
     public Object get(String key) {
-        try (Jedis jedis = jedisPool.getResource()) {
-            byte[] results = jedis.get(getKeySerializer().serialize(key));
-            return getValueSerializer().deserialize(results);
+        try {
+            RedisCommands<byte[], byte[]> sync = connection.sync();
+            return getValueSerializer().deserialize(sync.get(getKeySerializer().serialize(key)));
         } catch (SerializationException e) {
             throw e;
         } catch (Exception e) {
@@ -68,8 +77,10 @@ public class SingleRedisClient implements RedisClient {
 
     @Override
     public String set(String key, Object value) {
-        try (Jedis jedis = jedisPool.getResource()) {
-            return jedis.set(getKeySerializer().serialize(key), getValueSerializer().serialize(value));
+
+        try {
+            RedisCommands<byte[], byte[]> sync = connection.sync();
+            return sync.set(getKeySerializer().serialize(key), getValueSerializer().serialize(value));
         } catch (SerializationException e) {
             throw e;
         } catch (Exception e) {
@@ -79,8 +90,10 @@ public class SingleRedisClient implements RedisClient {
 
     @Override
     public String set(String key, Object value, long time, TimeUnit unit) {
-        try (Jedis jedis = jedisPool.getResource()) {
-            return jedis.setex(getKeySerializer().serialize(key), (int) unit.toSeconds(time), getValueSerializer().serialize(value));
+
+        try {
+            RedisCommands<byte[], byte[]> sync = connection.sync();
+            return sync.setex(getKeySerializer().serialize(key), unit.toSeconds(time), getValueSerializer().serialize(value));
         } catch (SerializationException e) {
             throw e;
         } catch (Exception e) {
@@ -89,9 +102,11 @@ public class SingleRedisClient implements RedisClient {
     }
 
     @Override
-    public String set(String key, Object value, String nxxx, String expx, long time) {
-        try (Jedis jedis = jedisPool.getResource()) {
-            return jedis.set(getKeySerializer().serialize(key), getValueSerializer().serialize(value), SafeEncoder.encode(nxxx), SafeEncoder.encode(expx), time);
+    public String setNxEx(String key, Object value, long time) {
+
+        try {
+            RedisCommands<byte[], byte[]> sync = connection.sync();
+            return sync.set(getKeySerializer().serialize(key), getValueSerializer().serialize(value), SetArgs.Builder.nx().ex(time));
         } catch (SerializationException e) {
             throw e;
         } catch (Exception e) {
@@ -101,20 +116,22 @@ public class SingleRedisClient implements RedisClient {
 
     @Override
     public Long delete(String... keys) {
-        if (Objects.nonNull(keys) && keys.length > 0) {
-            try (Jedis jedis = jedisPool.getResource()) {
-                final byte[][] bkeys = new byte[keys.length][];
-                for (int i = 0; i < keys.length; i++) {
-                    bkeys[i] = getKeySerializer().serialize(keys[i]);
-                }
-                return jedis.del(bkeys);
-            } catch (SerializationException e) {
-                throw e;
-            } catch (Exception e) {
-                throw new RedisClientException(e.getMessage(), e);
-            }
+        if (Objects.isNull(keys) || keys.length == 0) {
+            return 0L;
         }
-        return 0L;
+        try {
+            RedisCommands<byte[], byte[]> sync = connection.sync();
+
+            final byte[][] bkeys = new byte[keys.length][];
+            for (int i = 0; i < keys.length; i++) {
+                bkeys[i] = getKeySerializer().serialize(keys[i]);
+            }
+            return sync.del(bkeys);
+        } catch (SerializationException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new RedisClientException(e.getMessage(), e);
+        }
     }
 
 
@@ -126,8 +143,10 @@ public class SingleRedisClient implements RedisClient {
 
     @Override
     public Boolean hasKey(String key) {
-        try (Jedis jedis = jedisPool.getResource()) {
-            return jedis.exists(getKeySerializer().serialize(key));
+
+        try {
+            RedisCommands<byte[], byte[]> sync = connection.sync();
+            return sync.exists(getKeySerializer().serialize(key)) > 0;
         } catch (SerializationException e) {
             throw e;
         } catch (Exception e) {
@@ -136,9 +155,10 @@ public class SingleRedisClient implements RedisClient {
     }
 
     @Override
-    public Long expire(String key, long timeout, TimeUnit timeUnit) {
-        try (Jedis jedis = jedisPool.getResource()) {
-            return jedis.expire(getKeySerializer().serialize(key), (int) timeUnit.toSeconds(timeout));
+    public Boolean expire(String key, long timeout, TimeUnit timeUnit) {
+        try {
+            RedisCommands<byte[], byte[]> sync = connection.sync();
+            return sync.expire(getKeySerializer().serialize(key), timeUnit.toSeconds(timeout));
         } catch (SerializationException e) {
             throw e;
         } catch (Exception e) {
@@ -148,42 +168,45 @@ public class SingleRedisClient implements RedisClient {
 
     @Override
     public Long getExpire(String key) {
-        try (Jedis jedis = jedisPool.getResource()) {
-            return jedis.ttl(getKeySerializer().serialize(key));
+        try {
+            RedisCommands<byte[], byte[]> sync = connection.sync();
+            return sync.ttl(getKeySerializer().serialize(key));
         } catch (SerializationException e) {
             throw e;
         } catch (Exception e) {
             throw new RedisClientException(e.getMessage(), e);
         }
-
     }
 
     @Override
     public Set<String> scan(String pattern) {
         Set<String> keys = new HashSet<>();
-        ScanParams params = new ScanParams();
-        params.count(1000);
-        params.match(pattern);
-        String cursor = "0";
-        try (Jedis jedis = jedisPool.getResource()) {
+        try {
+            RedisCommands<byte[], byte[]> sync = connection.sync();
+            boolean finished;
+            ScanCursor cursor = ScanCursor.INITIAL;
             do {
-                ScanResult<String> results = jedis.scan(cursor, params);
-                keys.addAll(results.getResult());
-                cursor = results.getCursor() + "";
-            } while (!"0".equals(cursor));
-            return keys;
+                KeyScanCursor<byte[]> scanCursor = sync.scan(cursor, ScanArgs.Builder.limit(1000).match(pattern));
+                scanCursor.getKeys().forEach(key -> keys.add((String) getKeySerializer().deserialize(key)));
+                finished = scanCursor.isFinished();
+                cursor = ScanCursor.of(scanCursor.getCursor());
+            } while (!finished);
         } catch (SerializationException e) {
             throw e;
         } catch (Exception e) {
             throw new RedisClientException(e.getMessage(), e);
         }
-
+        return keys;
     }
 
     @Override
     public Object eval(String script, List<String> keys, List<String> args) {
-        try (Jedis jedis = jedisPool.getResource()) {
-            return jedis.eval(script, keys, args);
+
+        try {
+            RedisCommands<byte[], byte[]> sync = connection.sync();
+            List<byte[]> bkeys = keys.stream().map(key -> key.getBytes(StandardCharsets.UTF_8)).collect(Collectors.toList());
+            List<byte[]> bargs = args.stream().map(key -> key.getBytes(StandardCharsets.UTF_8)).collect(Collectors.toList());
+            return sync.eval(script, ScriptOutputType.INTEGER, bkeys.toArray(new byte[0][0]), bargs.toArray(new byte[0][0]));
         } catch (SerializationException e) {
             throw e;
         } catch (Exception e) {
@@ -193,21 +216,22 @@ public class SingleRedisClient implements RedisClient {
 
     @Override
     public Long publish(String channel, String message) {
-        try (Jedis jedis = jedisPool.getResource()) {
-            return jedis.publish(channel, message);
+        try {
+            return pubSubConnection.sync().publish(channel, message);
         } catch (SerializationException e) {
             throw e;
         } catch (Exception e) {
             throw new RedisClientException(e.getMessage(), e);
         }
-
     }
 
     @Override
     public void subscribe(RedisMessageListener messageListener, String... channels) {
-        try (Jedis jedis = jedisPool.getResource()) {
+        try  {
+            StatefulRedisPubSubConnection<String, String> connection = client.connectPubSub();
             logger.info("layering-cache和redis创建订阅关系，订阅频道【{}】", Arrays.toString(channels));
-            jedis.subscribe(messageListener, channels);
+            connection.sync().subscribe(channels);
+            connection.addListener(messageListener);
         } catch (SerializationException e) {
             throw e;
         } catch (Exception e) {

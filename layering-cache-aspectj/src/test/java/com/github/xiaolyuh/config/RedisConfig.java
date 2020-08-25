@@ -46,11 +46,6 @@ public class RedisConfig {
         redisProperties.setHost(host);
         redisProperties.setPassword(StringUtils.isBlank(password) ? null : password);
         redisProperties.setPort(port);
-        redisProperties.setMaxIdle(maxIdle);
-        redisProperties.setMinIdle(minIdle);
-        redisProperties.setMaxTotal(maxActive);
-        redisProperties.setMaxWaitMillis(maxWait);
-
 
         KryoRedisSerializer<Object> kryoRedisSerializer = new KryoRedisSerializer<>(Object.class);
         StringRedisSerializer keyRedisSerializer = new StringRedisSerializer();

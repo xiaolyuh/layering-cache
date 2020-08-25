@@ -162,7 +162,7 @@ public class LayeringCacheRedisLock {
         // 系统当前时间，纳秒
         long nowTime = System.nanoTime();
         while ((System.nanoTime() - nowTime) < timeout) {
-            if (this.set(lockKey, lockValue, expireTime)) {
+            if (this.setNxEx(lockKey, lockValue, expireTime)) {
                 locked = true;
                 // 上锁成功结束请求
                 return locked;
@@ -182,7 +182,7 @@ public class LayeringCacheRedisLock {
     public boolean lock() {
         this.lockValue = UUID.randomUUID().toString();
         //不存在则添加 且设置过期时间（单位ms）
-        locked = set(lockKey, lockValue, expireTime);
+        locked = setNxEx(lockKey, lockValue, expireTime);
         return locked;
     }
 
@@ -195,7 +195,7 @@ public class LayeringCacheRedisLock {
         this.lockValue = UUID.randomUUID().toString();
         while (true) {
             //不存在则添加 且设置过期时间（单位ms）
-            locked = set(lockKey, lockValue, expireTime);
+            locked = setNxEx(lockKey, lockValue, expireTime);
             if (locked) {
                 return locked;
             }
@@ -261,9 +261,9 @@ public class LayeringCacheRedisLock {
      * @param seconds 过去时间（秒）
      * @return String
      */
-    private boolean set(final String key, final String value, final long seconds) {
+    private boolean setNxEx(final String key, final String value, final long seconds) {
         Assert.isTrue(!StringUtils.isEmpty(key), "key不能为空");
-        String result = redisClient.set(key, value, "nx", "ex", seconds);
+        String result = redisClient.setNxEx(key, value, seconds);
         if (!StringUtils.isEmpty(lockKeyLog) && OK.equals(result)) {
             logger.debug("获取锁{}的时间：{}", lockKeyLog, System.currentTimeMillis());
         }

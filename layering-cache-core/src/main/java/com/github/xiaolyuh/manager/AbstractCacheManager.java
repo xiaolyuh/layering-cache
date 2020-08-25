@@ -164,23 +164,8 @@ public abstract class AbstractCacheManager implements CacheManager, Initializing
     @Override
     public void afterPropertiesSet() throws Exception {
         messageListener.setCacheManager(this);
-
-        RedisPubSubThreadTaskUtils.run(() -> {
-            int count = 100;
-            while (count-- > 0) {
-                try {
-                    // 创建监听
-                    redisClient.subscribe(messageListener, RedisMessageListener.CHANNEL);
-                } catch (Exception e) {
-                    // 延时后再试
-                    try {
-                        Thread.sleep(1000);
-                    } catch (InterruptedException e1) {
-                    }
-                    logger.error("Subscribing failed. {}", e.getMessage(), e);
-                }
-            }
-        });
+        // 创建监听
+        redisClient.subscribe(messageListener, RedisMessageListener.CHANNEL);
 
         BeanFactory.getBean(StatsService.class).setCacheManager(this);
         if (getStats()) {

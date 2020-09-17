@@ -4,12 +4,12 @@ import com.github.xiaolyuh.annotation.*;
 import com.github.xiaolyuh.cache.Cache;
 import com.github.xiaolyuh.expression.CacheOperationExpressionEvaluator;
 import com.github.xiaolyuh.manager.CacheManager;
+import com.github.xiaolyuh.redis.serializer.SerializationException;
 import com.github.xiaolyuh.setting.FirstCacheSetting;
 import com.github.xiaolyuh.setting.LayeringCacheSetting;
 import com.github.xiaolyuh.setting.SecondaryCacheSetting;
 import com.github.xiaolyuh.support.CacheOperationInvoker;
 import com.github.xiaolyuh.support.KeyGenerator;
-import com.github.xiaolyuh.redis.serializer.SerializationException;
 import com.github.xiaolyuh.support.SimpleKeyGenerator;
 import com.github.xiaolyuh.util.ToStringUtils;
 import org.aspectj.lang.ProceedingJoinPoint;
@@ -180,7 +180,7 @@ public class LayeringAspect {
                 secondaryCache.isAllowNullValue(), secondaryCache.magnification());
 
         LayeringCacheSetting layeringCacheSetting = new LayeringCacheSetting(firstCacheSetting, secondaryCacheSetting,
-                cacheable.depict());
+                cacheable.depict(), cacheable.enableFirstCache());
 
         // 通过cacheName和缓存配置获取Cache
         Cache cache = cacheManager.getCache(cacheName, layeringCacheSetting);
@@ -202,7 +202,7 @@ public class LayeringAspect {
     private Object executeEvict(CacheOperationInvoker invoker, CacheEvict cacheEvict,
                                 Method method, Object[] args, Object target) {
         // 执行删除方法
-        Object result  = invoker.invoke();
+        Object result = invoker.invoke();
 
         // 删除缓存
         // 解析SpEL表达式获取cacheName和key
@@ -216,7 +216,7 @@ public class LayeringAspect {
                 if (CollectionUtils.isEmpty(caches)) {
                     // 如果没有找到Cache就新建一个默认的
                     Cache cache = cacheManager.getCache(cacheName,
-                            new LayeringCacheSetting(new FirstCacheSetting(), new SecondaryCacheSetting(), "默认缓存配置（清除时生成）"));
+                            new LayeringCacheSetting(new FirstCacheSetting(), new SecondaryCacheSetting(), "默认缓存配置（清除时生成）", true));
                     cache.clear();
                 } else {
                     for (Cache cache : caches) {
@@ -249,7 +249,7 @@ public class LayeringAspect {
             if (CollectionUtils.isEmpty(caches)) {
                 // 如果没有找到Cache就新建一个默认的
                 Cache cache = cacheManager.getCache(cacheName,
-                        new LayeringCacheSetting(new FirstCacheSetting(), new SecondaryCacheSetting(), "默认缓存配置（删除时生成）"));
+                        new LayeringCacheSetting(new FirstCacheSetting(), new SecondaryCacheSetting(), "默认缓存配置（删除时生成）", true));
                 cache.evict(ToStringUtils.toString(key));
             } else {
                 for (Cache cache : caches) {
@@ -288,7 +288,7 @@ public class LayeringAspect {
                 secondaryCache.isAllowNullValue(), secondaryCache.magnification());
 
         LayeringCacheSetting layeringCacheSetting = new LayeringCacheSetting(firstCacheSetting, secondaryCacheSetting,
-                cachePut.depict());
+                cachePut.depict(), cachePut.enableFirstCache());
 
         // 指定调用方法获取缓存值
         Object result = invoker.invoke();

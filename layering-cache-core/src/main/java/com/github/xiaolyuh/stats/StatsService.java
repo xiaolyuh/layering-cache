@@ -8,6 +8,7 @@ import com.github.xiaolyuh.manager.CacheManager;
 import com.github.xiaolyuh.redis.clinet.RedisClient;
 import com.github.xiaolyuh.setting.LayeringCacheSetting;
 import com.github.xiaolyuh.support.LayeringCacheRedisLock;
+import com.github.xiaolyuh.util.NamedThreadFactory;
 import com.github.xiaolyuh.util.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,7 +35,7 @@ public class StatsService {
     /**
      * 定时任务线程池
      */
-    private static ScheduledThreadPoolExecutor executor = new ScheduledThreadPoolExecutor(1 );
+    private static ScheduledThreadPoolExecutor executor = new ScheduledThreadPoolExecutor(1, new NamedThreadFactory("layering-cache-stat"));
 
     /**
      * {@link AbstractCacheManager }
@@ -80,6 +81,7 @@ public class StatsService {
         executor.scheduleWithFixedDelay(() -> {
             logger.debug("执行缓存统计数据采集定时任务");
             Set<AbstractCacheManager> cacheManagers = AbstractCacheManager.getCacheManager();
+            List<CacheStatsInfo> cacheStatsInfos = new LinkedList<>();
             for (AbstractCacheManager abstractCacheManager : cacheManagers) {
                 // 获取CacheManager
                 CacheManager cacheManager = abstractCacheManager;
@@ -130,7 +132,7 @@ public class StatsService {
 
                                 // 将缓存统计数据写到redis
                                 redisClient.set(redisKey, cacheStats, 24, TimeUnit.HOURS);
-
+                                cacheStatsInfos.add(cacheStats);
                                 logger.info("Layering Cache 统计信息：{}", JSON.toJSONString(cacheStats));
                             }
                         } catch (Exception e) {
@@ -140,6 +142,13 @@ public class StatsService {
                         }
                     }
                 }
+            }
+
+            try {
+                // 上报缓存统计信息
+                this.cacheManager.getCacheStatsReportService().reportCacheStats(cacheStatsInfos);
+            } catch (Throwable e) {
+                logger.error("上报缓存统计信息失败 {}", e.getMessage(), e);
             }
 
             //  初始时间间隔是1分

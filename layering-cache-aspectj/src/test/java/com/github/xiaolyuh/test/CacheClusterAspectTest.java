@@ -3,7 +3,7 @@ package com.github.xiaolyuh.test;
 import com.alibaba.fastjson.JSON;
 import com.github.xiaolyuh.cache.Cache;
 import com.github.xiaolyuh.cache.LayeringCache;
-import com.github.xiaolyuh.config.CacheConfig;
+import com.github.xiaolyuh.config.CacheClusterConfig;
 import com.github.xiaolyuh.domain.User;
 import com.github.xiaolyuh.manager.CacheManager;
 import com.github.xiaolyuh.manager.LayeringCacheManager;
@@ -24,9 +24,9 @@ import java.util.*;
 // SpringJUnit4ClassRunner再Junit环境下提供Spring TestContext Framework的功能。
 @RunWith(SpringJUnit4ClassRunner.class)
 // @ContextConfiguration用来加载配置ApplicationContext，其中classes用来加载配置类
-@ContextConfiguration(classes = {CacheConfig.class})
-public class CacheAspectTest {
-    private Logger logger = LoggerFactory.getLogger(CacheAspectTest.class);
+@ContextConfiguration(classes = {CacheClusterConfig.class})
+public class CacheClusterAspectTest {
+    private Logger logger = LoggerFactory.getLogger(CacheClusterAspectTest.class);
 
     @Autowired
     private TestService testService;
@@ -420,11 +420,19 @@ public class CacheAspectTest {
         testService.putNullUserAllowNullValueTrueMagnification(userId);
         User user = testService.getUserById(userId);
         logger.debug(JSON.toJSONString(user));
+        long expire = redisClient.getExpire("user:info:11811171");
+        System.out.println("==================1:" + expire);
         Assert.assertNull(user);
+
         sleep(1);
+        expire = redisClient.getExpire("user:info:11811171");
+        System.out.println("==================2:" + expire);
         user = testService.getUserById(userId);
         Assert.assertNull(user);
+
         sleep(4);
+        expire = redisClient.getExpire("user:info:11811171");
+        System.out.println("==================3:" + expire);
         user = testService.getUserById(userId);
         Assert.assertNotNull(user);
     }

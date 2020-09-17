@@ -14,6 +14,7 @@ import io.lettuce.core.codec.ByteArrayCodec;
 import io.lettuce.core.pubsub.StatefulRedisPubSubConnection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.util.CollectionUtils;
 
 import java.nio.charset.StandardCharsets;
 import java.util.*;
@@ -179,6 +180,58 @@ public class SingleRedisClient implements RedisClient {
     }
 
     @Override
+    public Long lpush(String key, String... values) {
+        try {
+            if (Objects.isNull(values) || values.length == 0) {
+                return 0L;
+            }
+            RedisCommands<byte[], byte[]> sync = connection.sync();
+            final byte[][] bvalues = new byte[values.length][];
+            for (int i = 0; i < values.length; i++) {
+                bvalues[i] = getValueSerializer().serialize(values[i]);
+            }
+
+            return sync.lpush(getKeySerializer().serialize(key), bvalues);
+        } catch (SerializationException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new RedisClientException(e.getMessage(), e);
+        }
+    }
+
+    @Override
+    public Long llen(String key) {
+        try {
+            RedisCommands<byte[], byte[]> sync = connection.sync();
+            return sync.llen(getKeySerializer().serialize(key));
+        } catch (SerializationException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new RedisClientException(e.getMessage(), e);
+        }
+    }
+
+    @Override
+    public List<String> lrange(String key, long start, long end) {
+        try {
+            RedisCommands<byte[], byte[]> sync = connection.sync();
+            List<String> list = new ArrayList<>();
+            List<byte[]> values = sync.lrange(getKeySerializer().serialize(key), start, end);
+            if (CollectionUtils.isEmpty(values)) {
+                return list;
+            }
+            for (byte[] value : values) {
+                list.add((String) getValueSerializer().deserialize(value));
+            }
+            return list;
+        } catch (SerializationException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new RedisClientException(e.getMessage(), e);
+        }
+    }
+
+    @Override
     public Set<String> scan(String pattern) {
         Set<String> keys = new HashSet<>();
         try {
@@ -227,7 +280,7 @@ public class SingleRedisClient implements RedisClient {
 
     @Override
     public void subscribe(RedisMessageListener messageListener, String... channels) {
-        try  {
+        try {
             StatefulRedisPubSubConnection<String, String> connection = client.connectPubSub();
             logger.info("layering-cache和redis创建订阅关系，订阅频道【{}】", Arrays.toString(channels));
             connection.sync().subscribe(channels);

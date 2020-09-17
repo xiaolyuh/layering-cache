@@ -3,6 +3,7 @@ package com.github.xiaolyuh.cache.test;
 import com.alibaba.fastjson.JSON;
 import com.github.xiaolyuh.cache.Cache;
 import com.github.xiaolyuh.cache.LayeringCache;
+import com.github.xiaolyuh.cache.config.CacheClusterConfig;
 import com.github.xiaolyuh.cache.config.CacheConfig;
 import com.github.xiaolyuh.cache.redis.RedisCache;
 import com.github.xiaolyuh.cache.redis.RedisCacheKey;
@@ -35,9 +36,9 @@ import java.util.concurrent.TimeUnit;
 // SpringJUnit4ClassRunner再Junit环境下提供Spring TestContext Framework的功能。
 @RunWith(SpringJUnit4ClassRunner.class)
 // @ContextConfiguration用来加载配置ApplicationContext，其中classes用来加载配置类
-@ContextConfiguration(classes = {CacheConfig.class})
-public class CacheCoreTest {
-    private Logger logger = LoggerFactory.getLogger(CacheCoreTest.class);
+@ContextConfiguration(classes = {CacheClusterConfig.class})
+public class CacheClusterCoreTest {
+    private Logger logger = LoggerFactory.getLogger(CacheClusterCoreTest.class);
 
     @Autowired
     private CacheManager cacheManager;
@@ -85,7 +86,7 @@ public class CacheCoreTest {
         SecondaryCacheSetting secondaryCacheSetting7 = new SecondaryCacheSetting(10, 7, TimeUnit.SECONDS, true, false, 1);
         layeringCacheSetting7 = new LayeringCacheSetting(firstCacheSetting7, secondaryCacheSetting7, "", false);
 
-        String cacheName = "cache:name";
+        String cacheName = "cache:name:cluster";
         Cache cache1 = cacheManager.getCache(cacheName, layeringCacheSetting1);
         Cache cache2 = cacheManager.getCache(cacheName, layeringCacheSetting1);
         Assert.assertEquals(cache1, cache2);
@@ -151,7 +152,7 @@ public class CacheCoreTest {
     public void testGetCacheNullUserAllowNullValueTrue() {
         logger.info("测试二级缓存允许为NULL，NULL值时间倍率是10");
         // 测试 缓存过期时间
-        String cacheName = "cache:name:118_1";
+        String cacheName = "cache:name:cluster:118_1";
         String cacheKey1 = "cache:key1:118_1";
         LayeringCache cache1 = (LayeringCache) cacheManager.getCache(cacheName, layeringCacheSetting4);
         cache1.get(cacheKey1, () -> initNullCache());
@@ -184,7 +185,7 @@ public class CacheCoreTest {
     public void testGetCacheNullUserAllowNullValueFalse() {
         logger.info("测试二级缓存不允许为NULL");
         // 测试 缓存过期时间
-        String cacheName = "cache:name:118_2";
+        String cacheName = "cache:name:cluster:118_2";
         String cacheKey1 = "cache:key1:118_2";
         LayeringCache cache1 = (LayeringCache) cacheManager.getCache(cacheName, layeringCacheSetting5);
         cache1.get(cacheKey1, () -> initNullCache());
@@ -204,7 +205,7 @@ public class CacheCoreTest {
     @Test
     public void testGetType() throws Exception {
         // 测试 缓存过期时间
-        String cacheName = "cache:name";
+        String cacheName = "cache:name:cluster";
         String cacheKey1 = "cache:key:22";
         LayeringCache cache1 = (LayeringCache) cacheManager.getCache(cacheName, layeringCacheSetting1);
         cache1.get(cacheKey1, () -> null);
@@ -220,7 +221,7 @@ public class CacheCoreTest {
     @Test
     public void testCacheEvict() throws Exception {
         // 测试 缓存过期时间
-        String cacheName = "cache:name";
+        String cacheName = "cache:name:cluster";
         String cacheKey1 = "cache:key2";
         String cacheKey2 = "cache:key3";
         LayeringCache cache1 = (LayeringCache) cacheManager.getCache(cacheName, layeringCacheSetting1);
@@ -245,7 +246,7 @@ public class CacheCoreTest {
     @Test
     public void testCacheClear() throws Exception {
         // 测试 缓存过期时间
-        String cacheName = "cache:name";
+        String cacheName = "cache:name:cluster";
         String cacheKey1 = "cache:key4";
         String cacheKey2 = "cache:key5";
         LayeringCache cache = (LayeringCache) cacheManager.getCache(cacheName, layeringCacheSetting1);
@@ -270,7 +271,7 @@ public class CacheCoreTest {
     @Test
     public void testCachePut() throws Exception {
         // 测试 缓存过期时间
-        String cacheName = "cache:name";
+        String cacheName = "cache:name:cluster";
         String cacheKey1 = "cache:key6";
         LayeringCache cache = (LayeringCache) cacheManager.getCache(cacheName, layeringCacheSetting1);
         String str1 = cache.get(cacheKey1, String.class);
@@ -292,7 +293,7 @@ public class CacheCoreTest {
     public void testPutCacheNullUserAllowNullValueTrue() {
         logger.info("测试Put二级缓存允许为NULL，NULL值时间倍率是10");
         // 测试 缓存过期时间
-        String cacheName = "cache:name:118_3";
+        String cacheName = "cache:name:cluster:118_3";
         String cacheKey1 = "cache:key1:118_3";
         LayeringCache cache1 = (LayeringCache) cacheManager.getCache(cacheName, layeringCacheSetting4);
         cache1.put(cacheKey1, initNullCache());
@@ -325,7 +326,7 @@ public class CacheCoreTest {
     public void testCacheNullUserAllowNullValueFalse() {
         logger.info("测试Put二级缓存不允许为NULL");
         // 测试 缓存过期时间
-        String cacheName = "cache:name:118_4";
+        String cacheName = "cache:name:cluster:118_4";
         String cacheKey1 = "cache:key1:118_4";
         LayeringCache cache1 = (LayeringCache) cacheManager.getCache(cacheName, layeringCacheSetting5);
         cache1.put(cacheKey1, initNullCache());
@@ -345,7 +346,7 @@ public class CacheCoreTest {
     @Test
     public void testCachePutIfAbsent() throws Exception {
         // 测试 缓存过期时间
-        String cacheName = "cache:name";
+        String cacheName = "cache:name:cluster";
         String cacheKey1 = "cache:key7";
         LayeringCache cache = (LayeringCache) cacheManager.getCache(cacheName, layeringCacheSetting1);
         cache.putIfAbsent(cacheKey1, "test1");
@@ -367,7 +368,7 @@ public class CacheCoreTest {
     @Test
     public void testStats() {
         // 测试 缓存过期时间
-        String cacheName = "cache:name:1";
+        String cacheName = "cache:name:cluster:1";
         String cacheKey1 = "cache:key:123";
         LayeringCache cache1 = (LayeringCache) cacheManager.getCache(cacheName, layeringCacheSetting1);
         cache1.get(cacheKey1, () -> initCache(String.class));
@@ -393,7 +394,6 @@ public class CacheCoreTest {
         Assert.assertTrue(cacheStats.getCachedMethodRequestTime().longValue() >= 0);
     }
 
-
     /**
      * scan测试
      */
@@ -404,6 +404,7 @@ public class CacheCoreTest {
         Assert.assertTrue(keys.size() >= 0);
     }
 
+
     /**
      * 通过 拉模式删除缓存
      * pull message 删除指定key
@@ -411,7 +412,7 @@ public class CacheCoreTest {
     @Test
     public void testPullDeleteKey() {
         // 测试 缓存过期时间
-        String cacheName = "cache:name:3-0-2";
+        String cacheName = "cache:name:cluster:3-0-2";
         String cacheKey1 = "cache:key:302-1";
         LayeringCache cache1 = (LayeringCache) cacheManager.getCache(cacheName, layeringCacheSetting6);
         cache1.get(cacheKey1, () -> initCache(String.class));
@@ -439,7 +440,7 @@ public class CacheCoreTest {
     @Test
     public void testPullClearKey() {
         // 测试 缓存过期时间
-        String cacheName = "cache:name:3-0-2";
+        String cacheName = "cache:name:cluster:3-0-2";
         String cacheKey1 = "cache:key:302-3";
         LayeringCache cache1 = (LayeringCache) cacheManager.getCache(cacheName, layeringCacheSetting6);
         cache1.get(cacheKey1, () -> initCache(String.class));
@@ -458,6 +459,28 @@ public class CacheCoreTest {
         Assert.assertNull(str1);
         Assert.assertNull(str2);
     }
+
+    private void pushDeleteMessage(String cacheName, String cacheKey) {
+        RedisPubSubMessage message = new RedisPubSubMessage();
+        message.setCacheName(cacheName);
+        message.setKey(cacheKey);
+        message.setMessageType(RedisPubSubMessageType.EVICT);
+        String messageJson = JSON.toJSONString(message);
+        // pull 拉模式消息
+        redisClient.lpush(GlobalConfig.getMessageRedisKey(), messageJson);
+        redisClient.expire(GlobalConfig.getMessageRedisKey(), 25, TimeUnit.MINUTES);
+    }
+
+    private void pushDeleteClear(String cacheName) {
+        RedisPubSubMessage message = new RedisPubSubMessage();
+        message.setCacheName(cacheName);
+        message.setMessageType(RedisPubSubMessageType.CLEAR);
+        String messageJson = JSON.toJSONString(message);
+        // pull 拉模式消息
+        redisClient.lpush(GlobalConfig.getMessageRedisKey(), messageJson);
+        redisClient.expire(GlobalConfig.getMessageRedisKey(), 25, TimeUnit.MINUTES);
+    }
+
 
     /**
      * 测试禁用一级缓存
@@ -600,26 +623,6 @@ public class CacheCoreTest {
         Assert.assertNull(result);
     }
 
-    private void pushDeleteMessage(String cacheName, String cacheKey) {
-        RedisPubSubMessage message = new RedisPubSubMessage();
-        message.setCacheName(cacheName);
-        message.setKey(cacheKey);
-        message.setMessageType(RedisPubSubMessageType.EVICT);
-        String messageJson = JSON.toJSONString(message);
-        // pull 拉模式消息
-        redisClient.lpush(GlobalConfig.getMessageRedisKey(), messageJson);
-        redisClient.expire(GlobalConfig.getMessageRedisKey(), 25, TimeUnit.MINUTES);
-    }
-
-    private void pushDeleteClear(String cacheName) {
-        RedisPubSubMessage message = new RedisPubSubMessage();
-        message.setCacheName(cacheName);
-        message.setMessageType(RedisPubSubMessageType.CLEAR);
-        String messageJson = JSON.toJSONString(message);
-        // pull 拉模式消息
-        redisClient.lpush(GlobalConfig.getMessageRedisKey(), messageJson);
-        redisClient.expire(GlobalConfig.getMessageRedisKey(), 25, TimeUnit.MINUTES);
-    }
 
     /**
      * 测试锁

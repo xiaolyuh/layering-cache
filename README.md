@@ -28,10 +28,7 @@ layering-cache是一个支持分布式环境的多级缓存框架，使用方式
 [中文文档](https://github.com/xiaolyuh/layering-cache/wiki/%E6%96%87%E6%A1%A3)
 # 打开监控统计功能
 
-[打开监控统计功能](https://github.com/xiaolyuh/layering-cache/wiki/%E6%89%93%E5%BC%80%E7%9B%91%E6%8E%A7%E7%BB%9F%E8%AE%A1%E5%8A%9F%E8%83%BD)
-# 打开内置的监控页面
-
-[打开内置的监控页面](https://github.com/xiaolyuh/layering-cache/wiki/%E5%86%85%E7%BD%AE%E7%9A%84%E7%9B%91%E6%8E%A7%E9%A1%B5%E9%9D%A2)
+[打开监控统计功能](https://github.com/xiaolyuh/layering-cache/wiki/%E7%9B%91%E6%8E%A7%E7%BB%9F%E8%AE%A1%E5%8A%9F%E8%83%BD)
 
 # 重要提示
 - layering-cache支持同一个缓存名称设置不同的过期时间，但是一定要保证key唯一，否则会出现缓存过期时间错乱的情况

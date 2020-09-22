@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSON;
 import com.github.xiaolyuh.cache.Cache;
 import com.github.xiaolyuh.cache.LayeringCache;
 import com.github.xiaolyuh.manager.AbstractCacheManager;
+import com.github.xiaolyuh.support.LayeringCacheRedisLock;
 import com.github.xiaolyuh.util.BeanFactory;
 import com.github.xiaolyuh.util.GlobalConfig;
 import com.github.xiaolyuh.util.StringUtils;
@@ -118,11 +119,14 @@ public class RedisMessageService {
     }
 
     /**
-     * 启动重置本地偏消息移量任务
+     * 清空消息队列
      */
-    public void resetOffset() {
-        // 清空消息，直接删除key（不可以调换顺序）
-        cacheManager.getRedisClient().delete(GlobalConfig.getMessageRedisKey());
+    public void clearMessageQueue() {
+        LayeringCacheRedisLock lock = new LayeringCacheRedisLock(cacheManager.getRedisClient(), GlobalConfig.getMessageRedisKey(), 60);
+        if (lock.lock()) {
+            // 清空消息，直接删除key（不可以调换顺序）
+            cacheManager.getRedisClient().delete(GlobalConfig.getMessageRedisKey());
+        }
         // 重置偏移量
         OFFSET.getAndSet(-1);
     }

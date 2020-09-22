@@ -36,7 +36,7 @@ public class RedisMessagePullTask {
         // 2. 启动PULL TASK
         startPullTask();
         // 3. 启动重置本地偏消息移量任务
-        resetOffsetTask();
+        clearMessageQueueTask();
         // 4. 重连检测
         reconnectionTask();
     }
@@ -57,19 +57,20 @@ public class RedisMessagePullTask {
     }
 
     /**
-     * 启动重置本地偏消息移量任务
+     * 启动清空消息队列的任务
      */
-    private void resetOffsetTask() {
+    private void clearMessageQueueTask() {
 
         Calendar cal = Calendar.getInstance();
         cal.set(Calendar.HOUR_OF_DAY, 3);
         cal.set(Calendar.MINUTE, 0);
+        cal.set(Calendar.SECOND, 0);
         long initialDelay = System.currentTimeMillis() - cal.getTimeInMillis();
         initialDelay = initialDelay > 0 ? initialDelay : 0;
         // 每天晚上凌晨3:00执行任务
         executor.scheduleWithFixedDelay(() -> {
             try {
-                redisMessageService.resetOffset();
+                redisMessageService.clearMessageQueue();
             } catch (Exception e) {
                 e.printStackTrace();
                 log.error("layering-cache 重置本地消息偏移量异常：{}", e.getMessage(), e);

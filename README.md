@@ -3,12 +3,11 @@
 [![License](https://img.shields.io/badge/license-Apache%202-4EB1BA.svg)](https://www.apache.org/licenses/LICENSE-2.0.html)
 
 # 简介
-layering-cache是一个支持分布式环境的多级缓存框架，使用方式和spring-cache类似，主要目的是在使用注解的时候支持配置过期时间。layering-cache其实是一个两级缓存，一级缓存使用Caffeine作为本地缓存，二级缓存使用redis作为集中式缓存。
-
-一级缓存和二级缓存的数据一致性是通过推和拉两种模式相结合的方式来实现的。推主要是基于redis的pub/sub机制，拉主要是基于消息偏移量的方式。
+layering-cache是一个支持分布式环境的多级缓存框架，使用方式和spring-cache类似。一级缓存使用Caffeine作为本地缓存，二级缓存使用redis作为集中式缓存。一级缓存和二级缓存的数据一致性是通过推和拉两种模式相结合的方式来实现的。推主要是基于redis的pub/sub机制，拉主要是基于消息队列和记录消费消息的偏移量来实现的。
 
 # 支持
-- 支持缓存监控统计，监控信息上报支持自定义扩展
+- 支持缓存命中率的监控统计，统计数据上报支持自定义扩展
+- 内置dashboard，支持对缓存的管理和缓存命中率的查看
 - 支持缓存过期时间在注解上直接配置
 - 支持二级缓存的自动刷新（当缓存命中并发现缓存将要过期时会开启一个异步线程刷新缓存）
 - 缓存Key支持SpEL表达式
@@ -18,19 +17,18 @@ layering-cache是一个支持分布式环境的多级缓存框架，使用方式
 - 通过允许存空值来解决缓存穿透问题
 
 # 优势
-1. 支持本地缓存和集中式两级缓存
-2. 接入成本和使用成本都非常低
-3. 支持Spring、Spring boot
+1. 提供缓存命中率的监控统计，统计数据上报支持自定义扩展
+2. 支持本地缓存和集中式两级缓存
+3. 接入成本和使用成本都非常低
+4. 支持Spring、Spring boot
+5. 内置dashboard使得缓存具备可运维性
 
 # 文档
 
 [中文文档](https://github.com/xiaolyuh/layering-cache/wiki/%E6%96%87%E6%A1%A3)
 # 打开监控统计功能
 
-[打开监控统计功能](https://github.com/xiaolyuh/layering-cache/wiki/%E6%89%93%E5%BC%80%E7%9B%91%E6%8E%A7%E7%BB%9F%E8%AE%A1%E5%8A%9F%E8%83%BD)
-# 打开内置的监控页面
-
-[打开内置的监控页面](https://github.com/xiaolyuh/layering-cache/wiki/%E5%86%85%E7%BD%AE%E7%9A%84%E7%9B%91%E6%8E%A7%E9%A1%B5%E9%9D%A2)
+[打开监控统计功能](https://github.com/xiaolyuh/layering-cache/wiki/%E7%9B%91%E6%8E%A7%E7%BB%9F%E8%AE%A1%E5%8A%9F%E8%83%BD)
 
 # 重要提示
 - layering-cache支持同一个缓存名称设置不同的过期时间，但是一定要保证key唯一，否则会出现缓存过期时间错乱的情况

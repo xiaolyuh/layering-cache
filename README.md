@@ -1,22 +1,23 @@
 # layering-cache
 # 简介
+layering-cache是一个支持分布式环境的多级缓存框架，使用方式和spring-cache类似，主要目的是在使用注解的时候支持配置过期时间。layering-cache其实是一个两级缓存，一级缓存使用Caffeine作为本地缓存，二级缓存使用redis作为集中式缓存。
 
-[![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.github.xiaolyuh/layering-cache/badge.svg)](https://search.maven.org/artifact/com.github.xiaolyuh/layering-cache/)
-[![License](https://img.shields.io/badge/license-Apache%202-4EB1BA.svg)](https://www.apache.org/licenses/LICENSE-2.0.html)
-
-layering-cache是一个支持分布式环境的多级缓存框架，使用方式和spring-cache类似，主要目的是在使用注解的时候支持配置过期时间。layering-cache其实是一个两级缓存，一级缓存使用Caffeine作为本地缓存，二级缓存使用redis作为集中式缓存。一级缓存和二级缓存的数据一致性是通过推和拉两种模式相结合的方式，推主要是基于redis的pub/sub机制，拉主要是基于偏移量的方式。
+一级缓存和二级缓存的数据一致性是通过推和拉两种模式相结合的方式来实现的。推主要是基于redis的pub/sub机制，拉主要是基于消息偏移量的方式。
 
 # 支持
 - 支持缓存监控统计，监控信息上报支持自定义扩展
 - 支持缓存过期时间在注解上直接配置
 - 支持二级缓存的自动刷新（当缓存命中并发现缓存将要过期时会开启一个异步线程刷新缓存）
-- 刷新缓存分为强刷新和软刷新，强刷新直接调用缓存方法，软刷新直接改缓存的时间 
 - 缓存Key支持SpEL表达式
-- 默认使用KryoRedisSerializer序列化，并支持自定义的序列化。
+- Redis默认使用KryoRedisSerializer序列化，并支持自定义的序列化
 - 支持同一个缓存名称设置不同的过期时间
 - 支持禁用一级缓存，只使用二级缓存
 - 通过允许存空值来解决缓存穿透问题
 
+# 优势
+1. 支持本地缓存和集中式两级缓存
+2. 接入成本和使用成本都非常低
+3. 支持Spring、Spring boot
 
 # 文档
 

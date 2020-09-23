@@ -124,6 +124,7 @@ public class StatsService {
                                 cacheStats.setTotalLoadTime(cacheStats.getTotalLoadTime() + layeringCacheStats.getAndResetCachedMethodRequestTime());
                                 cacheStats.setHitRate((cacheStats.getRequestCount() - cacheStats.getMissCount()) / (double) cacheStats.getRequestCount() * 100);
 
+                                cacheStats.setFirstCacheSize(layeringCache.getFirstCache().estimatedSize());
                                 cacheStats.setFirstCacheRequestCount(cacheStats.getFirstCacheRequestCount() + firstCacheStats.getAndResetCacheRequestCount());
                                 cacheStats.setFirstCacheMissCount(cacheStats.getFirstCacheMissCount() + firstCacheStats.getAndResetCachedMethodRequestCount());
 
@@ -133,7 +134,6 @@ public class StatsService {
                                 // 将缓存统计数据写到redis
                                 redisClient.set(redisKey, cacheStats, 24, TimeUnit.HOURS);
                                 cacheStatsInfos.add(cacheStats);
-                                logger.info("Layering Cache 统计信息：{}", JSON.toJSONString(cacheStats));
                             }
                         } catch (Exception e) {
                             logger.error(e.getMessage(), e);
@@ -143,7 +143,7 @@ public class StatsService {
                     }
                 }
             }
-
+            logger.info("Layering Cache 统计信息：{}", JSON.toJSONString(cacheStatsInfos));
             try {
                 // 上报缓存统计信息
                 this.cacheManager.getCacheStatsReportService().reportCacheStats(cacheStatsInfos);

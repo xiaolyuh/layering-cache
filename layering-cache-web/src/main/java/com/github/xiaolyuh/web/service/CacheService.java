@@ -32,7 +32,7 @@ public class CacheService {
         if (StringUtils.isBlank(cacheName) || StringUtils.isBlank(internalKey)) {
             return;
         }
-        LayeringCacheSetting defaultSetting = new LayeringCacheSetting(new FirstCacheSetting(), new SecondaryCacheSetting(), "默认缓存配置（删除时生成）");
+        LayeringCacheSetting defaultSetting = new LayeringCacheSetting(new FirstCacheSetting(), new SecondaryCacheSetting(), "默认缓存配置（删除时生成）", true);
         Set<AbstractCacheManager> cacheManagers = AbstractCacheManager.getCacheManager();
         if (StringUtils.isBlank(key)) {
             // 清空缓存

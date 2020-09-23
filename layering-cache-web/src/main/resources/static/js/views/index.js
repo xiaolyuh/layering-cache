@@ -122,7 +122,7 @@
         },
         getData: function () {
 
-            var data = {"code":"200","data":[{"cacheName":"people1","depict":"æŸ¥è¯¢ç”¨æˆ·ä¿¡æ¯1","firstCacheMissCount":1,"firstCacheRequestCount":2,"hitRate":50.0,"internalKey":"4000-100000-3000","layeringCacheSetting":{"depict":"æŸ¥è¯¢ç”¨æˆ·ä¿¡æ¯1","firstCacheSetting":{"allowNullValues":true,"expireMode":"WRITE","expireTime":4,"initialCapacity":10,"maximumSize":5000,"timeUnit":"SECONDS"},"internalKey":"4000-100000-3000","secondaryCacheSetting":{"allowNullValues":true,"expiration":100,"forceRefresh":true,"preloadTime":3,"timeUnit":"SECONDS","usePrefix":true},"useFirstCache":true},"missCount":1,"requestCount":2,"secondCacheMissCount":1,"secondCacheRequestCount":1,"totalLoadTime":52}],"message":"SUCCESS","status":"SUCCESS"};
+            var data = {"code":"200","data":[{"cacheName":"people1","depict":"描述","firstCacheMissCount":1,"firstCacheRequestCount":2,"hitRate":50.0,"internalKey":"4000-100000-3000","layeringCacheSetting":{"depict":"æŸ¥è¯¢ç”¨æˆ·ä¿¡æ¯1","firstCacheSetting":{"allowNullValues":true,"expireMode":"WRITE","expireTime":4,"initialCapacity":10,"maximumSize":5000,"timeUnit":"SECONDS"},"internalKey":"4000-100000-3000","secondaryCacheSetting":{"allowNullValues":true,"expiration":100,"forceRefresh":true,"preloadTime":3,"timeUnit":"SECONDS","usePrefix":true},"useFirstCache":true},"missCount":1,"requestCount":2,"secondCacheMissCount":1,"secondCacheRequestCount":1,"totalLoadTime":52}],"message":"SUCCESS","status":"SUCCESS"};
             var temp = ko.mapping.fromJS(data.data);
             format.formatInit(temp());
             viewModel.cacheStats(temp());

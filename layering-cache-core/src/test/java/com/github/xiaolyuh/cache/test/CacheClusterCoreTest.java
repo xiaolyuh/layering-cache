@@ -389,6 +389,7 @@ public class CacheClusterCoreTest {
         logger.debug("被缓存方法请求数：{}", cacheStats.getCachedMethodRequestCount());
         logger.debug("被缓存方法请求总耗时：{}", cacheStats.getCachedMethodRequestTime());
 
+        Assert.assertEquals(cache1.getFirstCache().estimatedSize(), 1);
         Assert.assertEquals(cacheStats.getCacheRequestCount().longValue(), 4);
         Assert.assertEquals(cacheStats.getCachedMethodRequestCount().longValue(), 2);
         Assert.assertTrue(cacheStats.getCachedMethodRequestTime().longValue() >= 0);
@@ -403,7 +404,6 @@ public class CacheClusterCoreTest {
         Assert.assertNotNull(keys);
         Assert.assertTrue(keys.size() >= 0);
     }
-
 
     /**
      * 通过 拉模式删除缓存

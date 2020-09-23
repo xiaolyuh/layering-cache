@@ -35,9 +35,6 @@ public class RedisController {
             redisProperties.setPassword(StringUtils.isBlank(password) ? null : password);
             redisProperties.setPort(port);
             redisProperties.setDatabase(database);
-            redisProperties.setMaxIdle(2);
-            redisProperties.setMinIdle(2);
-            redisProperties.setMaxTotal(2);
 
             String key = address + ":" + port + ":" + database;
             redisClientMap.put(key, getRedisClient(redisProperties));

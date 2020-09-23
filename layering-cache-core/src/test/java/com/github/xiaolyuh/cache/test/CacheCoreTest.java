@@ -367,7 +367,7 @@ public class CacheCoreTest {
     @Test
     public void testStats() {
         // 测试 缓存过期时间
-        String cacheName = "cache:name:1";
+        String cacheName = "cache:name:3-1-3:1";
         String cacheKey1 = "cache:key:123";
         LayeringCache cache1 = (LayeringCache) cacheManager.getCache(cacheName, layeringCacheSetting1);
         cache1.get(cacheKey1, () -> initCache(String.class));
@@ -388,6 +388,7 @@ public class CacheCoreTest {
         logger.debug("被缓存方法请求数：{}", cacheStats.getCachedMethodRequestCount());
         logger.debug("被缓存方法请求总耗时：{}", cacheStats.getCachedMethodRequestTime());
 
+        Assert.assertEquals(cache1.getFirstCache().estimatedSize(), 1);
         Assert.assertEquals(cacheStats.getCacheRequestCount().longValue(), 4);
         Assert.assertEquals(cacheStats.getCachedMethodRequestCount().longValue(), 2);
         Assert.assertTrue(cacheStats.getCachedMethodRequestTime().longValue() >= 0);

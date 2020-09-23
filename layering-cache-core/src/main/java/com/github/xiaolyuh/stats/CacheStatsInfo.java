@@ -47,6 +47,11 @@ public class CacheStatsInfo implements Serializable {
     private long firstCacheRequestCount;
 
     /**
+     * 一级缓预告 size
+     */
+    private long firstCacheSize;
+
+    /**
      * 一级缓存未命中总数
      */
     private long firstCacheMissCount;
@@ -166,6 +171,14 @@ public class CacheStatsInfo implements Serializable {
 
     public void setHitRate(double hitRate) {
         this.hitRate = hitRate;
+    }
+
+    public long getFirstCacheSize() {
+        return firstCacheSize;
+    }
+
+    public void setFirstCacheSize(long firstCacheSize) {
+        this.firstCacheSize = firstCacheSize;
     }
 
     @Override

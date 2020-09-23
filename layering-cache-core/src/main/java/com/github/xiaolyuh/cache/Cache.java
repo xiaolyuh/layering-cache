@@ -106,4 +106,13 @@ public interface Cache {
      * @return {@link CacheStats}
      */
     CacheStats getCacheStats();
+
+    /**
+     * 缓存预估size
+     *
+     * @return 预估大小
+     */
+    default long estimatedSize() {
+        return 0;
+    }
 }

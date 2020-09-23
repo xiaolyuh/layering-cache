@@ -628,7 +628,12 @@ public class CacheCoreTest {
     public void testLock() {
         LayeringCacheRedisLock lock = new LayeringCacheRedisLock(redisClient, "test:123");
         lock.lock();
-        lock.unlock();
+        Boolean hasKey = redisClient.hasKey("test:123_lock");
+        Assert.assertTrue(hasKey);
+        Boolean unlock = lock.unlock();
+        Assert.assertTrue(unlock);
+        hasKey = redisClient.hasKey("test:123_lock");
+        Assert.assertTrue(!hasKey);
     }
 
     private <T> T initCache(Class<T> t) {

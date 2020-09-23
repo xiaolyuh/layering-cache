@@ -322,8 +322,8 @@ public class ClusterRedisClient implements RedisClient {
 
         try {
             RedisClusterCommands<byte[], byte[]> sync = connection.sync();
-            List<byte[]> bkeys = keys.stream().map(key -> key.getBytes(StandardCharsets.UTF_8)).collect(Collectors.toList());
-            List<byte[]> bargs = args.stream().map(key -> key.getBytes(StandardCharsets.UTF_8)).collect(Collectors.toList());
+            List<byte[]> bkeys = keys.stream().map(key -> getKeySerializer().serialize(key)).collect(Collectors.toList());
+            List<byte[]> bargs = args.stream().map(arg -> getValueSerializer().serialize(arg)).collect(Collectors.toList());
             return sync.eval(script, ScriptOutputType.INTEGER, bkeys.toArray(new byte[0][0]), bargs.toArray(new byte[0][0]));
         } catch (SerializationException e) {
             throw e;

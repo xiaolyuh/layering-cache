@@ -224,7 +224,7 @@ public class LayeringCacheRedisLock {
                 keys.add(lockKey);
 
                 List<String> args = new ArrayList<>();
-                keys.add(lockValue);
+                args.add(lockValue);
                 Long result = (Long) redisClient.eval(UNLOCK_LUA, keys, args);
                 if (result == 0 && !StringUtils.isEmpty(lockKeyLog)) {
                     logger.debug("Redis分布式锁，解锁{}失败！解锁时间：{}", lockKeyLog, System.currentTimeMillis());

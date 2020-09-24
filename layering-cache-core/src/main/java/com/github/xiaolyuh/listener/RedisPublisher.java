@@ -26,10 +26,21 @@ public class RedisPublisher {
      * @param message     消息内容
      */
     public static void publisher(RedisClient redisClient, RedisPubSubMessage message) {
+        publisher(redisClient, message, GlobalConfig.NAMESPACE);
+    }
+
+    /**
+     * 发布消息到频道（Channel）
+     *
+     * @param redisClient redis客户端
+     * @param message     消息内容
+     * @param nameSpace   命名空间
+     */
+    public static void publisher(RedisClient redisClient, RedisPubSubMessage message, String nameSpace) {
         String messageJson = JSON.toJSONString(message);
         // pull 拉模式消息
-        redisClient.lpush(GlobalConfig.getMessageRedisKey(), messageJson);
-        redisClient.expire(GlobalConfig.getMessageRedisKey(), 25, TimeUnit.HOURS);
+        redisClient.lpush(GlobalConfig.getMessageRedisKey(nameSpace), messageJson);
+        redisClient.expire(GlobalConfig.getMessageRedisKey(nameSpace), 25, TimeUnit.HOURS);
         // pub/sub 推模式消息
         redisClient.publish(RedisMessageListener.CHANNEL, "m");
         logger.debug("redis消息发布者向频道【{}】发布了【{}】消息", RedisMessageListener.CHANNEL, message.toString());

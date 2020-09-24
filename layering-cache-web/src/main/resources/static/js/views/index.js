@@ -1,6 +1,7 @@
 (function ($) {
 
     var constant = {
+        DELETE_CACHE_BUTTON: '.bind-delete-cache-button',
         RESET_STATS_BUTTON: '.bind-reset-stats-button',
         SEARCH_BUTTON: '.bind-search-button',
         REDIS_CONFIG_FORM: '#redis-config-form',
@@ -126,7 +127,9 @@
             var temp = ko.mapping.fromJS(data.data);
             format.formatInit(temp());
             viewModel.cacheStats(temp());
-
+            $(constant.SEARCH_BUTTON).attr("disabled", "true");
+            $(constant.RESET_STATS_BUTTON).attr("disabled", "true");
+            $(constant.DELETE_CACHE_BUTTON).attr("disabled", "true");
             $.ajax({
                 type: 'POST',
                 url: 'cache-stats/list',
@@ -136,8 +139,14 @@
                     var temp = ko.mapping.fromJS(data.data);
                     format.formatInit(temp());
                     viewModel.cacheStats(temp());
+                    $(constant.SEARCH_BUTTON).removeAttr("disabled");
+                    $(constant.RESET_STATS_BUTTON).removeAttr("disabled");
+                    $(constant.DELETE_CACHE_BUTTON).removeAttr("disabled");
                 },
                 error: function () {
+                    $(constant.SEARCH_BUTTON).removeAttr("disabled");
+                    $(constant.RESET_STATS_BUTTON).removeAttr("disabled");
+                    $(constant.DELETE_CACHE_BUTTON).removeAttr("disabled");
                     window.location.href = "/toLogin";
                 }
             });
@@ -185,6 +194,7 @@
                                         data: {
                                             "cacheName": cs.cacheName(),
                                             "internalKey": cs.internalKey(),
+                                            "nameSpace": cs.nameSpace(),
                                             "key": $(constant.DELETE_CACHE_KEYINPUT).val(),
                                             "redisClient": $(constant.REDIS_SELECT).val(),
                                             "token": token.getToken()
@@ -241,6 +251,7 @@
             bindEvent.redisConfig();
             bindEvent.bindResetStats();
             bindEvent.bindLoginOut();
+            bindEvent.redisList();
         }
     };
 

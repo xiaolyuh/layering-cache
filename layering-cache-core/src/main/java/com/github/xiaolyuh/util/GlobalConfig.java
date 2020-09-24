@@ -17,4 +17,8 @@ public class GlobalConfig {
     public static String getMessageRedisKey() {
         return String.format(MESSAGE_KEY, GlobalConfig.NAMESPACE);
     }
+
+    public static String getMessageRedisKey(String nameSpace) {
+        return String.format(MESSAGE_KEY, nameSpace);
+    }
 }

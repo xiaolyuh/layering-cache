@@ -58,7 +58,7 @@ public class CacheController {
      */
     @RequestMapping("delete-cache")
     @ResponseBody
-    public Result deleteCache(String redisClient, String cacheName, String internalKey, String key) {
+    public Result deleteCache(String redisClient, String cacheName, String internalKey, String key, String nameSpace) {
         try {
             // 清除一级缓存需要用到redis的订阅/发布模式，否则集群中其他服服务器节点的一级缓存数据无法删除
             RedisPubSubMessage message = new RedisPubSubMessage();
@@ -72,7 +72,7 @@ public class CacheController {
             }
 
             // 发布消息
-            RedisPublisher.publisher(RedisController.redisClientMap.get(redisClient), message);
+            RedisPublisher.publisher(RedisController.redisClientMap.get(redisClient), message, nameSpace);
 
             return Result.success();
         } catch (Exception e) {

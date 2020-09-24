@@ -17,6 +17,11 @@ public class CacheStatsInfo implements Serializable {
     private String cacheName;
 
     /**
+     * 命名空间
+     */
+    private String nameSpace;
+
+    /**
      * 内部缓存名，由[一级缓存有效时间-二级缓存有效时间-二级缓存自动刷新时间]组成
      */
     private String internalKey;
@@ -179,6 +184,14 @@ public class CacheStatsInfo implements Serializable {
 
     public void setFirstCacheSize(long firstCacheSize) {
         this.firstCacheSize = firstCacheSize;
+    }
+
+    public String getNameSpace() {
+        return nameSpace;
+    }
+
+    public void setNameSpace(String nameSpace) {
+        this.nameSpace = nameSpace;
     }
 
     @Override

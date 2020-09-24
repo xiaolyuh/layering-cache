@@ -239,7 +239,7 @@ public class SingleRedisClient implements RedisClient {
             boolean finished;
             ScanCursor cursor = ScanCursor.INITIAL;
             do {
-                KeyScanCursor<byte[]> scanCursor = sync.scan(cursor, ScanArgs.Builder.limit(1000).match(pattern));
+                KeyScanCursor<byte[]> scanCursor = sync.scan(cursor, ScanArgs.Builder.limit(10000).match(pattern));
                 scanCursor.getKeys().forEach(key -> keys.add((String) getKeySerializer().deserialize(key)));
                 finished = scanCursor.isFinished();
                 cursor = ScanCursor.of(scanCursor.getCursor());

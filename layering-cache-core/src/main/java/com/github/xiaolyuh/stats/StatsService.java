@@ -8,6 +8,7 @@ import com.github.xiaolyuh.manager.CacheManager;
 import com.github.xiaolyuh.redis.clinet.RedisClient;
 import com.github.xiaolyuh.setting.LayeringCacheSetting;
 import com.github.xiaolyuh.support.LayeringCacheRedisLock;
+import com.github.xiaolyuh.util.GlobalConfig;
 import com.github.xiaolyuh.util.NamedThreadFactory;
 import com.github.xiaolyuh.util.StringUtils;
 import org.slf4j.Logger;
@@ -30,7 +31,7 @@ public class StatsService {
     /**
      * 缓存统计数据前缀
      */
-    public static final String CACHE_STATS_KEY_PREFIX = "layering-cache:cache_stats_info:xiaolyuh:";
+    public static final String CACHE_STATS_KEY_PREFIX = "layering-cache:cache_stats_info:";
 
     /**
      * 定时任务线程池
@@ -103,6 +104,7 @@ public class StatsService {
                                 }
 
                                 // 设置缓存唯一标示
+                                cacheStats.setNameSpace(GlobalConfig.NAMESPACE);
                                 cacheStats.setCacheName(cacheName);
                                 cacheStats.setInternalKey(layeringCacheSetting.getInternalKey());
 

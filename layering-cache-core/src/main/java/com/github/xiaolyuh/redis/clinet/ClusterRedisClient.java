@@ -7,6 +7,7 @@ import com.github.xiaolyuh.redis.serializer.KryoRedisSerializer;
 import com.github.xiaolyuh.redis.serializer.RedisSerializer;
 import com.github.xiaolyuh.redis.serializer.SerializationException;
 import com.github.xiaolyuh.redis.serializer.StringRedisSerializer;
+import com.github.xiaolyuh.util.NamedThreadFactory;
 import com.github.xiaolyuh.util.StringUtils;
 import io.lettuce.core.*;
 import io.lettuce.core.cluster.RedisClusterClient;
@@ -23,7 +24,7 @@ import org.springframework.util.CollectionUtils;
 
 import java.nio.charset.StandardCharsets;
 import java.util.*;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 import java.util.stream.Collectors;
 
 /**
@@ -33,7 +34,7 @@ import java.util.stream.Collectors;
  */
 public class ClusterRedisClient implements RedisClient {
     Logger logger = LoggerFactory.getLogger(ClusterRedisClient.class);
-
+    ExecutorService executorService = Executors.newFixedThreadPool(10, new NamedThreadFactory("layering-cache-scan"));
     /**
      * 腾讯云集群版异常信息
      */
@@ -204,7 +205,7 @@ public class ClusterRedisClient implements RedisClient {
 
     @Override
     public Set<String> scan(String pattern) {
-        Set<String> keys = new HashSet<>();
+        Set<String> keys = Collections.synchronizedSet(new HashSet<>());
         // 腾讯云版本redis
         if (tencentRedis) {
             try {
@@ -212,29 +213,40 @@ public class ClusterRedisClient implements RedisClient {
 
                 String nodeStr = sync.clusterNodes();
                 String[] nodes = nodeStr.split("\n");
+                CountDownLatch countDownLatch = new CountDownLatch(nodes.length);
                 for (String node : nodes) {
                     if (!node.contains("master")) {
+                        countDownLatch.countDown();
                         continue;
                     }
-                    long cursor = 0L;
-                    do {
-                        // 2150b1d23fc132cb6ff5a9553f5f1af9f19b0cc2 127.0.0.1:6379@13357 master - 0 1600342826089 2 connected 10923-16383
-                        String nodeId = node.split(" ")[0];
-                        RedisCommandFactory factory = new RedisCommandFactory(connection);
-                        TencentScan commands = factory.getCommands(TencentScan.class);
-                        List<Object> objects = commands.scan(cursor, pattern, 10000, nodeId);
 
-                        if (CollectionUtils.isEmpty(objects)) {
-                            break;
+                    executorService.submit(() -> {
+                        try {
+                            long cursor = 0L;
+                            do {
+                                // 2150b1d23fc132cb6ff5a9553f5f1af9f19b0cc2 127.0.0.1:6379@13357 master - 0 1600342826089 2 connected 10923-16383
+                                String nodeId = node.split(" ")[0];
+                                RedisCommandFactory factory = new RedisCommandFactory(connection);
+                                TencentScan commands = factory.getCommands(TencentScan.class);
+                                List<Object> objects = commands.scan(cursor, pattern, 10000, nodeId);
+
+                                if (CollectionUtils.isEmpty(objects)) {
+                                    break;
+                                }
+                                // 更新游标位
+                                cursor = Long.parseLong((String) objects.get(0));
+                                // 暂存key
+                                if (objects.size() == 2) {
+                                    keys.addAll((ArrayList) objects.get(1));
+                                }
+                            } while (cursor != 0);
+                        }  finally {
+                            countDownLatch.countDown();
                         }
-                        // 更新游标位
-                        cursor = Long.parseLong((String) objects.get(0));
-                        // 暂存key
-                        if (objects.size() == 2) {
-                            keys.addAll((ArrayList) objects.get(1));
-                        }
-                    } while (cursor != 0);
+                    });
                 }
+
+                countDownLatch.await(10, TimeUnit.MINUTES);
             } catch (SerializationException e) {
                 throw e;
             } catch (Exception e) {
@@ -250,7 +262,7 @@ public class ClusterRedisClient implements RedisClient {
             boolean finished;
             ScanCursor cursor = ScanCursor.INITIAL;
             do {
-                KeyScanCursor<byte[]> scanCursor = sync.scan(cursor, ScanArgs.Builder.limit(1000).match(pattern));
+                KeyScanCursor<byte[]> scanCursor = sync.scan(cursor, ScanArgs.Builder.limit(10000).match(pattern));
                 scanCursor.getKeys().forEach(key -> keys.add((String) getKeySerializer().deserialize(key)));
                 finished = scanCursor.isFinished();
                 cursor = ScanCursor.of(scanCursor.getCursor());

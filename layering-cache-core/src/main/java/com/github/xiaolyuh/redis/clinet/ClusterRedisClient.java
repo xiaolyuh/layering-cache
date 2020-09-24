@@ -213,13 +213,16 @@ public class ClusterRedisClient implements RedisClient {
                 String nodeStr = sync.clusterNodes();
                 String[] nodes = nodeStr.split("\n");
                 for (String node : nodes) {
+                    if (!node.contains("master")) {
+                        continue;
+                    }
                     long cursor = 0L;
                     do {
                         // 2150b1d23fc132cb6ff5a9553f5f1af9f19b0cc2 127.0.0.1:6379@13357 master - 0 1600342826089 2 connected 10923-16383
                         String nodeId = node.split(" ")[0];
                         RedisCommandFactory factory = new RedisCommandFactory(connection);
                         TencentScan commands = factory.getCommands(TencentScan.class);
-                        List<Object> objects = commands.scan(cursor, pattern, 5000, nodeId);
+                        List<Object> objects = commands.scan(cursor, pattern, 10000, nodeId);
 
                         if (CollectionUtils.isEmpty(objects)) {
                             break;

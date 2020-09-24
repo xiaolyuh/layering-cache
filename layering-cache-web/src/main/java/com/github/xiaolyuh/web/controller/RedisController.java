@@ -69,9 +69,11 @@ public class RedisController {
         KryoRedisSerializer<Object> kryoRedisSerializer = new KryoRedisSerializer<>(Object.class);
         StringRedisSerializer keyRedisSerializer = new StringRedisSerializer();
 
-        RedisClient redisClient = new SingleRedisClient(redisProperties);
+        RedisClient redisClient;
         if (StringUtils.isNotBlank(redisProperties.getCluster())) {
             redisClient = new ClusterRedisClient(redisProperties);
+        } else {
+            redisClient = new SingleRedisClient(redisProperties);
         }
 
         redisClient.setKeySerializer(keyRedisSerializer);

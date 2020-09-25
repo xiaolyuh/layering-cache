@@ -136,12 +136,13 @@
                 dataType: 'JSON',
                 data: {"redisClient": $(constant.REDIS_SELECT).val(), "cacheName": $(constant.SEARCH_INPUT).val(), "token": token.getToken()},
                 success: function (data) {
-                    var temp = ko.mapping.fromJS(data.data);
-                    format.formatInit(temp());
-                    viewModel.cacheStats(temp());
                     $(constant.SEARCH_BUTTON).removeAttr("disabled");
                     $(constant.RESET_STATS_BUTTON).removeAttr("disabled");
                     $(constant.DELETE_CACHE_BUTTON).removeAttr("disabled");
+
+                    var temp = ko.mapping.fromJS(data.data);
+                    format.formatInit(temp());
+                    viewModel.cacheStats(temp());
                 },
                 error: function () {
                     $(constant.SEARCH_BUTTON).removeAttr("disabled");

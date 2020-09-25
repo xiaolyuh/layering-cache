@@ -38,17 +38,4 @@ public interface CacheManager {
      * @return 所有缓存名称的集合
      */
     Collection<String> getCacheNames();
-
-    /**
-     * 获取缓存命中率统计信息
-     *
-     * @param cacheName 缓存名称，为Blank则查询全部
-     * @return List&lt;CacheStatsInfo&gt;
-     */
-    List<CacheStatsInfo> listCacheStats(String cacheName);
-
-    /**
-     * 重置缓存统计数据
-     */
-    void resetCacheStat();
 }

@@ -2,11 +2,13 @@ package com.github.xiaolyuh.manager;
 
 import com.github.xiaolyuh.cache.Cache;
 import com.github.xiaolyuh.listener.RedisMessageListener;
+import com.github.xiaolyuh.listener.RedisMessagePullTask;
 import com.github.xiaolyuh.listener.RedisPubSubThreadTaskUtils;
 import com.github.xiaolyuh.redis.clinet.RedisClient;
 import com.github.xiaolyuh.setting.LayeringCacheSetting;
-import com.github.xiaolyuh.stats.CacheStatsInfo;
 import com.github.xiaolyuh.stats.StatsService;
+import com.github.xiaolyuh.stats.extend.CacheStatsReportService;
+import com.github.xiaolyuh.stats.extend.DefaultCacheStatsReportServiceImpl;
 import com.github.xiaolyuh.util.BeanFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -14,7 +16,10 @@ import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.util.CollectionUtils;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.LinkedHashSet;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
@@ -25,11 +30,6 @@ import java.util.concurrent.ConcurrentMap;
  */
 public abstract class AbstractCacheManager implements CacheManager, InitializingBean, DisposableBean {
     private Logger logger = LoggerFactory.getLogger(AbstractCacheManager.class);
-
-    /**
-     * redis pub/sub 监听器
-     */
-    private final RedisMessageListener messageListener = new RedisMessageListener();
 
     /**
      * 缓存容器
@@ -47,6 +47,11 @@ public abstract class AbstractCacheManager implements CacheManager, Initializing
      * CacheManager 容器
      */
     static Set<AbstractCacheManager> cacheManagers = new LinkedHashSet<>();
+
+    /**
+     * 上报缓存统计信息
+     */
+    CacheStatsReportService cacheStatsReportService = new DefaultCacheStatsReportServiceImpl();
 
     /**
      * 是否开启统计
@@ -163,25 +168,16 @@ public abstract class AbstractCacheManager implements CacheManager, Initializing
 
     @Override
     public void afterPropertiesSet() throws Exception {
-        messageListener.setCacheManager(this);
-        // 创建监听
-        redisClient.subscribe(messageListener, RedisMessageListener.CHANNEL);
+        //  redis pull 消息任务
+        BeanFactory.getBean(RedisMessagePullTask.class).init(this);
+        //  redis pub/sub 监听器
+        BeanFactory.getBean(RedisMessageListener.class).init(this);
 
         BeanFactory.getBean(StatsService.class).setCacheManager(this);
         if (getStats()) {
             // 采集缓存命中率数据
             BeanFactory.getBean(StatsService.class).syncCacheStats();
         }
-    }
-
-    @Override
-    public List<CacheStatsInfo> listCacheStats(String cacheName) {
-        return BeanFactory.getBean(StatsService.class).listCacheStats(cacheName);
-    }
-
-    @Override
-    public void resetCacheStat() {
-        BeanFactory.getBean(StatsService.class).resetCacheStat();
     }
 
     @Override
@@ -196,6 +192,14 @@ public abstract class AbstractCacheManager implements CacheManager, Initializing
 
     public void setStats(boolean stats) {
         this.stats = stats;
+    }
+
+    public CacheStatsReportService getCacheStatsReportService() {
+        return cacheStatsReportService;
+    }
+
+    public void setCacheStatsReportService(CacheStatsReportService cacheStatsReportService) {
+        this.cacheStatsReportService = cacheStatsReportService;
     }
 
     @Override

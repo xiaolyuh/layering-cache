@@ -295,7 +295,7 @@ public class TestService {
     @CachePut(value = "user:info", ignoreException = false,
             firstCache = @FirstCache(expireTime = 40, timeUnit = TimeUnit.SECONDS),
             secondaryCache = @SecondaryCache(expireTime = 100, preloadTime = 30, forceRefresh = true, timeUnit = TimeUnit.SECONDS))
-    public User putUserNoKey(long userId,String[] lastName, User user) {
+    public User putUserNoKey(long userId, String[] lastName, User user) {
         return user;
     }
 
@@ -347,7 +347,7 @@ public class TestService {
 
     }
 
-    @CacheEvict(value = "user:info",  ignoreException = false)
+    @CacheEvict(value = "user:info", ignoreException = false)
     public void evictUserNoKey(long userId, String[] lastName, User user) {
 
     }
@@ -355,4 +355,31 @@ public class TestService {
     @CacheEvict(value = "user:info", allEntries = true, ignoreException = false)
     public void evictAllUser() {
     }
+
+
+    @Cacheable(value = "user:info:118:3-0-2", key = "#userId", ignoreException = false, enableFirstCache = false,
+            secondaryCache = @SecondaryCache(expireTime = 10, preloadTime = 3,
+                    forceRefresh = true, timeUnit = TimeUnit.SECONDS, isAllowNullValue = true))
+    public User getUserById118DisableFirstCache(long userId) {
+        logger.debug("3.0.2 测试禁用一级缓存");
+        User user = new User();
+        user.setUserId(userId);
+        user.setAge(31);
+        user.setLastName(new String[]{"w", "y", "h"});
+        return user;
+    }
+
+    @CachePut(value = "user:info:3-0-2", key = "#userId", ignoreException = false, enableFirstCache = false,
+            secondaryCache = @SecondaryCache(expireTime = 100, preloadTime = 3, forceRefresh = true, timeUnit = TimeUnit.SECONDS))
+    public User putUserByIdDisableFirstCache(long userId) {
+        logger.debug("3.0.2 测试禁用一级缓存");
+        User user = new User();
+        user.setUserId(userId);
+        user.setAge(311);
+        user.setLastName(new String[]{"w", "y", "h"});
+
+        return user;
+    }
+
+
 }

@@ -142,6 +142,43 @@ public interface RedisClient {
     Set<String> scan(String pattern);
 
     /**
+     * <p>
+     * 通过key向list头部添加字符串
+     * </p>
+     *
+     * @param key
+     * @param values
+     *            可以使一个string 也可以使string数组
+     * @return 返回list的value个数
+     */
+    Long lpush(String key, String... values) ;
+
+    /**
+     * <p>
+     * 通过key返回list的长度
+     * </p>
+     *
+     * @param key
+     * @return
+     */
+    Long llen(String key) ;
+
+    /**
+     * <p>
+     * 通过key获取list指定下标位置的value
+     * </p>
+     * <p>
+     * 如果start 为 0 end 为 -1 则返回全部的list中的value
+     * </p>
+     *
+     * @param key
+     * @param start
+     * @param end
+     * @return
+     */
+    List<String> lrange(String key, long start, long end);
+
+    /**
      * 执行Lua脚本
      *
      * @param script Lua 脚本

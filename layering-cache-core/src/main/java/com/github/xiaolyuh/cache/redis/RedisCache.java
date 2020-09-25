@@ -7,7 +7,7 @@ import com.github.xiaolyuh.setting.SecondaryCacheSetting;
 import com.github.xiaolyuh.support.AwaitThreadContainer;
 import com.github.xiaolyuh.support.LayeringCacheRedisLock;
 import com.github.xiaolyuh.support.NullValue;
-import com.github.xiaolyuh.support.ThreadTaskUtils;
+import com.github.xiaolyuh.util.ThreadTaskUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.util.Assert;
@@ -284,21 +284,20 @@ public class RedisCache extends AbstractValueAdaptingCache {
      * 刷新缓存数据
      */
     private <T> void refreshCache(RedisCacheKey redisCacheKey, Callable<T> valueLoader, Object result) {
-        Long ttl = redisClient.getExpire(redisCacheKey.getKey());
-        Long preload = preloadTime;
+        long preload = preloadTime;
         // 允许缓存NULL值，则自动刷新时间也要除以倍数
         boolean flag = isAllowNullValues() && (result instanceof NullValue || result == null);
         if (flag) {
             preload = preload / getMagnification();
         }
-        if (null != ttl && ttl > 0 && TimeUnit.SECONDS.toMillis(ttl) <= preload) {
+        if (isRefresh(redisCacheKey, preload)) {
             // 判断是否需要强制刷新在开启刷新线程
             if (!getForceRefresh()) {
                 logger.debug("redis缓存 key={} 软刷新缓存模式", redisCacheKey.getKey());
                 softRefresh(redisCacheKey);
             } else {
                 logger.debug("redis缓存 key={} 强刷新缓存模式", redisCacheKey.getKey());
-                forceRefresh(redisCacheKey, valueLoader);
+                forceRefresh(redisCacheKey, valueLoader, preload);
             }
         }
     }
@@ -327,8 +326,9 @@ public class RedisCache extends AbstractValueAdaptingCache {
      *
      * @param redisCacheKey {@link RedisCacheKey}
      * @param valueLoader   数据加载器
+     * @param preloadTime   缓存预加载时间
      */
-    private <T> void forceRefresh(RedisCacheKey redisCacheKey, Callable<T> valueLoader) {
+    private <T> void forceRefresh(RedisCacheKey redisCacheKey, Callable<T> valueLoader, long preloadTime) {
         // 尽量少的去开启线程，因为线程池是有限的
         ThreadTaskUtils.run(() -> {
             // 加一个分布式锁，只放一个请求去刷新缓存
@@ -336,8 +336,7 @@ public class RedisCache extends AbstractValueAdaptingCache {
             try {
                 if (redisLock.lock()) {
                     // 获取锁之后再判断一下过期时间，看是否需要加载数据
-                    Long ttl = redisClient.getExpire(redisCacheKey.getKey());
-                    if (null != ttl && ttl > 0 && TimeUnit.SECONDS.toMillis(ttl) <= preloadTime) {
+                    if (isRefresh(redisCacheKey, preloadTime)) {
                         // 加载数据并放到缓存
                         loaderAndPutValue(redisCacheKey, valueLoader, false);
                     }
@@ -348,6 +347,24 @@ public class RedisCache extends AbstractValueAdaptingCache {
                 redisLock.unlock();
             }
         });
+    }
+
+    /**
+     * 判断是否需要刷新缓存
+     *
+     * @param redisCacheKey 缓存key
+     * @param preloadTime   预加载时间（经过计算后的时间）
+     * @return boolean
+     */
+    private boolean isRefresh(RedisCacheKey redisCacheKey, long preloadTime) {
+        // 获取锁之后再判断一下过期时间，看是否需要加载数据
+        Long ttl = redisClient.getExpire(redisCacheKey.getKey());
+        // -2表示key不存在
+        if (ttl == null || ttl == -2) {
+            return true;
+        }
+        // 当前缓存时间小于刷新时间就需要刷新缓存
+        return ttl > 0 && TimeUnit.SECONDS.toMillis(ttl) <= preloadTime;
     }
 
     /**

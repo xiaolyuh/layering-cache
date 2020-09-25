@@ -8,6 +8,8 @@ import com.github.xiaolyuh.manager.CacheManager;
 import com.github.xiaolyuh.redis.clinet.RedisClient;
 import com.github.xiaolyuh.setting.LayeringCacheSetting;
 import com.github.xiaolyuh.support.LayeringCacheRedisLock;
+import com.github.xiaolyuh.util.GlobalConfig;
+import com.github.xiaolyuh.util.NamedThreadFactory;
 import com.github.xiaolyuh.util.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,12 +31,12 @@ public class StatsService {
     /**
      * 缓存统计数据前缀
      */
-    public static final String CACHE_STATS_KEY_PREFIX = "layering-cache:cache_stats_info:xiaolyuh:";
+    public static final String CACHE_STATS_KEY_PREFIX = "layering-cache:cache_stats_info:";
 
     /**
      * 定时任务线程池
      */
-    private static ScheduledThreadPoolExecutor executor = new ScheduledThreadPoolExecutor(1 );
+    private static ScheduledThreadPoolExecutor executor = new ScheduledThreadPoolExecutor(1, new NamedThreadFactory("layering-cache-stat"));
 
     /**
      * {@link AbstractCacheManager }
@@ -80,6 +82,7 @@ public class StatsService {
         executor.scheduleWithFixedDelay(() -> {
             logger.debug("执行缓存统计数据采集定时任务");
             Set<AbstractCacheManager> cacheManagers = AbstractCacheManager.getCacheManager();
+            List<CacheStatsInfo> cacheStatsInfos = new LinkedList<>();
             for (AbstractCacheManager abstractCacheManager : cacheManagers) {
                 // 获取CacheManager
                 CacheManager cacheManager = abstractCacheManager;
@@ -101,6 +104,7 @@ public class StatsService {
                                 }
 
                                 // 设置缓存唯一标示
+                                cacheStats.setNameSpace(GlobalConfig.NAMESPACE);
                                 cacheStats.setCacheName(cacheName);
                                 cacheStats.setInternalKey(layeringCacheSetting.getInternalKey());
 
@@ -122,6 +126,7 @@ public class StatsService {
                                 cacheStats.setTotalLoadTime(cacheStats.getTotalLoadTime() + layeringCacheStats.getAndResetCachedMethodRequestTime());
                                 cacheStats.setHitRate((cacheStats.getRequestCount() - cacheStats.getMissCount()) / (double) cacheStats.getRequestCount() * 100);
 
+                                cacheStats.setFirstCacheSize(layeringCache.getFirstCache().estimatedSize());
                                 cacheStats.setFirstCacheRequestCount(cacheStats.getFirstCacheRequestCount() + firstCacheStats.getAndResetCacheRequestCount());
                                 cacheStats.setFirstCacheMissCount(cacheStats.getFirstCacheMissCount() + firstCacheStats.getAndResetCachedMethodRequestCount());
 
@@ -130,8 +135,7 @@ public class StatsService {
 
                                 // 将缓存统计数据写到redis
                                 redisClient.set(redisKey, cacheStats, 24, TimeUnit.HOURS);
-
-                                logger.info("Layering Cache 统计信息：{}", JSON.toJSONString(cacheStats));
+                                cacheStatsInfos.add(cacheStats);
                             }
                         } catch (Exception e) {
                             logger.error(e.getMessage(), e);
@@ -140,6 +144,13 @@ public class StatsService {
                         }
                     }
                 }
+            }
+            logger.info("Layering Cache 统计信息：{}", JSON.toJSONString(cacheStatsInfos));
+            try {
+                // 上报缓存统计信息
+                this.cacheManager.getCacheStatsReportService().reportCacheStats(cacheStatsInfos);
+            } catch (Throwable e) {
+                logger.error("上报缓存统计信息失败 {}", e.getMessage(), e);
             }
 
             //  初始时间间隔是1分

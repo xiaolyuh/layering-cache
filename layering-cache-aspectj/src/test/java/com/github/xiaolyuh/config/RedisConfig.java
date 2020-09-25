@@ -18,26 +18,14 @@ public class RedisConfig {
     @Value("${spring.redis.database:0}")
     private int database;
 
-    @Value("${spring.redis.host:192.168.83.128}")
+    @Value("${spring.redis.host:127.0.0.1}")
     private String host;
 
     @Value("${spring.redis.password:}")
     private String password;
 
-    @Value("${spring.redis.port:6378}")
+    @Value("${spring.redis.port:6379}")
     private int port;
-
-    @Value("${spring.redis.pool.max-idle:200}")
-    private int maxIdle;
-
-    @Value("${spring.redis.pool.min-idle:10}")
-    private int minIdle;
-
-    @Value("${spring.redis.pool.max-active:80}")
-    private int maxActive;
-
-    @Value("${spring.redis.pool.max-wait:-1}")
-    private long maxWait;
 
     @Bean
     public RedisClient layeringCacheRedisClient() {

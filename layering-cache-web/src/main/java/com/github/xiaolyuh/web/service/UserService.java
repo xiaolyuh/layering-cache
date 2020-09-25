@@ -23,10 +23,10 @@ public class UserService {
             .build();
 
 
-    @Value("${layering-cache.web.user-name}")
+    @Value("${layering-cache.web.user-name:admin}")
     private String userName;
 
-    @Value("${layering-cache.web.password}")
+    @Value("${layering-cache.web.password:admin}")
     private String password;
 
     /**

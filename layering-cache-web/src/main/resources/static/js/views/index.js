@@ -1,6 +1,7 @@
 (function ($) {
 
     var constant = {
+        DELETE_CACHE_BUTTON: '.bind-delete-cache-button',
         RESET_STATS_BUTTON: '.bind-reset-stats-button',
         SEARCH_BUTTON: '.bind-search-button',
         REDIS_CONFIG_FORM: '#redis-config-form',
@@ -122,22 +123,31 @@
         },
         getData: function () {
 
-            var data = {"code":"200","data":[{"cacheName":"people1","depict":"æŸ¥è¯¢ç”¨æˆ·ä¿¡æ¯1","firstCacheMissCount":1,"firstCacheRequestCount":2,"hitRate":50.0,"internalKey":"4000-100000-3000","layeringCacheSetting":{"depict":"æŸ¥è¯¢ç”¨æˆ·ä¿¡æ¯1","firstCacheSetting":{"allowNullValues":true,"expireMode":"WRITE","expireTime":4,"initialCapacity":10,"maximumSize":5000,"timeUnit":"SECONDS"},"internalKey":"4000-100000-3000","secondaryCacheSetting":{"allowNullValues":true,"expiration":100,"forceRefresh":true,"preloadTime":3,"timeUnit":"SECONDS","usePrefix":true},"useFirstCache":true},"missCount":1,"requestCount":2,"secondCacheMissCount":1,"secondCacheRequestCount":1,"totalLoadTime":52}],"message":"SUCCESS","status":"SUCCESS"};
+            var data = {"code":"200","data":[{"cacheName":"people1","depict":"描述","firstCacheMissCount":1,"firstCacheRequestCount":2,"hitRate":50.0,"internalKey":"4000-100000-3000","layeringCacheSetting":{"depict":"æŸ¥è¯¢ç”¨æˆ·ä¿¡æ¯1","firstCacheSetting":{"allowNullValues":true,"expireMode":"WRITE","expireTime":4,"initialCapacity":10,"maximumSize":5000,"timeUnit":"SECONDS"},"internalKey":"4000-100000-3000","secondaryCacheSetting":{"allowNullValues":true,"expiration":100,"forceRefresh":true,"preloadTime":3,"timeUnit":"SECONDS","usePrefix":true},"useFirstCache":true},"missCount":1,"requestCount":2,"secondCacheMissCount":1,"secondCacheRequestCount":1,"totalLoadTime":52}],"message":"SUCCESS","status":"SUCCESS"};
             var temp = ko.mapping.fromJS(data.data);
             format.formatInit(temp());
             viewModel.cacheStats(temp());
-
+            $(constant.SEARCH_BUTTON).attr("disabled", "true");
+            $(constant.RESET_STATS_BUTTON).attr("disabled", "true");
+            $(constant.DELETE_CACHE_BUTTON).attr("disabled", "true");
             $.ajax({
                 type: 'POST',
                 url: 'cache-stats/list',
                 dataType: 'JSON',
                 data: {"redisClient": $(constant.REDIS_SELECT).val(), "cacheName": $(constant.SEARCH_INPUT).val(), "token": token.getToken()},
                 success: function (data) {
+                    $(constant.SEARCH_BUTTON).removeAttr("disabled");
+                    $(constant.RESET_STATS_BUTTON).removeAttr("disabled");
+                    $(constant.DELETE_CACHE_BUTTON).removeAttr("disabled");
+
                     var temp = ko.mapping.fromJS(data.data);
                     format.formatInit(temp());
                     viewModel.cacheStats(temp());
                 },
                 error: function () {
+                    $(constant.SEARCH_BUTTON).removeAttr("disabled");
+                    $(constant.RESET_STATS_BUTTON).removeAttr("disabled");
+                    $(constant.DELETE_CACHE_BUTTON).removeAttr("disabled");
                     window.location.href = "/toLogin";
                 }
             });
@@ -185,6 +195,7 @@
                                         data: {
                                             "cacheName": cs.cacheName(),
                                             "internalKey": cs.internalKey(),
+                                            "nameSpace": cs.nameSpace(),
                                             "key": $(constant.DELETE_CACHE_KEYINPUT).val(),
                                             "redisClient": $(constant.REDIS_SELECT).val(),
                                             "token": token.getToken()
@@ -241,6 +252,7 @@
             bindEvent.redisConfig();
             bindEvent.bindResetStats();
             bindEvent.bindLoginOut();
+            bindEvent.redisList();
         }
     };
 

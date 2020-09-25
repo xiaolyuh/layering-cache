@@ -17,6 +17,11 @@ public class CacheStatsInfo implements Serializable {
     private String cacheName;
 
     /**
+     * 命名空间
+     */
+    private String nameSpace;
+
+    /**
      * 内部缓存名，由[一级缓存有效时间-二级缓存有效时间-二级缓存自动刷新时间]组成
      */
     private String internalKey;
@@ -45,6 +50,11 @@ public class CacheStatsInfo implements Serializable {
      * 一级缓存命中总数
      */
     private long firstCacheRequestCount;
+
+    /**
+     * 一级缓预告 size
+     */
+    private long firstCacheSize;
 
     /**
      * 一级缓存未命中总数
@@ -161,11 +171,27 @@ public class CacheStatsInfo implements Serializable {
     }
 
     public double getHitRate() {
-        return hitRate;
+        return Double.isNaN(hitRate) ? 0 : hitRate;
     }
 
     public void setHitRate(double hitRate) {
-        this.hitRate = hitRate;
+        this.hitRate = Double.isNaN(hitRate) ? 0 : hitRate;
+    }
+
+    public long getFirstCacheSize() {
+        return firstCacheSize;
+    }
+
+    public void setFirstCacheSize(long firstCacheSize) {
+        this.firstCacheSize = firstCacheSize;
+    }
+
+    public String getNameSpace() {
+        return nameSpace;
+    }
+
+    public void setNameSpace(String nameSpace) {
+        this.nameSpace = nameSpace;
     }
 
     @Override

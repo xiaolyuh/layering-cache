@@ -171,7 +171,7 @@
                                                     data-bind="click: detail">
                                                 <span class="am-icon-pencil-square-o"></span> 详情
                                             </button>
-                                            <button class="am-btn am-btn-default am-btn-xs am-text-danger am-hide-sm-only"
+                                            <button class="am-btn am-btn-default am-btn-xs am-text-danger am-hide-sm-only bind-delete-cache-button"
                                                     data-bind="click: deleteCache">
                                                 <span class="am-icon-trash-o"></span> 删除
                                             </button>
@@ -292,7 +292,7 @@
                 </tr>
 
                 <tr>
-                    <td rowspan="3" class="am-text-middle">一级缓存统计信息</td>
+                    <td rowspan="4" class="am-text-middle">一级缓存统计信息</td>
                     <td>请求总数</td>
                     <td class="am-primary" data-bind="text:detailCacheStats().firstCacheRequestCount"></td>
                 </tr>
@@ -303,6 +303,10 @@
                 <tr>
                     <td>缓存命中率</td>
                     <td class="am-primary" data-bind="text:detailCacheStats().firstHitRate"></td>
+                </tr>
+                <tr>
+                    <td>缓存预估 size</td>
+                    <td class="am-primary" data-bind="text:detailCacheStats().firstCacheSize"></td>
                 </tr>
 
                 <tr>

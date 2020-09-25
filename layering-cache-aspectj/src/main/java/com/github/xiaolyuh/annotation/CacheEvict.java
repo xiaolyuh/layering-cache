@@ -7,6 +7,8 @@ import java.lang.annotation.*;
 
 /**
  * 删除缓存
+ *
+ * @author olafwang
  */
 @Target({ElementType.METHOD, ElementType.TYPE})
 @Retention(RetentionPolicy.RUNTIME)

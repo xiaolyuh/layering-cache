@@ -1,13 +1,14 @@
 package com.github.xiaolyuh.test;
 
 import com.alibaba.fastjson.JSON;
+import com.github.xiaolyuh.cache.Cache;
+import com.github.xiaolyuh.cache.LayeringCache;
 import com.github.xiaolyuh.config.CacheConfig;
 import com.github.xiaolyuh.domain.User;
 import com.github.xiaolyuh.manager.CacheManager;
 import com.github.xiaolyuh.manager.LayeringCacheManager;
 import com.github.xiaolyuh.redis.clinet.RedisClient;
 import com.github.xiaolyuh.support.CacheMode;
-import javafx.scene.input.DataFormat;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -18,10 +19,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import java.math.BigDecimal;
-import java.util.Date;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 // SpringJUnit4ClassRunner再Junit环境下提供Spring TestContext Framework的功能。
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -423,10 +421,10 @@ public class CacheAspectTest {
         User user = testService.getUserById(userId);
         logger.debug(JSON.toJSONString(user));
         Assert.assertNull(user);
-        sleep(3);
+        sleep(1);
         user = testService.getUserById(userId);
         Assert.assertNull(user);
-        sleep(2);
+        sleep(4);
         user = testService.getUserById(userId);
         Assert.assertNotNull(user);
     }
@@ -459,7 +457,7 @@ public class CacheAspectTest {
         user.setBirthday(new Date(1593530584170L));
         testService.putUserNoKey(userId, user.getLastName(), user);
         String key = "user:info:params:[300118,[w,四川,~！@#%……&*（）——+：“？》:''\\>?《~!@#$%^&*()_+\\\\],address:addredd:成都,age:122,birthday:1593530584170,height:18.2,income:22.22,lastName:[w,四川,~！@#%……&*（）——+：“？》:''\\>?《~!@#$%^&*()_+\\\\],lastNameList:[W,成都],lastNameSet:[成都,W],name:name,userId:300118]";
-        User result =(User) redisClient.get(key);
+        User result = (User) redisClient.get(key);
         Assert.assertNotNull(result);
         Assert.assertEquals(result.getUserId(), user.getUserId());
         sleep(3);
@@ -506,6 +504,42 @@ public class CacheAspectTest {
         Object result3 = redisClient.get("user:info:119122");
         Assert.assertNull(result2);
         Assert.assertNull(result3);
+    }
+
+    @Test
+    public void getUserById118DisableFirstCache() {
+        testService.getUserById118DisableFirstCache(118_118);
+        sleep(2);
+        Collection<Cache> caches = cacheManager.getCache("user:info:118:3-0-2");
+        String key = "118118";
+        for (Cache cache : caches) {
+            Object result = cache.get(key);
+            Assert.assertNotNull(result);
+
+            result = ((LayeringCache) cache).getFirstCache().get(key);
+            Assert.assertNull(result);
+
+            result = ((LayeringCache) cache).getSecondCache().get(key);
+            Assert.assertNotNull(result);
+        }
+    }
+
+    @Test
+    public void putUserByIdDisableFirstCache() {
+        testService.putUserByIdDisableFirstCache(118_118);
+        sleep(2);
+        Collection<Cache> caches = cacheManager.getCache("user:info:3-0-2");
+        String key = "118118";
+        for (Cache cache : caches) {
+            Object result = cache.get(key);
+            Assert.assertNotNull(result);
+
+            result = ((LayeringCache) cache).getFirstCache().get(key);
+            Assert.assertNull(result);
+
+            result = ((LayeringCache) cache).getSecondCache().get(key);
+            Assert.assertNotNull(result);
+        }
     }
 
 

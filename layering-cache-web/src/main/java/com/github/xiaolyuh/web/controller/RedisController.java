@@ -35,9 +35,6 @@ public class RedisController {
             redisProperties.setPassword(StringUtils.isBlank(password) ? null : password);
             redisProperties.setPort(port);
             redisProperties.setDatabase(database);
-            redisProperties.setMaxIdle(2);
-            redisProperties.setMinIdle(2);
-            redisProperties.setMaxTotal(2);
 
             String key = address + ":" + port + ":" + database;
             redisClientMap.put(key, getRedisClient(redisProperties));
@@ -72,9 +69,11 @@ public class RedisController {
         KryoRedisSerializer<Object> kryoRedisSerializer = new KryoRedisSerializer<>(Object.class);
         StringRedisSerializer keyRedisSerializer = new StringRedisSerializer();
 
-        RedisClient redisClient = new SingleRedisClient(redisProperties);
+        RedisClient redisClient;
         if (StringUtils.isNotBlank(redisProperties.getCluster())) {
             redisClient = new ClusterRedisClient(redisProperties);
+        } else {
+            redisClient = new SingleRedisClient(redisProperties);
         }
 
         redisClient.setKeySerializer(keyRedisSerializer);

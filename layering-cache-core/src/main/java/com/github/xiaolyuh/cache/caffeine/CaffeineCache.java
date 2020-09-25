@@ -164,4 +164,9 @@ public class CaffeineCache extends AbstractValueAdaptingCache {
     public boolean isAllowNullValues() {
         return false;
     }
+
+    @Override
+    public long estimatedSize() {
+        return cache.estimatedSize();
+    }
 }

@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSON;
 import com.github.xiaolyuh.cache.Cache;
 import com.github.xiaolyuh.cache.LayeringCache;
 import com.github.xiaolyuh.manager.AbstractCacheManager;
+import com.github.xiaolyuh.util.BeanFactory;
 import io.lettuce.core.pubsub.RedisPubSubListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,47 +22,25 @@ public class RedisMessageListener implements RedisPubSubListener<String, String>
     public static final String CHANNEL = "layering-cache-channel";
 
     /**
-     * 缓存管理器
+     * redis消息处理器
      */
-    private AbstractCacheManager cacheManager;
+    private RedisMessageService redisMessageService;
 
+    public void init(AbstractCacheManager cacheManager) {
+        this.redisMessageService = BeanFactory.getBean(RedisMessageService.class).init(cacheManager);
+        // 创建监听
+        cacheManager.getRedisClient().subscribe(this, RedisMessageListener.CHANNEL);
+    }
 
     @Override
     public void message(String channel, String message) {
         try {
             log.debug("redis消息订阅者接收到频道【{}】发布的消息。消息内容：{}", channel, message);
-            RedisPubSubMessage redisPubSubMessage = JSON.parseObject(message, RedisPubSubMessage.class);
-            // 根据缓存名称获取多级缓存，可能有多个
-            Collection<Cache> caches = cacheManager.getCache(redisPubSubMessage.getCacheName());
-            for (Cache cache : caches) {
-                // 判断缓存是否是多级缓存
-                if (cache != null && cache instanceof LayeringCache) {
-                    switch (redisPubSubMessage.getMessageType()) {
-                        case EVICT:
-                            if (RedisPubSubMessage.SOURCE.equals(redisPubSubMessage.getSource())) {
-                                ((LayeringCache) cache).getSecondCache().evict(redisPubSubMessage.getKey());
-                            }
-                            // 获取一级缓存，并删除一级缓存数据
-                            ((LayeringCache) cache).getFirstCache().evict(redisPubSubMessage.getKey());
-                            log.info("删除一级缓存{}数据,key={}", redisPubSubMessage.getCacheName(), redisPubSubMessage.getKey());
-                            break;
 
-                        case CLEAR:
-                            if (RedisPubSubMessage.SOURCE.equals(redisPubSubMessage.getSource())) {
-                                ((LayeringCache) cache).getSecondCache().clear();
-                            }
-                            // 获取一级缓存，并删除一级缓存数据
-                            ((LayeringCache) cache).getFirstCache().clear();
-                            log.info("清除一级缓存{}数据", redisPubSubMessage.getCacheName());
-                            break;
+            // 更新最后一次处理拉消息的时间
+            RedisMessageService.updateLastPushTime();
 
-                        default:
-                            log.error("接收到没有定义的订阅消息频道数据");
-                            break;
-                    }
-
-                }
-            }
+            redisMessageService.pullMessage();
         } catch (Exception e) {
             e.printStackTrace();
             log.error("layering-cache 清楚一级缓存异常：{}", e.getMessage(), e);
@@ -91,9 +70,5 @@ public class RedisMessageListener implements RedisPubSubListener<String, String>
     @Override
     public void punsubscribed(String pattern, long count) {
 
-    }
-
-    public void setCacheManager(AbstractCacheManager cacheManager) {
-        this.cacheManager = cacheManager;
     }
 }

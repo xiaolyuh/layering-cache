@@ -9,6 +9,10 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 @ConfigurationProperties(prefix = "layering-cache.redis")
 public class LayeringCacheRedisProperties {
     Integer database = 0;
+    /**
+     * 不为空表示集群版，示例
+     * localhost:7379,localhost2:7379
+     */
     String cluster = "";
     String host = "localhost";
     Integer port = 6379;

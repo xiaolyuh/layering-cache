@@ -24,7 +24,7 @@ public class LayeringCacheSetting implements Serializable {
     /**
      * 是否使用一级缓存
      */
-    boolean useFirstCache = true;
+    boolean enableFirstCache = true;
 
     /**
      * 一级缓存配置
@@ -40,10 +40,11 @@ public class LayeringCacheSetting implements Serializable {
     }
 
     public LayeringCacheSetting(FirstCacheSetting firstCacheSetting, SecondaryCacheSetting secondaryCacheSetting,
-                                String depict) {
+                                String depict, boolean enableFirstCache) {
         this.firstCacheSetting = firstCacheSetting;
         this.secondaryCacheSetting = secondaryCacheSetting;
         this.depict = depict;
+        this.enableFirstCache = enableFirstCache;
         internalKey();
     }
 
@@ -79,12 +80,12 @@ public class LayeringCacheSetting implements Serializable {
         this.internalKey = internalKey;
     }
 
-    public boolean isUseFirstCache() {
-        return useFirstCache;
+    public boolean isEnableFirstCache() {
+        return enableFirstCache;
     }
 
-    public void setUseFirstCache(boolean useFirstCache) {
-        this.useFirstCache = useFirstCache;
+    public void setEnableFirstCache(boolean enableFirstCache) {
+        this.enableFirstCache = enableFirstCache;
     }
 
     public void setFirstCacheSetting(FirstCacheSetting firstCacheSetting) {

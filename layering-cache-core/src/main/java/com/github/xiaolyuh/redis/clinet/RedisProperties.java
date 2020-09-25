@@ -6,9 +6,8 @@ import lombok.Data;
 public class RedisProperties {
     Integer database = 0;
     /**
-     * redis://[password@]host[:port][,host2[:port2]]
-     *
-     * redis://password@localhost:7379,localhost2:7379
+     * 不为空表示集群版，示例
+     * localhost:7379,localhost2:7379
      */
     String cluster = "";
     String host = "localhost";

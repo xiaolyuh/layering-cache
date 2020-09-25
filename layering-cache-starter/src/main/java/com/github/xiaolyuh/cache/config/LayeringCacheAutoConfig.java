@@ -11,7 +11,11 @@ import com.github.xiaolyuh.redis.clinet.RedisProperties;
 import com.github.xiaolyuh.redis.clinet.SingleRedisClient;
 import com.github.xiaolyuh.redis.serializer.KryoRedisSerializer;
 import com.github.xiaolyuh.redis.serializer.StringRedisSerializer;
+import com.github.xiaolyuh.stats.extend.CacheStatsReportService;
+import com.github.xiaolyuh.stats.extend.DefaultCacheStatsReportServiceImpl;
+import com.github.xiaolyuh.util.GlobalConfig;
 import com.github.xiaolyuh.util.StringUtils;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
@@ -28,23 +32,31 @@ import org.springframework.context.annotation.EnableAspectJAutoProxy;
 @EnableConfigurationProperties({LayeringCacheProperties.class, LayeringCacheRedisProperties.class})
 public class LayeringCacheAutoConfig {
 
+    @Value("${spring.application.name:}")
+    private String applicationName;
+
     @Bean
     @ConditionalOnMissingBean(CacheManager.class)
-    public CacheManager layeringCacheManager(RedisClient layeringCacheRedisClient, LayeringCacheProperties layeringCacheProperties) {
+    public CacheManager layeringCacheManager(RedisClient layeringCacheRedisClient, CacheStatsReportService cacheStatsReportService, LayeringCacheProperties layeringCacheProperties) {
 
         LayeringCacheManager layeringCacheManager = new LayeringCacheManager(layeringCacheRedisClient);
         // 默认开启统计功能
         layeringCacheManager.setStats(layeringCacheProperties.isStats());
+        // 上报缓存统计信息
+        layeringCacheManager.setCacheStatsReportService(cacheStatsReportService);
+        // 设置缓存命名空间
+        GlobalConfig.setNamespace(StringUtils.isBlank(layeringCacheProperties.getNamespace()) ? applicationName : layeringCacheProperties.getNamespace());
         return layeringCacheManager;
     }
 
     @Bean
-    public LayeringAspect layeringAspect() {
-        return new LayeringAspect();
+    @ConditionalOnMissingBean(CacheStatsReportService.class)
+    public CacheStatsReportService cacheStatsReportService() {
+        return new DefaultCacheStatsReportServiceImpl();
     }
 
-
     @Bean
+    @ConditionalOnMissingBean(RedisClient.class)
     public RedisClient layeringCacheRedisClient(LayeringCacheRedisProperties layeringCacheRedisProperties) {
         RedisProperties redisProperties = new RedisProperties();
         redisProperties.setDatabase(layeringCacheRedisProperties.getDatabase());
@@ -56,13 +68,20 @@ public class LayeringCacheAutoConfig {
         KryoRedisSerializer<Object> kryoRedisSerializer = new KryoRedisSerializer<>(Object.class);
         StringRedisSerializer keyRedisSerializer = new StringRedisSerializer();
 
-        RedisClient redisClient = new SingleRedisClient(redisProperties);
+        RedisClient redisClient;
         if (StringUtils.isNotBlank(redisProperties.getCluster())) {
             redisClient = new ClusterRedisClient(redisProperties);
+        } else {
+            redisClient = new SingleRedisClient(redisProperties);
         }
 
         redisClient.setKeySerializer(keyRedisSerializer);
         redisClient.setValueSerializer(kryoRedisSerializer);
         return redisClient;
+    }
+
+    @Bean
+    public LayeringAspect layeringAspect() {
+        return new LayeringAspect();
     }
 }

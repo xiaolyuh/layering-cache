@@ -9,6 +9,8 @@ import java.lang.annotation.*;
  * 表示调用的方法（或类中的所有方法）的结果是可以被缓存的。
  * 当该方法被调用时先检查缓存是否命中，如果没有命中再调用被缓存的方法，并将其返回值放到缓存中。
  * 这里的value和key都支持SpEL 表达式
+ *
+ * @author olafwang
  */
 @Target({ElementType.METHOD, ElementType.TYPE})
 @Retention(RetentionPolicy.RUNTIME)
@@ -76,6 +78,13 @@ public @interface Cacheable {
      * @return boolean
      */
     boolean ignoreException() default true;
+
+    /**
+     * 是否启用一级缓存
+     *
+     * @return boolean
+     */
+    boolean enableFirstCache() default true;
 
     /**
      * 一级缓存配置

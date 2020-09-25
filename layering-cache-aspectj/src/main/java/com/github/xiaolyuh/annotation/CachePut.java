@@ -7,6 +7,8 @@ import java.lang.annotation.*;
 
 /**
  * 将对应数据放到缓存中
+ *
+ * @author olafwang
  */
 @Target({ElementType.METHOD, ElementType.TYPE})
 @Retention(RetentionPolicy.RUNTIME)
@@ -77,6 +79,13 @@ public @interface CachePut {
      * @return boolean
      */
     boolean ignoreException() default true;
+
+    /**
+     * 是否启用一级缓存
+     *
+     * @return boolean
+     */
+    boolean enableFirstCache() default true;
 
     /**
      * 一级缓存配置

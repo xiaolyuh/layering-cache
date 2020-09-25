@@ -175,7 +175,7 @@ public class CacheStatsInfo implements Serializable {
     }
 
     public void setHitRate(double hitRate) {
-        this.hitRate = hitRate;
+        this.hitRate = Double.isNaN(hitRate) ? 0 : hitRate;
     }
 
     public long getFirstCacheSize() {

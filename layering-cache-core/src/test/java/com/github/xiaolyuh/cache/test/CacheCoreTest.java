@@ -402,7 +402,8 @@ public class CacheCoreTest {
     public void testScan() {
         Set<String> keys = ((AbstractCacheManager) cacheManager).getRedisClient().scan("*");
         Assert.assertNotNull(keys);
-        Assert.assertTrue(keys.size() >= 0);
+        logger.info("key数量 {}", keys.size());
+        Assert.assertTrue(keys.size() > 0);
     }
 
     /**

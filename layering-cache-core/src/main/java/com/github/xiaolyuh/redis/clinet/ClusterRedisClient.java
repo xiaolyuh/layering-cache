@@ -222,6 +222,7 @@ public class ClusterRedisClient implements RedisClient {
 
                     executorService.submit(() -> {
                         try {
+                            List<String> innerKeys = new LinkedList<>();
                             long cursor = 0L;
                             do {
                                 // 2150b1d23fc132cb6ff5a9553f5f1af9f19b0cc2 127.0.0.1:6379@13357 master - 0 1600342826089 2 connected 10923-16383
@@ -237,9 +238,13 @@ public class ClusterRedisClient implements RedisClient {
                                 cursor = Long.parseLong((String) objects.get(0));
                                 // 暂存key
                                 if (objects.size() == 2) {
-                                    keys.addAll((ArrayList) objects.get(1));
+                                    innerKeys.addAll((ArrayList<? extends String>) objects.get(1));
                                 }
                             } while (cursor != 0);
+
+                            if (!CollectionUtils.isEmpty(innerKeys)) {
+                                keys.addAll(innerKeys);
+                            }
                         }  finally {
                             countDownLatch.countDown();
                         }

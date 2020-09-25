@@ -40,9 +40,6 @@ public class CacheController {
         try {
             CacheStatsInfoVo statsInfoVo = cache.computeIfAbsent(redisClient + cacheName, key -> getList(redisClient, cacheName));
             refreshList(redisClient, cacheName);
-            statsInfoVo.getCacheStats().forEach(cacheStatsInfo -> {
-                System.out.println(cacheStatsInfo.getHitRate());
-            });
             return Result.success(statsInfoVo.getCacheStats());
         } catch (Exception e) {
             logger.error(e.getMessage(), e);

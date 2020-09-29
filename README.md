@@ -58,7 +58,7 @@ github 地址：https://github.com/xiaolyuh/layering-cache
 ![微信-支付宝](https://img-blog.csdnimg.cn/20200218152559645.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3hpYW9seXVoMTIz,size_16,color_FFFFFF,t_70)
 
 # 技术支持
-添加微信记得备注 ```layering-cache```
+添加微信记得备注 ```layering-cache```，捐赠用户可享有需求优先解决、协助部署、二次开发帮助。
 
 ![微信](https://github.com/xiaolyuh/layering-cache/blob/master/images/wechat.png)
 

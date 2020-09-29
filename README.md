@@ -60,7 +60,7 @@ github 地址：https://github.com/xiaolyuh/layering-cache
 # 技术支持
 添加微信记得备注 ```layering-cache```
 
-![微信](https://github.com/xiaolyuh/layering-cache/blob/master/images/wechat.jpeg)
+![微信](https://github.com/xiaolyuh/layering-cache/blob/master/images/wechat.png)
 
 
 

@@ -119,4 +119,7 @@ public class RedisCacheKey {
         return this;
     }
 
+    public Object getKeyElement() {
+        return keyElement;
+    }
 }

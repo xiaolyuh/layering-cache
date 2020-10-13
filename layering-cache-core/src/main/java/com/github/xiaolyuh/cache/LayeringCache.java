@@ -142,7 +142,7 @@ public class LayeringCache extends AbstractValueAdaptingCache {
         secondCache.put(key, value);
         // 删除一级缓存
         if (enableFirstCache) {
-            deleteFirstCache(key);
+            deleteFirstCache(key, redisClient);
         }
     }
 
@@ -151,7 +151,7 @@ public class LayeringCache extends AbstractValueAdaptingCache {
         Object result = secondCache.putIfAbsent(key, value);
         // 删除一级缓存
         if (enableFirstCache) {
-            deleteFirstCache(key);
+            deleteFirstCache(key, redisClient);
         }
         return result;
     }
@@ -162,7 +162,7 @@ public class LayeringCache extends AbstractValueAdaptingCache {
         secondCache.evict(key);
         // 删除一级缓存
         if (enableFirstCache) {
-            deleteFirstCache(key);
+            deleteFirstCache(key, redisClient);
         }
     }
 
@@ -180,15 +180,6 @@ public class LayeringCache extends AbstractValueAdaptingCache {
         }
     }
 
-    private void deleteFirstCache(String key) {
-        // 删除一级缓存需要用到redis的Pub/Sub（订阅/发布）模式，否则集群中其他服服务器节点的一级缓存数据无法删除
-        RedisPubSubMessage message = new RedisPubSubMessage();
-        message.setCacheName(getName());
-        message.setKey(key);
-        message.setMessageType(RedisPubSubMessageType.EVICT);
-        // 发布消息
-        RedisPublisher.publisher(redisClient, message);
-    }
 
     /**
      * 获取一级缓存

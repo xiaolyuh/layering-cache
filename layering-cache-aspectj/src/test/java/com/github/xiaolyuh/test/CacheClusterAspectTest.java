@@ -9,6 +9,7 @@ import com.github.xiaolyuh.manager.CacheManager;
 import com.github.xiaolyuh.manager.LayeringCacheManager;
 import com.github.xiaolyuh.redis.clinet.RedisClient;
 import com.github.xiaolyuh.support.CacheMode;
+import com.github.xiaolyuh.util.GlobalConfig;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -550,6 +551,72 @@ public class CacheClusterAspectTest {
         }
     }
 
+
+    /**
+     * 测试刷新二级缓存，同步更新一级缓存
+     */
+    @Test
+    public void testRefreshSecondCacheSyncFistCache() {
+        User user = new User();
+        user.setUserId(316_1);
+        user.setAge(31);
+        Long llen1 = redisClient.llen(GlobalConfig.getMessageRedisKey());
+        // 初始化缓存
+        User user1 = testService.refreshSecondCacheSyncFistCache(user);
+        sleep(4);
+        // 刷新二级缓存，数据没有变化
+        User user2 = testService.refreshSecondCacheSyncFistCache(user);
+        Assert.assertEquals(user1.getAge(), user2.getAge());
+        sleep(1);
+        Long llen2 = redisClient.llen(GlobalConfig.getMessageRedisKey());
+        Assert.assertEquals(llen1, llen2);
+
+
+        logger.info("============================================================================");
+
+        sleep(4);
+        user.setAge(33);
+        // 刷新二级缓存，数据发生变化，同步刷新一级缓存
+        user1 = testService.refreshSecondCacheSyncFistCache(user);
+        sleep(1);
+        user2 = testService.refreshSecondCacheSyncFistCache(user);
+        Assert.assertEquals(user1.getAge(), 31);
+        Assert.assertEquals(user2.getAge(), 33);
+        Long llen3 = redisClient.llen(GlobalConfig.getMessageRedisKey());
+        Assert.assertEquals((long) llen1, llen3 - 1);
+    }
+
+    /**
+     * 测试刷新二级缓存，同步更新一级缓存
+     */
+    @Test
+    public void testRefreshSecondCacheSyncFistCacheOldNull() {
+        User user = new User();
+        user.setUserId(316_2);
+        Long llen1 = redisClient.llen(GlobalConfig.getMessageRedisKey());
+        // 初始化缓存
+        User user1 = testService.refreshSecondCacheSyncFistCacheNull(null);
+        sleep(4);
+        // 刷新二级缓存，数据没有变化
+        User user2 = testService.refreshSecondCacheSyncFistCacheNull(null);
+        Assert.assertNull(user1);
+        Assert.assertNull(user2);
+        sleep(1);
+        Long llen2 = redisClient.llen(GlobalConfig.getMessageRedisKey());
+        Assert.assertEquals(llen1, llen2);
+
+
+        logger.info("============================================================================");
+
+        sleep(4);
+        // 刷新二级缓存，数据发生变化，同步刷新一级缓存
+        user1 = testService.refreshSecondCacheSyncFistCacheNull(user);
+        sleep(1);
+        user2 = testService.refreshSecondCacheSyncFistCacheNull(user);
+        Assert.assertEquals(user2.getAge(), user.getAge());
+        Long llen3 = redisClient.llen(GlobalConfig.getMessageRedisKey());
+        Assert.assertEquals((long) llen1, llen3 - 1);
+    }
 
     private void sleep(int time) {
         try {

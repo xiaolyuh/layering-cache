@@ -381,5 +381,20 @@ public class TestService {
         return user;
     }
 
+    @Cacheable(value = "user:info:3-1-6", key = "#user.userId",
+            firstCache = @FirstCache(expireTime = 4, timeUnit = TimeUnit.SECONDS), ignoreException = false,
+            secondaryCache = @SecondaryCache(expireTime = 10, preloadTime = 9, forceRefresh = true, timeUnit = TimeUnit.SECONDS))
+    public User refreshSecondCacheSyncFistCache(User user) {
+        logger.debug("测试刷新二级缓存，同步更新一级缓存");
+        return user;
+    }
+
+    @Cacheable(value = "user:info:3-1-6", key = "361-2",
+            firstCache = @FirstCache(expireTime = 4, timeUnit = TimeUnit.SECONDS), ignoreException = false,
+            secondaryCache = @SecondaryCache(expireTime = 10, preloadTime = 7, forceRefresh = true, timeUnit = TimeUnit.SECONDS, isAllowNullValue = true))
+    public User refreshSecondCacheSyncFistCacheNull(User user) {
+        logger.debug("测试刷新二级缓存，同步更新一级缓存");
+        return user;
+    }
 
 }

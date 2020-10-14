@@ -51,6 +51,7 @@ public class CacheCoreTest {
     private LayeringCacheSetting layeringCacheSetting5;
     private LayeringCacheSetting layeringCacheSetting6;
     private LayeringCacheSetting layeringCacheSetting7;
+    private LayeringCacheSetting layeringCacheSetting8;
 
     @Before
     public void testGetCache() {
@@ -84,6 +85,12 @@ public class CacheCoreTest {
         FirstCacheSetting firstCacheSetting7 = new FirstCacheSetting(10, 1000, 5, TimeUnit.SECONDS, ExpireMode.WRITE);
         SecondaryCacheSetting secondaryCacheSetting7 = new SecondaryCacheSetting(10, 7, TimeUnit.SECONDS, true, false, 1);
         layeringCacheSetting7 = new LayeringCacheSetting(firstCacheSetting7, secondaryCacheSetting7, "", false);
+
+        // 刷新二级级缓存，同步更新一级缓存
+        FirstCacheSetting firstCacheSetting8 = new FirstCacheSetting(10, 10, 4, TimeUnit.SECONDS, ExpireMode.WRITE);
+        SecondaryCacheSetting secondaryCacheSetting8 = new SecondaryCacheSetting(10, 9, TimeUnit.SECONDS, true, true, 1);
+        layeringCacheSetting8 = new LayeringCacheSetting(firstCacheSetting8, secondaryCacheSetting8, "", true);
+
 
         String cacheName = "cache:name";
         Cache cache1 = cacheManager.getCache(cacheName, layeringCacheSetting1);
@@ -602,6 +609,41 @@ public class CacheCoreTest {
         Assert.assertNull(result);
     }
 
+    /**
+     * 测试刷新二级缓存，同步更新一级缓存
+     */
+    @Test
+    public void testRefreshSecondCacheSyncFistCache() {
+        Long llen1 = ((AbstractCacheManager) cacheManager).getRedisClient().llen(GlobalConfig.getMessageRedisKey());
+        // 测试 缓存过期时间
+        String cacheName = "cache:name:3-1-6";
+        String cacheKey1 = "cache:key:316-1";
+        LayeringCache cache1 = (LayeringCache) cacheManager.getCache(cacheName, layeringCacheSetting8);
+        // 初始化缓存
+        cache1.get(cacheKey1, () -> initCache(String.class));
+        sleep(4);
+        // 刷新二级缓存，结果没变，不更新一级缓存
+        cache1.get(cacheKey1, () -> initCache(String.class));
+        String str1 = cache1.getFirstCache().get(cacheKey1, String.class);
+        Assert.assertEquals(str1, initCache(String.class));
+
+        Long llen2 = ((AbstractCacheManager) cacheManager).getRedisClient().llen(GlobalConfig.getMessageRedisKey());
+        Assert.assertEquals((long) llen1, (long) llen2);
+
+        sleep(4);
+        // 刷新二级缓存，结果没变了，更新一级缓存
+        cache1.get(cacheKey1, () -> initCache2(String.class));
+        sleep(1);
+        str1 = cache1.getFirstCache().get(cacheKey1, String.class);
+        Assert.assertNull(str1);
+
+        str1 =  cache1.get(cacheKey1, () -> initCache2(String.class));
+        Assert.assertEquals(str1, initCache2(String.class));
+
+        Long llen3 = ((AbstractCacheManager) cacheManager).getRedisClient().llen(GlobalConfig.getMessageRedisKey());
+        Assert.assertEquals((long) llen1, llen3 - 1);
+    }
+
     private void pushDeleteMessage(String cacheName, String cacheKey) {
         RedisPubSubMessage message = new RedisPubSubMessage();
         message.setCacheName(cacheName);
@@ -641,6 +683,11 @@ public class CacheCoreTest {
     private <T> T initCache(Class<T> t) {
         logger.debug("加载缓存");
         return (T) "test";
+    }
+
+    private <T> T initCache2(Class<T> t) {
+        logger.debug("加载缓存");
+        return (T) "test2";
     }
 
     private <T> T initNullCache() {

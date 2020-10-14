@@ -13,6 +13,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
@@ -337,8 +338,15 @@ public class RedisCache extends AbstractValueAdaptingCache {
                 if (redisLock.lock()) {
                     // 获取锁之后再判断一下过期时间，看是否需要加载数据
                     if (isRefresh(redisCacheKey, preloadTime)) {
+                        // 获取缓存中老数据
+                        Object oldDate = redisClient.get(redisCacheKey.getKey());
                         // 加载数据并放到缓存
-                        loaderAndPutValue(redisCacheKey, valueLoader, false);
+                        Object newDate = loaderAndPutValue(redisCacheKey, valueLoader, false);
+                        // 比较新老数据是否相等，如果不想等就删除一级缓存
+                        if (!Objects.equals(oldDate, newDate) && !JSON.toJSONString(oldDate).equals(JSON.toJSONString(newDate))) {
+                            logger.debug("二级缓存数据发生变更，同步刷新一级缓存");
+                            deleteFirstCache((String) redisCacheKey.getKeyElement(), redisClient);
+                        }
                     }
                 }
             } catch (Exception e) {

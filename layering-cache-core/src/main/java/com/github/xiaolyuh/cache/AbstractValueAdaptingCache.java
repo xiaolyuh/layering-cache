@@ -17,6 +17,10 @@
 package com.github.xiaolyuh.cache;
 
 import com.alibaba.fastjson.JSON;
+import com.github.xiaolyuh.listener.RedisPubSubMessage;
+import com.github.xiaolyuh.listener.RedisPubSubMessageType;
+import com.github.xiaolyuh.listener.RedisPublisher;
+import com.github.xiaolyuh.redis.clinet.RedisClient;
 import com.github.xiaolyuh.stats.CacheStats;
 import com.github.xiaolyuh.support.NullValue;
 import org.springframework.util.Assert;
@@ -144,5 +148,15 @@ public abstract class AbstractValueAdaptingCache implements Cache {
 
     public void setCacheStats(CacheStats cacheStats) {
         this.cacheStats = cacheStats;
+    }
+
+    public void deleteFirstCache(String key, RedisClient redisClient) {
+        // 删除一级缓存需要用到redis的Pub/Sub（订阅/发布）模式，否则集群中其他服服务器节点的一级缓存数据无法删除
+        RedisPubSubMessage message = new RedisPubSubMessage();
+        message.setCacheName(getName());
+        message.setKey(key);
+        message.setMessageType(RedisPubSubMessageType.EVICT);
+        // 发布消息
+        RedisPublisher.publisher(redisClient, message);
     }
 }

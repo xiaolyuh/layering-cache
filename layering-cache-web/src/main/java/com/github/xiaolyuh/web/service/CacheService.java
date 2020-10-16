@@ -25,7 +25,7 @@ public class CacheService {
      * 删除缓存
      *
      * @param cacheName   缓存名称
-     * @param internalKey 内部缓存名，由[一级缓存有效时间-二级缓存有效时间-二级缓存自动刷新时间]组成
+     * @param internalKey 内部缓存名，由[一级缓存有效时间-二级缓存有效时间]组成
      * @param key         key，可以为NULL，如果是NULL则清空缓存
      */
     public void deleteCache(String cacheName, String internalKey, String key) {

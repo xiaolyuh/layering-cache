@@ -34,7 +34,7 @@ public abstract class AbstractCacheManager implements CacheManager, Initializing
     /**
      * 缓存容器
      * 外层key是cache_name
-     * 里层key是[一级缓存有效时间-二级缓存有效时间-二级缓存自动刷新时间]
+     * 里层key是[一级缓存有效时间-二级缓存有效时间]
      */
     private final ConcurrentMap<String, ConcurrentMap<String, Cache>> cacheContainer = new ConcurrentHashMap<>(16);
 
@@ -133,7 +133,6 @@ public abstract class AbstractCacheManager implements CacheManager, Initializing
     private void updateCacheNames(String name) {
         cacheNames.add(name);
     }
-
 
     /**
      * 获取Cache对象的装饰示例

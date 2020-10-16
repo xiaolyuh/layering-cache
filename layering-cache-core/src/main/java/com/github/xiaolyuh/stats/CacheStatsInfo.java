@@ -22,7 +22,7 @@ public class CacheStatsInfo implements Serializable {
     private String nameSpace;
 
     /**
-     * 内部缓存名，由[一级缓存有效时间-二级缓存有效时间-二级缓存自动刷新时间]组成
+     * 内部缓存名，由[一级缓存有效时间-二级缓存有效时间]组成
      */
     private String internalKey;
 

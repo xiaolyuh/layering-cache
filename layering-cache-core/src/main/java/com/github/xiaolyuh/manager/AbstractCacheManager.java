@@ -82,9 +82,6 @@ public abstract class AbstractCacheManager implements CacheManager, Initializing
         // 第一次获取缓存Cache，如果有直接返回,如果没有加锁往容器里里面放Cache
         ConcurrentMap<String, Cache> cacheMap = this.cacheContainer.get(name);
         if (!CollectionUtils.isEmpty(cacheMap)) {
-            if (cacheMap.size() > 1) {
-                logger.warn("缓存名称为 {} 的缓存,存在两个不同的过期时间配置，请一定注意保证缓存的key唯一性，否则会出现缓存过期时间错乱的情况", name);
-            }
             Cache cache = cacheMap.get(layeringCacheSetting.getInternalKey());
             if (cache != null) {
                 return cache;

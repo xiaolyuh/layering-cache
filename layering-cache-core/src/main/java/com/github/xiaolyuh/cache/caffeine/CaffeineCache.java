@@ -46,7 +46,9 @@ public class CaffeineCache extends AbstractValueAdaptingCache {
 
     @Override
     public Object get(String key) {
-        logger.debug("caffeine缓存 key={} 获取缓存", JSON.toJSONString(key));
+        if (logger.isDebugEnabled()) {
+            logger.debug("caffeine缓存 key={} 获取缓存", JSON.toJSONString(key));
+        }
 
         if (isStats()) {
             getCacheStats().addCacheRequestCount(1);
@@ -61,7 +63,9 @@ public class CaffeineCache extends AbstractValueAdaptingCache {
     @Override
     @SuppressWarnings("unchecked")
     public <T> T get(String key, Callable<T> valueLoader) {
-        logger.debug("caffeine缓存 key={} 获取缓存， 如果没有命中就走库加载缓存", JSON.toJSONString(key));
+        if (logger.isDebugEnabled()) {
+            logger.debug("caffeine缓存 key={} 获取缓存， 如果没有命中就走库加载缓存", JSON.toJSONString(key));
+        }
 
         if (isStats()) {
             getCacheStats().addCacheRequestCount(1);
@@ -80,14 +84,18 @@ public class CaffeineCache extends AbstractValueAdaptingCache {
     public void put(String key, Object value) {
         // 允许存NULL值
         if (isAllowNullValues()) {
-            logger.debug("caffeine缓存 key={} put缓存，缓存值：{}", JSON.toJSONString(key), JSON.toJSONString(value));
+            if (logger.isDebugEnabled()) {
+                logger.debug("caffeine缓存 key={} put缓存，缓存值：{}", JSON.toJSONString(key), JSON.toJSONString(value));
+            }
             this.cache.put(key, toStoreValue(value));
             return;
         }
 
         // 不允许存NULL值
         if (value != null && !(value instanceof NullValue)) {
-            logger.debug("caffeine缓存 key={} put缓存，缓存值：{}", JSON.toJSONString(key), JSON.toJSONString(value));
+            if (logger.isDebugEnabled()) {
+                logger.debug("caffeine缓存 key={} put缓存，缓存值：{}", JSON.toJSONString(key), JSON.toJSONString(value));
+            }
             this.cache.put(key, toStoreValue(value));
             return;
         }
@@ -96,7 +104,9 @@ public class CaffeineCache extends AbstractValueAdaptingCache {
 
     @Override
     public Object putIfAbsent(String key, Object value) {
-        logger.debug("caffeine缓存 key={} putIfAbsent 缓存，缓存值：{}", JSON.toJSONString(key), JSON.toJSONString(value));
+        if (logger.isDebugEnabled()) {
+            logger.debug("caffeine缓存 key={} putIfAbsent 缓存，缓存值：{}", JSON.toJSONString(key), JSON.toJSONString(value));
+        }
         boolean flag = !isAllowNullValues() && (value == null || value instanceof NullValue);
         if (flag) {
             return null;
@@ -107,7 +117,9 @@ public class CaffeineCache extends AbstractValueAdaptingCache {
 
     @Override
     public void evict(String key) {
-        logger.debug("caffeine缓存 key={} 清除缓存", JSON.toJSONString(key));
+        if (logger.isDebugEnabled()) {
+            logger.debug("caffeine缓存 key={} 清除缓存", JSON.toJSONString(key));
+        }
         this.cache.invalidate(key);
     }
 
@@ -128,7 +140,9 @@ public class CaffeineCache extends AbstractValueAdaptingCache {
 
         try {
             T t = valueLoader.call();
-            logger.debug("caffeine缓存 key={} 从库加载缓存", JSON.toJSONString(key), JSON.toJSONString(t));
+            if (logger.isDebugEnabled()) {
+                logger.debug("caffeine缓存 key={} 从库加载缓存", JSON.toJSONString(key), JSON.toJSONString(t));
+            }
 
             if (isStats()) {
                 getCacheStats().addCachedMethodRequestTime(System.currentTimeMillis() - start);

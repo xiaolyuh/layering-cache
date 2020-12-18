@@ -6,7 +6,10 @@ import org.slf4j.LoggerFactory;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Random;
+import java.util.UUID;
 
 /**
  * Redis分布式锁
@@ -227,7 +230,9 @@ public class LayeringCacheRedisLock {
                 args.add(lockValue);
                 Long result = (Long) redisClient.eval(UNLOCK_LUA, keys, args);
                 if (result == 0 && !StringUtils.isEmpty(lockKeyLog)) {
-                    logger.debug("Redis分布式锁，解锁{}失败！解锁时间：{}", lockKeyLog, System.currentTimeMillis());
+                    if (logger.isDebugEnabled()) {
+                        logger.debug("Redis分布式锁，解锁{}失败！解锁时间：{}", lockKeyLog, System.currentTimeMillis());
+                    }
                 }
 
                 locked = result == 0;
@@ -265,7 +270,9 @@ public class LayeringCacheRedisLock {
         Assert.isTrue(!StringUtils.isEmpty(key), "key不能为空");
         String result = redisClient.setNxEx(key, value, seconds);
         if (!StringUtils.isEmpty(lockKeyLog) && OK.equals(result)) {
-            logger.debug("获取锁{}的时间：{}", lockKeyLog, System.currentTimeMillis());
+            if (logger.isDebugEnabled()) {
+                logger.debug("获取锁{}的时间：{}", lockKeyLog, System.currentTimeMillis());
+            }
         }
         return OK.equals(result);
     }
@@ -304,7 +311,9 @@ public class LayeringCacheRedisLock {
         try {
             Thread.sleep(millis, random.nextInt(nanos));
         } catch (Exception e) {
-            logger.debug("获取分布式锁休眠被中断：", e);
+            if (logger.isDebugEnabled()) {
+                logger.debug("获取分布式锁休眠被中断：", e);
+            }
         }
     }
 

@@ -35,7 +35,9 @@ public class RedisMessageListener implements RedisPubSubListener<String, String>
     @Override
     public void message(String channel, String message) {
         try {
-            log.debug("redis消息订阅者接收到频道【{}】发布的消息。消息内容：{}", channel, message);
+            if (log.isDebugEnabled()) {
+                log.debug("redis消息订阅者接收到频道【{}】发布的消息。消息内容：{}", channel, message);
+            }
 
             // 更新最后一次处理拉消息的时间
             RedisMessageService.updateLastPushTime();

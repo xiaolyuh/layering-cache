@@ -88,7 +88,9 @@ public class LayeringCache extends AbstractValueAdaptingCache {
         Object result = null;
         if (enableFirstCache) {
             result = firstCache.get(key);
-            logger.debug("查询一级缓存。 key={},返回值是:{}", key, JSON.toJSONString(result));
+            if (logger.isDebugEnabled()) {
+                logger.debug("查询一级缓存。 key={},返回值是:{}", key, JSON.toJSONString(result));
+            }
         }
         if (result == null) {
             result = secondCache.get(key);
@@ -104,7 +106,9 @@ public class LayeringCache extends AbstractValueAdaptingCache {
     public <T> T get(String key, Class<T> type) {
         if (enableFirstCache) {
             Object result = firstCache.get(key, type);
-            logger.debug("查询一级缓存。 key={},返回值是:{}", key, JSON.toJSONString(result));
+            if (logger.isDebugEnabled()) {
+                logger.debug("查询一级缓存。 key={},返回值是:{}", key, JSON.toJSONString(result));
+            }
             if (result != null) {
                 return (T) fromStoreValue(result);
             }
@@ -115,7 +119,9 @@ public class LayeringCache extends AbstractValueAdaptingCache {
         if (enableFirstCache) {
             firstCache.putIfAbsent(key, result);
         }
-        logger.debug("查询二级缓存,并将数据放到一级缓存。 key={},返回值是:{}", key, JSON.toJSONString(result));
+        if (logger.isDebugEnabled()) {
+            logger.debug("查询二级缓存,并将数据放到一级缓存。 key={},返回值是:{}", key, JSON.toJSONString(result));
+        }
         return result;
     }
 
@@ -123,7 +129,9 @@ public class LayeringCache extends AbstractValueAdaptingCache {
     public <T> T get(String key, Callable<T> valueLoader) {
         if (enableFirstCache) {
             Object result = firstCache.get(key);
-            logger.debug("查询一级缓存。 key={},返回值是:{}", key, JSON.toJSONString(result));
+            if (logger.isDebugEnabled()) {
+                logger.debug("查询一级缓存。 key={},返回值是:{}", key, JSON.toJSONString(result));
+            }
             if (result != null) {
                 return (T) fromStoreValue(result);
             }
@@ -133,7 +141,9 @@ public class LayeringCache extends AbstractValueAdaptingCache {
         if (enableFirstCache) {
             firstCache.putIfAbsent(key, result);
         }
-        logger.debug("查询二级缓存,并将数据放到一级缓存。 key={},返回值是:{}", key, JSON.toJSONString(result));
+        if (logger.isDebugEnabled()) {
+            logger.debug("查询二级缓存,并将数据放到一级缓存。 key={},返回值是:{}", key, JSON.toJSONString(result));
+        }
         return result;
     }
 

@@ -43,6 +43,8 @@ public class RedisPublisher {
         redisClient.expire(GlobalConfig.getMessageRedisKey(nameSpace), 25, TimeUnit.HOURS);
         // pub/sub 推模式消息
         redisClient.publish(RedisMessageListener.CHANNEL, "m");
-        logger.debug("redis消息发布者向频道【{}】发布了【{}】消息", RedisMessageListener.CHANNEL, message.toString());
+        if (logger.isDebugEnabled()) {
+            logger.debug("redis消息发布者向频道【{}】发布了【{}】消息", RedisMessageListener.CHANNEL, message.toString());
+        }
     }
 }

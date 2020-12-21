@@ -45,7 +45,7 @@ public class CaffeineCache extends AbstractValueAdaptingCache {
     }
 
     @Override
-    public Object get(String key) {
+    public <T> T get(String key, Class<T> resultType) {
         if (logger.isDebugEnabled()) {
             logger.debug("caffeine缓存 key={} 获取缓存", JSON.toJSONString(key));
         }
@@ -55,14 +55,14 @@ public class CaffeineCache extends AbstractValueAdaptingCache {
         }
 
         if (this.cache instanceof LoadingCache) {
-            return ((LoadingCache<Object, Object>) this.cache).get(key);
+            return (T) ((LoadingCache<Object, Object>) this.cache).get(key);
         }
-        return cache.getIfPresent(key);
+        return (T) cache.getIfPresent(key);
     }
 
     @Override
     @SuppressWarnings("unchecked")
-    public <T> T get(String key, Callable<T> valueLoader) {
+    public <T> T get(String key, Class<T> resultType, Callable<T> valueLoader) {
         if (logger.isDebugEnabled()) {
             logger.debug("caffeine缓存 key={} 获取缓存， 如果没有命中就走库加载缓存", JSON.toJSONString(key));
         }
@@ -103,7 +103,7 @@ public class CaffeineCache extends AbstractValueAdaptingCache {
     }
 
     @Override
-    public Object putIfAbsent(String key, Object value) {
+    public <T> T putIfAbsent(String key, Object value, Class<T> resultType) {
         if (logger.isDebugEnabled()) {
             logger.debug("caffeine缓存 key={} putIfAbsent 缓存，缓存值：{}", JSON.toJSONString(key), JSON.toJSONString(value));
         }
@@ -112,7 +112,7 @@ public class CaffeineCache extends AbstractValueAdaptingCache {
             return null;
         }
         Object result = this.cache.get(key, k -> toStoreValue(value));
-        return fromStoreValue(result);
+        return (T) fromStoreValue(result);
     }
 
     @Override

@@ -27,32 +27,25 @@ public interface Cache {
     Object getNativeCache();
 
     /**
-     * 根据Key返回key对应的值，如果没有就返回NULL
-     *
-     * @param key key
-     * @return 缓存key对应的值
-     */
-    Object get(String key);
-
-    /**
      * 根据KEY返回缓存中对应的值，并将其返回类型转换成对应类型，如果对应key不存在返回NULL
      *
-     * @param key  缓存key
-     * @param type 返回值类型
-     * @param <T>  Object
+     * @param key        缓存key
+     * @param resultType 返回值类型
+     * @param <T>        Object
      * @return 缓存key对应的值
      */
-    <T> T get(String key, Class<T> type);
+    <T> T get(String key, Class<T> resultType);
 
     /**
      * 根据KEY返回缓存中对应的值，并将其返回类型转换成对应类型，如果对应key不存在则调用valueLoader加载数据
      *
      * @param key         缓存key
+     * @param resultType  返回值类型
      * @param valueLoader 加载缓存的回调方法
      * @param <T>         Object
      * @return 缓存key对应的值
      */
-    <T> T get(String key, Callable<T> valueLoader);
+    <T> T get(String key, Class<T> resultType, Callable<T> valueLoader);
 
     /**
      * 将对应key-value放到缓存，如果key原来有值就直接覆盖
@@ -80,13 +73,14 @@ public interface Cache {
      * presence and a subsequent put, in a non-atomic way. Check the documentation
      * of the native cache implementation that you are using for more details.
      *
-     * @param key   缓存key
-     * @param value 缓存key对应的值
+     * @param key        缓存key
+     * @param value      缓存key对应的值
+     * @param resultType 返回值类型
      * @return 因为值本身可能为NULL，或者缓存key本来就没有对应值的时候也为NULL，
      * 所以如果返回NULL就表示已经将key-value键值对放到了缓存中
      * @since 4.1
      */
-    Object putIfAbsent(String key, Object value);
+    <T> T putIfAbsent(String key, Object value, Class<T> resultType);
 
     /**
      * 在缓存中删除对应的key

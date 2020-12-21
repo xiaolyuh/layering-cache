@@ -44,11 +44,12 @@ public class WebStatsService {
             }
 
             try {
-                CacheStatsInfo cacheStats = (CacheStatsInfo) redisClient.get(key);
+                CacheStatsInfo cacheStats = redisClient.get(key, CacheStatsInfo.class);
                 if (!Objects.isNull(cacheStats)) {
                     statsList.add(cacheStats);
                 }
             } catch (Exception e) {
+                logger.error(e.getMessage(), e);
             }
         }
 
@@ -74,7 +75,7 @@ public class WebStatsService {
      */
     public void resetCacheStat(RedisClient redisClient, String redisKey) {
         try {
-            CacheStatsInfo cacheStats = (CacheStatsInfo) redisClient.get(redisKey);
+            CacheStatsInfo cacheStats = redisClient.get(redisKey, CacheStatsInfo.class);
             if (Objects.nonNull(cacheStats)) {
                 cacheStats.clearStatsInfo();
                 // 将缓存统计数据写到redis

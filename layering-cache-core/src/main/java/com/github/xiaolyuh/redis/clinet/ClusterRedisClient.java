@@ -97,8 +97,19 @@ public class ClusterRedisClient implements RedisClient {
     }
 
     @Override
-    public String set(String key, Object value) {
+    public <T> T get(String key, Class<T> resultType, RedisSerializer valueRedisSerializer) {
+        try {
+            RedisClusterCommands<byte[], byte[]> sync = connection.sync();
+            return valueRedisSerializer.deserialize(sync.get(getKeySerializer().serialize(key)), resultType);
+        } catch (SerializationException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new RedisClientException(e.getMessage(), e);
+        }
+    }
 
+    @Override
+    public String set(String key, Object value) {
         try {
             RedisClusterCommands<byte[], byte[]> sync = connection.sync();
             return sync.set(getKeySerializer().serialize(key), getValueSerializer().serialize(value));
@@ -115,6 +126,18 @@ public class ClusterRedisClient implements RedisClient {
         try {
             RedisClusterCommands<byte[], byte[]> sync = connection.sync();
             return sync.setex(getKeySerializer().serialize(key), unit.toSeconds(time), getValueSerializer().serialize(value));
+        } catch (SerializationException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new RedisClientException(e.getMessage(), e);
+        }
+    }
+
+    @Override
+    public String set(String key, Object value, long time, TimeUnit unit, RedisSerializer valueRedisSerializer) {
+        try {
+            RedisClusterCommands<byte[], byte[]> sync = connection.sync();
+            return sync.setex(getKeySerializer().serialize(key), unit.toSeconds(time), valueRedisSerializer.serialize(value));
         } catch (SerializationException e) {
             throw e;
         } catch (Exception e) {
@@ -282,7 +305,7 @@ public class ClusterRedisClient implements RedisClient {
 
 
     @Override
-    public Long lpush(String key, String... values) {
+    public Long lpush(String key, RedisSerializer valueRedisSerializer, String... values) {
         try {
             if (Objects.isNull(values) || values.length == 0) {
                 return 0L;
@@ -290,7 +313,7 @@ public class ClusterRedisClient implements RedisClient {
             RedisClusterCommands<byte[], byte[]> sync = connection.sync();
             final byte[][] bvalues = new byte[values.length][];
             for (int i = 0; i < values.length; i++) {
-                bvalues[i] = getValueSerializer().serialize(values[i]);
+                bvalues[i] = valueRedisSerializer.serialize(values[i]);
             }
 
             return sync.lpush(getKeySerializer().serialize(key), bvalues);
@@ -314,7 +337,7 @@ public class ClusterRedisClient implements RedisClient {
     }
 
     @Override
-    public List<String> lrange(String key, long start, long end) {
+    public List<String> lrange(String key, long start, long end, RedisSerializer valueRedisSerializer) {
         try {
             RedisClusterCommands<byte[], byte[]> sync = connection.sync();
             List<String> list = new ArrayList<>();
@@ -323,7 +346,7 @@ public class ClusterRedisClient implements RedisClient {
                 return list;
             }
             for (byte[] value : values) {
-                list.add(getValueSerializer().deserialize(value, String.class));
+                list.add(valueRedisSerializer.deserialize(value, String.class));
             }
             return list;
         } catch (SerializationException e) {

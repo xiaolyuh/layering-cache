@@ -39,7 +39,7 @@ public class RedisPublisher {
     public static void publisher(RedisClient redisClient, RedisPubSubMessage message, String nameSpace) {
         String messageJson = JSON.toJSONString(message);
         // pull 拉模式消息
-        redisClient.lpush(GlobalConfig.getMessageRedisKey(nameSpace), messageJson);
+        redisClient.lpush(GlobalConfig.getMessageRedisKey(nameSpace), GlobalConfig.GLOBAL_REDIS_SERIALIZER, messageJson);
         redisClient.expire(GlobalConfig.getMessageRedisKey(nameSpace), 25, TimeUnit.HOURS);
         // pub/sub 推模式消息
         redisClient.publish(RedisMessageListener.CHANNEL, "m");

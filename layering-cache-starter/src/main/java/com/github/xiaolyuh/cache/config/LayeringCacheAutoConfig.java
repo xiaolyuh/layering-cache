@@ -5,11 +5,9 @@ import com.github.xiaolyuh.cache.properties.LayeringCacheProperties;
 import com.github.xiaolyuh.cache.properties.LayeringCacheRedisProperties;
 import com.github.xiaolyuh.manager.CacheManager;
 import com.github.xiaolyuh.manager.LayeringCacheManager;
-import com.github.xiaolyuh.redis.clinet.ClusterRedisClient;
 import com.github.xiaolyuh.redis.clinet.RedisClient;
 import com.github.xiaolyuh.redis.clinet.RedisProperties;
-import com.github.xiaolyuh.redis.clinet.SingleRedisClient;
-import com.github.xiaolyuh.redis.serializer.KryoRedisSerializer;
+import com.github.xiaolyuh.redis.serializer.AbstractRedisSerializer;
 import com.github.xiaolyuh.redis.serializer.StringRedisSerializer;
 import com.github.xiaolyuh.stats.extend.CacheStatsReportService;
 import com.github.xiaolyuh.stats.extend.DefaultCacheStatsReportServiceImpl;
@@ -56,32 +54,32 @@ public class LayeringCacheAutoConfig {
     }
 
     @Bean
-    @ConditionalOnMissingBean(RedisClient.class)
-    public RedisClient layeringCacheRedisClient(LayeringCacheRedisProperties layeringCacheRedisProperties) {
+    public LayeringAspect layeringAspect() {
+        return new LayeringAspect();
+    }
+
+    @Bean
+    public RedisProperties redisProperties(LayeringCacheRedisProperties layeringCacheRedisProperties) {
         RedisProperties redisProperties = new RedisProperties();
         redisProperties.setDatabase(layeringCacheRedisProperties.getDatabase());
         redisProperties.setHost(layeringCacheRedisProperties.getHost());
         redisProperties.setCluster(layeringCacheRedisProperties.getCluster());
         redisProperties.setPassword(StringUtils.isBlank(layeringCacheRedisProperties.getPassword()) ? null : layeringCacheRedisProperties.getPassword());
         redisProperties.setPort(layeringCacheRedisProperties.getPort());
-
-        KryoRedisSerializer kryoRedisSerializer = new KryoRedisSerializer();
-        StringRedisSerializer keyRedisSerializer = new StringRedisSerializer();
-
-        RedisClient redisClient;
-        if (StringUtils.isNotBlank(redisProperties.getCluster())) {
-            redisClient = new ClusterRedisClient(redisProperties);
-        } else {
-            redisClient = new SingleRedisClient(redisProperties);
-        }
-
-        redisClient.setKeySerializer(keyRedisSerializer);
-        redisClient.setValueSerializer(kryoRedisSerializer);
-        return redisClient;
+        redisProperties.setSerializer(layeringCacheRedisProperties.getSerializer());
+        return redisProperties;
     }
 
     @Bean
-    public LayeringAspect layeringAspect() {
-        return new LayeringAspect();
+    @ConditionalOnMissingBean(RedisClient.class)
+    public RedisClient layeringCacheRedisClient(RedisProperties redisProperties) throws Exception {
+        AbstractRedisSerializer valueRedisSerializer = (AbstractRedisSerializer) Class.forName(redisProperties.getSerializer()).newInstance();
+        StringRedisSerializer keyRedisSerializer = new StringRedisSerializer();
+
+        RedisClient redisClient = RedisClient.getInstance(redisProperties);
+        redisClient.setKeySerializer(keyRedisSerializer);
+        redisClient.setValueSerializer(valueRedisSerializer);
+        return redisClient;
     }
+
 }

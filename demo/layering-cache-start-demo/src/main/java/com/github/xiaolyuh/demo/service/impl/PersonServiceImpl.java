@@ -37,7 +37,7 @@ public class PersonServiceImpl implements PersonService {
     @Override
     @Cacheable(value = "cache-prefix:people", key = "#person.id", depict = "用户信息缓存",
             firstCache = @FirstCache(expireTime = 4, timeUnit = TimeUnit.SECONDS),
-            secondaryCache = @SecondaryCache(expireTime = 15, preloadTime = 8, forceRefresh = true, timeUnit = TimeUnit.SECONDS))
+            secondaryCache = @SecondaryCache(expireTime = 15, preloadTime = 8, forceRefresh = true, timeUnit = TimeUnit.MINUTES))
     public Person findOne(Person person) {
         Person p = new Person(2L, "name2", 12,"address2");
         logger.info("为id、key为:" + p.getId() + "数据做了缓存");

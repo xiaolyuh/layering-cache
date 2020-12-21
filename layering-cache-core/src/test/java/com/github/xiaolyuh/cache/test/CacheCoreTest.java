@@ -560,7 +560,7 @@ public class CacheCoreTest {
 
         sleep(5);
         Long llen2 = ((AbstractCacheManager) cacheManager).getRedisClient().llen(GlobalConfig.getMessageRedisKey());
-        Assert.assertTrue(llen1 == llen2);
+        Assert.assertEquals(llen1, llen2);
 
         // 二级缓存不为空
         Object result = cache1.getSecondCache().get(cacheKey1, String.class);
@@ -592,7 +592,7 @@ public class CacheCoreTest {
 
         sleep(5);
         Long llen2 = ((AbstractCacheManager) cacheManager).getRedisClient().llen(GlobalConfig.getMessageRedisKey());
-        Assert.assertTrue(llen1 == llen2);
+        Assert.assertEquals(llen1, llen2);
 
         // 二级缓存不为空
         Object result = cache1.getSecondCache().get(cacheKey1, String.class);
@@ -651,7 +651,7 @@ public class CacheCoreTest {
         message.setMessageType(RedisPubSubMessageType.EVICT);
         String messageJson = JSON.toJSONString(message);
         // pull 拉模式消息
-        redisClient.lpush(GlobalConfig.getMessageRedisKey(), messageJson);
+        redisClient.lpush(GlobalConfig.getMessageRedisKey(), GlobalConfig.GLOBAL_REDIS_SERIALIZER, messageJson);
         redisClient.expire(GlobalConfig.getMessageRedisKey(), 25, TimeUnit.MINUTES);
     }
 
@@ -661,7 +661,7 @@ public class CacheCoreTest {
         message.setMessageType(RedisPubSubMessageType.CLEAR);
         String messageJson = JSON.toJSONString(message);
         // pull 拉模式消息
-        redisClient.lpush(GlobalConfig.getMessageRedisKey(), messageJson);
+        redisClient.lpush(GlobalConfig.getMessageRedisKey(), GlobalConfig.GLOBAL_REDIS_SERIALIZER, messageJson);
         redisClient.expire(GlobalConfig.getMessageRedisKey(), 25, TimeUnit.MINUTES);
     }
 

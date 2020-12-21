@@ -21,12 +21,10 @@ import com.github.xiaolyuh.cache.AbstractValueAdaptingCache;
 import java.io.Serializable;
 
 /**
- * Simple serializable class that serves as a {@code null} replacement
- * for cache stores which otherwise do not support {@code null} values.
+ * 空值标识
  *
- * @author Juergen Hoeller
+ * @author olafwang
  * @see AbstractValueAdaptingCache
- * @since 4.2.2
  */
 public final class NullValue implements Serializable {
 
@@ -34,7 +32,4 @@ public final class NullValue implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
-    private Object readResolve() {
-        return INSTANCE;
-    }
 }

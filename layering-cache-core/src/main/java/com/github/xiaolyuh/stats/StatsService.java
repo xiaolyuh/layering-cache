@@ -66,7 +66,7 @@ public class StatsService {
 
             CacheStatsInfo cacheStats = null;
             try {
-                cacheStats = cacheManager.getRedisClient().get(key, CacheStatsInfo.class);
+                cacheStats = cacheManager.getRedisClient().get(key, CacheStatsInfo.class, GlobalConfig.GLOBAL_REDIS_SERIALIZER);
             } catch (SerializationException e) {
                 cacheManager.getRedisClient().delete(key);
             }
@@ -106,7 +106,7 @@ public class StatsService {
                             if (lock.tryLock()) {
                                 CacheStatsInfo cacheStats = null;
                                 try {
-                                    cacheStats = redisClient.get(redisKey, CacheStatsInfo.class);
+                                    cacheStats = redisClient.get(redisKey, CacheStatsInfo.class, GlobalConfig.GLOBAL_REDIS_SERIALIZER);
                                 } catch (SerializationException e) {
                                     redisClient.delete(redisKey);
                                 }
@@ -145,7 +145,7 @@ public class StatsService {
                                 cacheStats.setSecondCacheMissCount(cacheStats.getSecondCacheMissCount() + secondCacheStats.getAndResetCachedMethodRequestCount());
 
                                 // 将缓存统计数据写到redis
-                                redisClient.set(redisKey, cacheStats, 24, TimeUnit.HOURS);
+                                redisClient.set(redisKey, cacheStats, 24, TimeUnit.HOURS, GlobalConfig.GLOBAL_REDIS_SERIALIZER);
                                 cacheStatsInfos.add(cacheStats);
                             }
                         } catch (Exception e) {
@@ -197,7 +197,7 @@ public class StatsService {
         try {
             CacheStatsInfo cacheStats = null;
             try {
-                cacheStats = cacheManager.getRedisClient().get(redisKey, CacheStatsInfo.class);
+                cacheStats = cacheManager.getRedisClient().get(redisKey, CacheStatsInfo.class, GlobalConfig.GLOBAL_REDIS_SERIALIZER);
             } catch (SerializationException e) {
                 cacheManager.getRedisClient().delete(redisKey);
             }

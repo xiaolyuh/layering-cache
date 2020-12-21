@@ -1,9 +1,10 @@
 package com.github.xiaolyuh.domain;
 
+import java.io.Serializable;
 import java.math.BigDecimal;
 import java.util.*;
 
-public class User {
+public class User implements Serializable {
 
     public User() {
         this.userId = 11L;
@@ -114,7 +115,7 @@ public class User {
         this.height = height;
     }
 
-    public static class Address {
+    public static class Address implements Serializable {
         private String addredd;
 
         public Address() {

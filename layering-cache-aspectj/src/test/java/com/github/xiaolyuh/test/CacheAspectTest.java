@@ -8,6 +8,7 @@ import com.github.xiaolyuh.domain.User;
 import com.github.xiaolyuh.manager.CacheManager;
 import com.github.xiaolyuh.manager.LayeringCacheManager;
 import com.github.xiaolyuh.redis.clinet.RedisClient;
+import com.github.xiaolyuh.redis.serializer.*;
 import com.github.xiaolyuh.support.CacheMode;
 import com.github.xiaolyuh.util.GlobalConfig;
 import org.junit.Assert;
@@ -21,6 +22,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import java.math.BigDecimal;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 
 // SpringJUnit4ClassRunner再Junit环境下提供Spring TestContext Framework的功能。
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -141,10 +143,11 @@ public class CacheAspectTest {
 
     @Test
     public void testGetUserNoParam() {
+        User user1 = testService.getUserNoParam();
+        Assert.assertNotNull(user1);
         User user = testService.getUserNoParam();
         Assert.assertNotNull(user);
-        user = testService.getUserNoParam();
-        Assert.assertNotNull(user);
+        Assert.assertEquals(JSON.toJSONString(user1), JSON.toJSONString(user));
 
         sleep(5);
         testService.getUserNoParam();
@@ -562,7 +565,6 @@ public class CacheAspectTest {
         Long llen2 = redisClient.llen(GlobalConfig.getMessageRedisKey());
         Assert.assertEquals(llen1, llen2);
 
-
         logger.info("============================================================================");
 
         sleep(4);
@@ -607,6 +609,33 @@ public class CacheAspectTest {
         Assert.assertEquals(user2.getAge(), user.getAge());
         Long llen3 = redisClient.llen(GlobalConfig.getMessageRedisKey());
         Assert.assertEquals((long) llen1, llen3 - 1);
+    }
+
+    /**
+     * 测试刷新二级缓存，同步更新一级缓存
+     */
+    @Test
+    public void testSerializer() {
+        User user = new User();
+        KryoRedisSerializer kryoRedisSerializer = new KryoRedisSerializer();
+        FastJsonRedisSerializer fastJsonRedisSerializer = new FastJsonRedisSerializer();
+        JackJsonRedisSerializer jackJsonRedisSerializer = new JackJsonRedisSerializer();
+        JdkRedisSerializer jdkRedisSerializer = new JdkRedisSerializer();
+        ProtostuffRedisSerializer protostuffRedisSerializer = new ProtostuffRedisSerializer();
+
+
+        System.out.println("KryoRedisSerializer:" + kryoRedisSerializer.serialize(user).length + " b");
+        System.out.println("fastJsonRedisSerializer:" + fastJsonRedisSerializer.serialize(user).length + " b");
+        System.out.println("jackJsonRedisSerializer:" + jackJsonRedisSerializer.serialize(user).length + " b");
+        System.out.println("jdkRedisSerializer:" + jdkRedisSerializer.serialize(user).length + " b");
+        System.out.println("protostuffRedisSerializer:" + protostuffRedisSerializer.serialize(user).length + " b");
+
+
+        redisClient.set("Serializer:KryoRedisSerializer", user, 10, TimeUnit.MINUTES, kryoRedisSerializer);
+        redisClient.set("Serializer:fastJsonRedisSerializer", user, 10, TimeUnit.MINUTES, fastJsonRedisSerializer);
+        redisClient.set("Serializer:jackJsonRedisSerializer", user, 10, TimeUnit.MINUTES, jackJsonRedisSerializer);
+        redisClient.set("Serializer:jdkRedisSerializer", user, 10, TimeUnit.MINUTES, jdkRedisSerializer);
+        redisClient.set("Serializer:protostuffRedisSerializer", user, 10, TimeUnit.MINUTES, protostuffRedisSerializer);
     }
 
     private void sleep(int time) {

@@ -13,10 +13,8 @@ import java.util.Arrays;
  *
  * @author yuhao.wang
  */
-public class KryoRedisSerializer implements RedisSerializer {
-    private static final ThreadLocal<Kryo> kryos = ThreadLocal.withInitial(Kryo::new);
-
-    private static final byte[] NULL_VALUE_BYTES = new byte[]{12};
+public class KryoRedisSerializer extends AbstractRedisSerializer {
+    private static final ThreadLocal<Kryo> KRYO = ThreadLocal.withInitial(Kryo::new);
 
     @Override
     public <T> byte[] serialize(T t) throws SerializationException {
@@ -24,7 +22,7 @@ public class KryoRedisSerializer implements RedisSerializer {
             return SerializationUtils.EMPTY_ARRAY;
         }
 
-        Kryo kryo = kryos.get();
+        Kryo kryo = KRYO.get();
         // 设置成false 序列化速度更快，但是遇到循环应用序列化器会报栈内存溢出
         kryo.setReferences(false);
         kryo.register(t.getClass());
@@ -37,7 +35,7 @@ public class KryoRedisSerializer implements RedisSerializer {
         } catch (Exception e) {
             throw new SerializationException(String.format("KryoRedisSerializer 序列化异常: %s, 【%s】", e.getMessage(), JSON.toJSONString(t)), e);
         } finally {
-            kryos.remove();
+            KRYO.remove();
         }
     }
 
@@ -47,11 +45,11 @@ public class KryoRedisSerializer implements RedisSerializer {
             return null;
         }
 
-        if (Arrays.equals(NULL_VALUE_BYTES, bytes)) {
+        if (Arrays.equals(getNullValueBytes(), bytes)) {
             return null;
         }
 
-        Kryo kryo = kryos.get();
+        Kryo kryo = KRYO.get();
         // 设置成false 序列化速度更快，但是遇到循环应用序列化器会报栈内存溢出
         kryo.setReferences(false);
         kryo.register(resultType);
@@ -62,8 +60,7 @@ public class KryoRedisSerializer implements RedisSerializer {
         } catch (Exception e) {
             throw new SerializationException(String.format("KryoRedisSerializer 反序列化异常: %s, 【%s】", e.getMessage(), JSON.toJSONString(bytes)), e);
         } finally {
-            kryos.remove();
+            KRYO.remove();
         }
     }
-
 }

@@ -29,5 +29,4 @@ public interface RedisSerializer {
      */
     @Nullable
     <T> T deserialize(@Nullable byte[] bytes, Class<T> resultType) throws SerializationException;
-
 }

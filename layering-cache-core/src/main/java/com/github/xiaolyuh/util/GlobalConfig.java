@@ -1,5 +1,8 @@
 package com.github.xiaolyuh.util;
 
+import com.github.xiaolyuh.redis.serializer.KryoRedisSerializer;
+import com.github.xiaolyuh.redis.serializer.RedisSerializer;
+
 /**
  * 全局配置
  *
@@ -21,4 +24,9 @@ public class GlobalConfig {
     public static String getMessageRedisKey(String nameSpace) {
         return String.format(MESSAGE_KEY, nameSpace);
     }
+
+    /**
+     * 缓存统计和消息推送序列化器
+     */
+    public static final RedisSerializer GLOBAL_REDIS_SERIALIZER = new KryoRedisSerializer();
 }

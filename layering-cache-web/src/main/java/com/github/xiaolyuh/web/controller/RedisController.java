@@ -4,8 +4,8 @@ import com.github.xiaolyuh.redis.clinet.ClusterRedisClient;
 import com.github.xiaolyuh.redis.clinet.RedisClient;
 import com.github.xiaolyuh.redis.clinet.RedisProperties;
 import com.github.xiaolyuh.redis.clinet.SingleRedisClient;
-import com.github.xiaolyuh.redis.serializer.KryoRedisSerializer;
 import com.github.xiaolyuh.redis.serializer.StringRedisSerializer;
+import com.github.xiaolyuh.util.GlobalConfig;
 import com.github.xiaolyuh.util.StringUtils;
 import com.github.xiaolyuh.web.utils.Result;
 import org.springframework.stereotype.Controller;
@@ -24,7 +24,7 @@ public class RedisController {
 
     @RequestMapping("/redis/redis-config")
     @ResponseBody
-    public Result login(String address, String password, Integer port, Integer database) {
+    public Result login(String address, String password, Integer port, Integer database, String serializer) {
         try {
             RedisProperties redisProperties = new RedisProperties();
             if (address.contains(":")) {
@@ -35,12 +35,13 @@ public class RedisController {
             redisProperties.setPassword(StringUtils.isBlank(password) ? null : password);
             redisProperties.setPort(port);
             redisProperties.setDatabase(database);
+            redisProperties.setSerializer("com.github.xiaolyuh.redis.serializer.JackJsonRedisSerializer");
 
             String key = address + ":" + port + ":" + database;
             redisClientMap.put(key, getRedisClient(redisProperties));
 
             RedisClient redisClient = redisClientMap.get(key);
-            redisClient.get("test");
+            redisClient.get("test", String.class);
             return Result.success();
         } catch (Exception e) {
             return Result.error("配置redis失败" + e.getMessage());
@@ -65,8 +66,6 @@ public class RedisController {
 
 
     private RedisClient getRedisClient(RedisProperties redisProperties) {
-
-        KryoRedisSerializer<Object> kryoRedisSerializer = new KryoRedisSerializer<>(Object.class);
         StringRedisSerializer keyRedisSerializer = new StringRedisSerializer();
 
         RedisClient redisClient;
@@ -77,7 +76,7 @@ public class RedisController {
         }
 
         redisClient.setKeySerializer(keyRedisSerializer);
-        redisClient.setValueSerializer(kryoRedisSerializer);
+        redisClient.setValueSerializer(GlobalConfig.GLOBAL_REDIS_SERIALIZER);
         return redisClient;
     }
 }

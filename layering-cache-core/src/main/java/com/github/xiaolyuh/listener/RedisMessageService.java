@@ -68,7 +68,7 @@ public class RedisMessageService {
         if (oldOffset >= maxOffset) {
             return;
         }
-        List<String> messages = cacheManager.getRedisClient().lrange(GlobalConfig.getMessageRedisKey(), 0, maxOffset - oldOffset - 1);
+        List<String> messages = cacheManager.getRedisClient().lrange(GlobalConfig.getMessageRedisKey(), 0, maxOffset - oldOffset - 1, GlobalConfig.GLOBAL_REDIS_SERIALIZER);
         if (CollectionUtils.isEmpty(messages)) {
             return;
         }

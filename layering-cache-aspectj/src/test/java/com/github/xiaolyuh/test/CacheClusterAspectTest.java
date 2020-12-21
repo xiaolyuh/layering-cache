@@ -522,13 +522,13 @@ public class CacheClusterAspectTest {
         Collection<Cache> caches = cacheManager.getCache("user:info:118:3-0-2");
         String key = "118118";
         for (Cache cache : caches) {
-            Object result = cache.get(key, String.class);
+            Object result = cache.get(key, User.class);
             Assert.assertNotNull(result);
 
-            result = ((LayeringCache) cache).getFirstCache().get(key, String.class);
+            result = ((LayeringCache) cache).getFirstCache().get(key, User.class);
             Assert.assertNull(result);
 
-            result = ((LayeringCache) cache).getSecondCache().get(key, String.class);
+            result = ((LayeringCache) cache).getSecondCache().get(key, User.class);
             Assert.assertNotNull(result);
         }
     }
@@ -540,13 +540,13 @@ public class CacheClusterAspectTest {
         Collection<Cache> caches = cacheManager.getCache("user:info:3-0-2");
         String key = "118118";
         for (Cache cache : caches) {
-            Object result = cache.get(key, String.class);
+            Object result = cache.get(key, User.class);
             Assert.assertNotNull(result);
 
-            result = ((LayeringCache) cache).getFirstCache().get(key, String.class);
+            result = ((LayeringCache) cache).getFirstCache().get(key, User.class);
             Assert.assertNull(result);
 
-            result = ((LayeringCache) cache).getSecondCache().get(key, String.class);
+            result = ((LayeringCache) cache).getSecondCache().get(key, User.class);
             Assert.assertNotNull(result);
         }
     }

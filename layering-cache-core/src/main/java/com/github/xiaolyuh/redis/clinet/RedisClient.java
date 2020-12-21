@@ -9,33 +9,16 @@ import java.util.concurrent.TimeUnit;
 
 public interface RedisClient {
 
-
-    /**
-     * <p>
-     * 通过key获取储存在redis中的value
-     * </p>
-     *
-     * @param key key
-     * @return 成功返回value 失败返回null
-     */
-    Object get(String key);
-
-    /**
-     *
-     * @param key
-     *
-     * @return
-     */
     /**
      * 通过key获取储存在redis中的value,自动转对象
      *
      * @param key key
-     * @param t   返回值类型对应的Class对象
+     * @param resultType   返回值类型对应的Class对象
      * @param <T> 返回值类型
      * @return 成功返回value 失败返回null
      * @author manddoxli
      */
-    <T> T get(String key, Class<T> t);
+    <T> T get(String key, Class<T> resultType);
 
     /**
      * <p>
@@ -147,11 +130,10 @@ public interface RedisClient {
      * </p>
      *
      * @param key
-     * @param values
-     *            可以使一个string 也可以使string数组
+     * @param values 可以使一个string 也可以使string数组
      * @return 返回list的value个数
      */
-    Long lpush(String key, String... values) ;
+    Long lpush(String key, String... values);
 
     /**
      * <p>
@@ -161,7 +143,7 @@ public interface RedisClient {
      * @param key
      * @return
      */
-    Long llen(String key) ;
+    Long llen(String key);
 
     /**
      * <p>
@@ -206,14 +188,18 @@ public interface RedisClient {
     void subscribe(RedisMessageListener messageListener, String... channel);
 
     /**
+     * key序列化方式
+     *
      * @return the key {@link RedisSerializer}.
      */
-    RedisSerializer<Object> getKeySerializer();
+    RedisSerializer getKeySerializer();
 
     /**
+     * value序列化方式
+     *
      * @return the value {@link RedisSerializer}.
      */
-    RedisSerializer<Object> getValueSerializer();
+    RedisSerializer getValueSerializer();
 
     /**
      * 设置key的序列化方式

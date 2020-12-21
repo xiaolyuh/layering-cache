@@ -27,7 +27,7 @@ public class RedisClusterConfig {
         redisProperties.setPassword(StringUtils.isBlank(password) ? null : password);
         redisProperties.setCluster(cluster);
 
-        KryoRedisSerializer<Object> kryoRedisSerializer = new KryoRedisSerializer<>(Object.class);
+        KryoRedisSerializer kryoRedisSerializer = new KryoRedisSerializer();
         StringRedisSerializer keyRedisSerializer = new StringRedisSerializer();
         ClusterRedisClient redisClient = new ClusterRedisClient(redisProperties);
         redisClient.setKeySerializer(keyRedisSerializer);

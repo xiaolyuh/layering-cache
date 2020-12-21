@@ -286,7 +286,7 @@ public class LayeringCacheRedisLock {
      */
     private <T> T get(final String key, Class<T> aClass) {
         Assert.isTrue(!StringUtils.isEmpty(key), "key不能为空");
-        return (T) redisClient.get(key);
+        return redisClient.get(key, aClass);
     }
 
     /**

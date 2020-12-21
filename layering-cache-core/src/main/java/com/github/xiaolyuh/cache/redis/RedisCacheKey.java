@@ -17,7 +17,7 @@ public class RedisCacheKey {
     /**
      * 前缀序列化器
      */
-    private final RedisSerializer<String> prefixSerializer1 = new StringRedisSerializer();
+    private final RedisSerializer prefixSerializer1 = new StringRedisSerializer();
 
     /**
      * 缓存key

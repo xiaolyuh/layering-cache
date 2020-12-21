@@ -10,7 +10,7 @@ import java.nio.charset.StandardCharsets;
  *
  * @author yuhao.wang
  */
-public class StringRedisSerializer implements RedisSerializer<String> {
+public class StringRedisSerializer implements RedisSerializer {
 
     private final Charset charset;
 
@@ -24,12 +24,20 @@ public class StringRedisSerializer implements RedisSerializer<String> {
     }
 
     @Override
-    public String deserialize(byte[] bytes) {
-        return (bytes == null ? null : new String(bytes, charset));
+    public <T> byte[] serialize(T value) throws SerializationException {
+        if (value == null) {
+            return null;
+        }
+
+        if (value instanceof String) {
+            return ((String) value).getBytes(charset);
+        }
+        throw new UnsupportedOperationException("String序列化方式不支持其他数据类型的序列化");
     }
 
     @Override
-    public byte[] serialize(String key) {
-        return (key == null ? null : key.getBytes(charset));
+    public String deserialize(byte[] bytes, Class resultType) throws SerializationException {
+
+        return (bytes == null ? null : new String(bytes, charset));
     }
 }

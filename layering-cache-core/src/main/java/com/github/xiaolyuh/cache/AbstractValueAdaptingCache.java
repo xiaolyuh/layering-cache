@@ -106,7 +106,7 @@ public abstract class AbstractValueAdaptingCache implements Cache {
 
 
     /**
-     * {@link #get(String, Callable)} 方法加载缓存值的包装异常
+     * {@link #get(String, Class, Callable)} 方法加载缓存值的包装异常
      */
     public class LoaderCacheValueException extends RuntimeException {
 

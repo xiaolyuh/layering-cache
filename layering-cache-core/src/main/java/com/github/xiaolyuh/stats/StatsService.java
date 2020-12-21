@@ -6,6 +6,7 @@ import com.github.xiaolyuh.cache.LayeringCache;
 import com.github.xiaolyuh.manager.AbstractCacheManager;
 import com.github.xiaolyuh.manager.CacheManager;
 import com.github.xiaolyuh.redis.clinet.RedisClient;
+import com.github.xiaolyuh.redis.serializer.SerializationException;
 import com.github.xiaolyuh.setting.LayeringCacheSetting;
 import com.github.xiaolyuh.support.LayeringCacheRedisLock;
 import com.github.xiaolyuh.util.GlobalConfig;
@@ -63,7 +64,12 @@ public class StatsService {
                 continue;
             }
 
-            CacheStatsInfo cacheStats = (CacheStatsInfo) cacheManager.getRedisClient().get(key);
+            CacheStatsInfo cacheStats = null;
+            try {
+                cacheStats = cacheManager.getRedisClient().get(key, CacheStatsInfo.class);
+            } catch (SerializationException e) {
+                cacheManager.getRedisClient().delete(key);
+            }
             if (!Objects.isNull(cacheStats)) {
                 statsList.add(cacheStats);
             }
@@ -98,7 +104,12 @@ public class StatsService {
                         LayeringCacheRedisLock lock = new LayeringCacheRedisLock(redisClient, redisKey, 60, 5000);
                         try {
                             if (lock.tryLock()) {
-                                CacheStatsInfo cacheStats = (CacheStatsInfo) redisClient.get(redisKey);
+                                CacheStatsInfo cacheStats = null;
+                                try {
+                                    cacheStats = redisClient.get(redisKey, CacheStatsInfo.class);
+                                } catch (SerializationException e) {
+                                    redisClient.delete(redisKey);
+                                }
                                 if (Objects.isNull(cacheStats)) {
                                     cacheStats = new CacheStatsInfo();
                                 }
@@ -184,7 +195,12 @@ public class StatsService {
     public void resetCacheStat(String redisKey) {
         RedisClient redisClient = cacheManager.getRedisClient();
         try {
-            CacheStatsInfo cacheStats = (CacheStatsInfo) redisClient.get(redisKey);
+            CacheStatsInfo cacheStats = null;
+            try {
+                cacheStats = cacheManager.getRedisClient().get(redisKey, CacheStatsInfo.class);
+            } catch (SerializationException e) {
+                cacheManager.getRedisClient().delete(redisKey);
+            }
             if (Objects.nonNull(cacheStats)) {
                 cacheStats.clearStatsInfo();
                 // 将缓存统计数据写到redis

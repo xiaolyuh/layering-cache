@@ -65,7 +65,7 @@ public class LayeringCacheAutoConfig {
         redisProperties.setPassword(StringUtils.isBlank(layeringCacheRedisProperties.getPassword()) ? null : layeringCacheRedisProperties.getPassword());
         redisProperties.setPort(layeringCacheRedisProperties.getPort());
 
-        KryoRedisSerializer<Object> kryoRedisSerializer = new KryoRedisSerializer<>(Object.class);
+        KryoRedisSerializer kryoRedisSerializer = new KryoRedisSerializer();
         StringRedisSerializer keyRedisSerializer = new StringRedisSerializer();
 
         RedisClient redisClient;

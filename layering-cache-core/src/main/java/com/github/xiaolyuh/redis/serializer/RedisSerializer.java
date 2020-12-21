@@ -8,22 +8,26 @@ import org.springframework.lang.Nullable;
  * @author olafwang
  * @since 2020/6/29 3:25 下午
  */
-public interface RedisSerializer<T> {
+public interface RedisSerializer {
     /**
-     * Serialize the given object to binary data.
+     * 将给定对象序列化为二进制数据。
      *
-     * @param t object to serialize. Can be {@literal null}.
-     * @return the equivalent binary data. Can be {@literal null}.
+     * @param value 需要序列化的对象.允许为 {@literal null}.
+     * @return 返回对象的二进制数据. 允许为 {@literal null}.
+     * @throws SerializationException 序列化异常
      */
     @Nullable
-    byte[] serialize(@Nullable T t) throws SerializationException;
+    <T> byte[] serialize(T value) throws SerializationException;
 
     /**
-     * Deserialize an object from the given binary data.
+     * 将给定的二进制数据中反序列化对象。
      *
-     * @param bytes object binary representation. Can be {@literal null}.
-     * @return the equivalent object instance. Can be {@literal null}.
+     * @param bytes      给定的二进制数据. 允许为 {@literal null}.
+     * @param resultType 返回值类型
+     * @return 反序列化后的对象.允许为 {@literal null}.
+     * @throws SerializationException 序列化异常
      */
     @Nullable
-    T deserialize(@Nullable byte[] bytes) throws SerializationException;
+    <T> T deserialize(@Nullable byte[] bytes, Class<T> resultType) throws SerializationException;
+
 }

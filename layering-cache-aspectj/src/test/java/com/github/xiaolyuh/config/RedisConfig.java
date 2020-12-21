@@ -35,7 +35,7 @@ public class RedisConfig {
         redisProperties.setPassword(StringUtils.isBlank(password) ? null : password);
         redisProperties.setPort(port);
 
-        KryoRedisSerializer<Object> kryoRedisSerializer = new KryoRedisSerializer<>(Object.class);
+        KryoRedisSerializer kryoRedisSerializer = new KryoRedisSerializer();
         StringRedisSerializer keyRedisSerializer = new StringRedisSerializer();
         SingleRedisClient redisClient = new SingleRedisClient(redisProperties);
         redisClient.setKeySerializer(keyRedisSerializer);

@@ -50,7 +50,7 @@ public class CacheAspectTest {
         user = testService.getUserById(userId);
         sleep(10);
 
-        Object result = redisClient.get("user:info:113:113");
+        Object result = redisClient.get("user:info:113:113", User.class);
         Assert.assertNull(result);
 
         user = testService.getUserById(userId);
@@ -69,7 +69,7 @@ public class CacheAspectTest {
         sleep(4);
         user = testService.getUserNoKey(userId, lastName);
         sleep(10);
-        Object result = redisClient.get("user:info:113:113");
+        Object result = redisClient.get("user:info:113:113", User.class);
         Assert.assertNull(result);
 
         user = testService.getUserNoKey(userId, lastName);
@@ -90,7 +90,7 @@ public class CacheAspectTest {
         sleep(4);
         user = testService.getUserObjectPram(user);
         sleep(11);
-        Object result = redisClient.get("user:info:113:113");
+        Object result = redisClient.get("user:info:113:113", User.class);
         Assert.assertNull(result);
 
         user = testService.getUserObjectPram(user);
@@ -112,7 +112,7 @@ public class CacheAspectTest {
         sleep(4);
         user = testService.getUser(user, user.getAge());
         sleep(11);
-        Object result = redisClient.get("user:info:114:114");
+        Object result = redisClient.get("user:info:114:114", User.class);
         Assert.assertNull(result);
 
         user = testService.getUser(user, user.getAge());
@@ -132,7 +132,7 @@ public class CacheAspectTest {
         sleep(4);
         user = testService.getNullUser(userId);
         sleep(11);
-        Object result = redisClient.get("user:info:115:115");
+        Object result = redisClient.get("user:info:115:115", User.class);
         Assert.assertNull(result);
 
         user = testService.getNullUser(userId);
@@ -151,7 +151,7 @@ public class CacheAspectTest {
         sleep(4);
         testService.getUserNoParam();
         sleep(11);
-        Object result = redisClient.get("user:info:{params:[]}");
+        Object result = redisClient.get("user:info:{params:[]}", User.class);
         Assert.assertNull(result);
 
         user = testService.getUserNoParam();
@@ -446,7 +446,7 @@ public class CacheAspectTest {
         sleep(3);
         testService.evictUser(userId);
         sleep(3);
-        Object result = redisClient.get("user:info:118:118");
+        Object result = redisClient.get("user:info:118:118", User.class);
         Assert.assertNull(result);
     }
 
@@ -458,13 +458,13 @@ public class CacheAspectTest {
         user.setBirthday(new Date(1593530584170L));
         testService.putUserNoKey(userId, user.getLastName(), user);
         String key = "user:info:params:[300118,[w,四川,~！@#%……&*（）——+：“？》:''\\>?《~!@#$%^&*()_+\\\\],address:addredd:成都,age:122,birthday:1593530584170,height:18.2,income:22.22,lastName:[w,四川,~！@#%……&*（）——+：“？》:''\\>?《~!@#$%^&*()_+\\\\],lastNameList:[W,成都],lastNameSet:[成都,W],name:name,userId:300118]";
-        User result = (User) redisClient.get(key);
+        User result = redisClient.get(key, User.class);
         Assert.assertNotNull(result);
         Assert.assertEquals(result.getUserId(), user.getUserId());
         sleep(3);
         testService.evictUserNoKey(userId, user.getLastName(), user);
         sleep(3);
-        Object result2 = redisClient.get(key);
+        Object result2 = redisClient.get(key, User.class);
         Assert.assertNull(result2);
     }
 
@@ -476,8 +476,8 @@ public class CacheAspectTest {
         sleep(5);
         testService.evictAllUser();
         sleep(3);
-        Object result1 = redisClient.get("user:info:119");
-        Object result2 = redisClient.get("user:info:121");
+        Object result1 = redisClient.get("user:info:119", User.class);
+        Object result2 = redisClient.get("user:info:121", User.class);
         Assert.assertNull(result1);
         Assert.assertNull(result2);
     }
@@ -492,8 +492,8 @@ public class CacheAspectTest {
         Assert.assertTrue(((LayeringCacheManager) cacheManager).getCacheContainer().size() == 0);
         testService.evictUser(119_119);
         sleep(2);
-        Object result1 = redisClient.get("user:info:119119");
-        Object result2 = redisClient.get("user:info:119121");
+        Object result1 = redisClient.get("user:info:119119", User.class);
+        Object result2 = redisClient.get("user:info:119121", User.class);
         Assert.assertNull(result1);
         Assert.assertNotNull(result2);
 
@@ -501,8 +501,8 @@ public class CacheAspectTest {
         Assert.assertTrue(((LayeringCacheManager) cacheManager).getCacheContainer().size() == 0);
         testService.evictAllUser();
         sleep(2);
-        result2 = redisClient.get("user:info:119121");
-        Object result3 = redisClient.get("user:info:119122");
+        result2 = redisClient.get("user:info:119121", User.class);
+        Object result3 = redisClient.get("user:info:119122", User.class);
         Assert.assertNull(result2);
         Assert.assertNull(result3);
     }
@@ -514,13 +514,13 @@ public class CacheAspectTest {
         Collection<Cache> caches = cacheManager.getCache("user:info:118:3-0-2");
         String key = "118118";
         for (Cache cache : caches) {
-            Object result = cache.get(key);
+            User result = cache.get(key, User.class);
             Assert.assertNotNull(result);
 
-            result = ((LayeringCache) cache).getFirstCache().get(key);
+            result = ((LayeringCache) cache).getFirstCache().get(key, User.class);
             Assert.assertNull(result);
 
-            result = ((LayeringCache) cache).getSecondCache().get(key);
+            result = ((LayeringCache) cache).getSecondCache().get(key, User.class);
             Assert.assertNotNull(result);
         }
     }
@@ -532,13 +532,13 @@ public class CacheAspectTest {
         Collection<Cache> caches = cacheManager.getCache("user:info:3-0-2");
         String key = "118118";
         for (Cache cache : caches) {
-            Object result = cache.get(key);
+            User result = cache.get(key, User.class);
             Assert.assertNotNull(result);
 
-            result = ((LayeringCache) cache).getFirstCache().get(key);
+            result = ((LayeringCache) cache).getFirstCache().get(key, User.class);
             Assert.assertNull(result);
 
-            result = ((LayeringCache) cache).getSecondCache().get(key);
+            result = ((LayeringCache) cache).getSecondCache().get(key, User.class);
             Assert.assertNotNull(result);
         }
     }

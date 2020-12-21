@@ -31,7 +31,8 @@ import java.util.concurrent.Callable;
 /**
  * Cache 接口的抽象实现类，对公共的方法做了一写实现，如是否允许存NULL值
  * <p>如果允许为NULL值，则需要在内部将NULL替换成{@link NullValue#INSTANCE} 对象
- *  *
+ * *
+ *
  * @author yuhao.wang3
  */
 public abstract class AbstractValueAdaptingCache implements Cache {
@@ -54,8 +55,8 @@ public abstract class AbstractValueAdaptingCache implements Cache {
     /**
      * 通过构造方法设置缓存配置
      *
-     * @param stats           是否开启监控统计
-     * @param name            缓存名称
+     * @param stats 是否开启监控统计
+     * @param name  缓存名称
      */
     protected AbstractValueAdaptingCache(boolean stats, String name) {
         Assert.notNull(name, "缓存名称不能为NULL");
@@ -73,12 +74,6 @@ public abstract class AbstractValueAdaptingCache implements Cache {
     @Override
     public String getName() {
         return this.name;
-    }
-
-    @Override
-    @SuppressWarnings("unchecked")
-    public <T> T get(String key, Class<T> type) {
-        return (T) fromStoreValue(get(key));
     }
 
     /**

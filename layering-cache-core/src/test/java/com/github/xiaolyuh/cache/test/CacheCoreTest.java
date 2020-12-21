@@ -109,10 +109,10 @@ public class CacheCoreTest {
         String cacheName = "cache:name:cluster";
         String cacheKey1 = "cache:key1";
         LayeringCache cache1 = (LayeringCache) cacheManager.getCache(cacheName, layeringCacheSetting1);
-        cache1.get(cacheKey1, () -> initCache(String.class));
+        cache1.get(cacheKey1, String.class, () -> initCache(String.class));
         // 测试一级缓存值及过期时间
         String str1 = cache1.getFirstCache().get(cacheKey1, String.class);
-        String st2 = cache1.getFirstCache().get(cacheKey1, () -> initCache(String.class));
+        String st2 = cache1.getFirstCache().get(cacheKey1, String.class, () -> initCache(String.class));
         logger.debug("========================:{}", str1);
         Assert.assertTrue(str1.equals(st2));
         Assert.assertTrue(str1.equals(initCache(String.class)));
@@ -123,13 +123,13 @@ public class CacheCoreTest {
         sleep(4);
         Assert.assertNull(cache1.getFirstCache().get(cacheKey1, String.class));
         // 看日志是不是走了二级缓存
-        cache1.get(cacheKey1, () -> initCache(String.class));
+        cache1.get(cacheKey1, String.class, () -> initCache(String.class));
         ttl = redisClient.getExpire(redisCacheKey.getKey());
         logger.debug("========================ttl 2:{}", ttl);
 
         // 测试二级缓存
         str1 = cache1.getSecondCache().get(cacheKey1, String.class);
-        st2 = cache1.getSecondCache().get(cacheKey1, () -> initCache(String.class));
+        st2 = cache1.getSecondCache().get(cacheKey1, String.class, () -> initCache(String.class));
         Assert.assertTrue(st2.equals(str1));
         Assert.assertTrue(str1.equals(initCache(String.class)));
         sleep(4);
@@ -137,7 +137,7 @@ public class CacheCoreTest {
 
         ttl = redisClient.getExpire(redisCacheKey.getKey());
         logger.debug("========================ttl 3:{}", ttl);
-        cache1.get(cacheKey1, () -> initCache(String.class));
+        cache1.get(cacheKey1, String.class, () -> initCache(String.class));
         sleep(1);
         ttl = redisClient.getExpire(redisCacheKey.getKey());
         logger.debug("========================ttl 4:{}", ttl);
@@ -145,12 +145,12 @@ public class CacheCoreTest {
         sleep(6);
         ttl = redisClient.getExpire(redisCacheKey.getKey());
         logger.debug("========================ttl 5:{}", ttl);
-        Assert.assertNotNull(cache1.getSecondCache().get(cacheKey1));
+        Assert.assertNotNull(cache1.getSecondCache().get(cacheKey1, String.class));
 
         sleep(5);
         ttl = redisClient.getExpire(redisCacheKey.getKey());
         logger.debug("========================ttl 6:{}", ttl);
-        Assert.assertNull(cache1.getSecondCache().get(cacheKey1));
+        Assert.assertNull(cache1.getSecondCache().get(cacheKey1, String.class));
         redisClient.delete(redisCacheKey.getKey());
     }
 
@@ -161,7 +161,7 @@ public class CacheCoreTest {
         String cacheName = "cache:name:118_1";
         String cacheKey1 = "cache:key1:118_1";
         LayeringCache cache1 = (LayeringCache) cacheManager.getCache(cacheName, layeringCacheSetting4);
-        cache1.get(cacheKey1, () -> initNullCache());
+        cache1.get(cacheKey1, String.class, () -> initNullCache());
         // 测试一级缓存值不能缓存NULL
         String str1 = cache1.getFirstCache().get(cacheKey1, String.class);
         com.github.benmanes.caffeine.cache.Cache<Object, Object> nativeCache = (com.github.benmanes.caffeine.cache.Cache<Object, Object>) cache1.getFirstCache().getNativeCache();
@@ -178,7 +178,7 @@ public class CacheCoreTest {
         sleep(5);
         st2 = cache1.getSecondCache().get(cacheKey1, String.class);
         Assert.assertTrue(st2 == null);
-        cache1.getSecondCache().get(cacheKey1, () -> initNullCache());
+        cache1.getSecondCache().get(cacheKey1, String.class, () -> initNullCache());
         sleep(1);
         ttl = redisClient.getExpire(redisCacheKey.getKey());
         Assert.assertTrue(ttl <= 10 && ttl > 5);
@@ -194,7 +194,7 @@ public class CacheCoreTest {
         String cacheName = "cache:name:118_2";
         String cacheKey1 = "cache:key1:118_2";
         LayeringCache cache1 = (LayeringCache) cacheManager.getCache(cacheName, layeringCacheSetting5);
-        cache1.get(cacheKey1, () -> initNullCache());
+        cache1.get(cacheKey1, String.class, () -> initNullCache());
         // 测试一级缓存值不能缓存NULL
         String str1 = cache1.getFirstCache().get(cacheKey1, String.class);
         com.github.benmanes.caffeine.cache.Cache<Object, Object> nativeCache = (com.github.benmanes.caffeine.cache.Cache<Object, Object>) cache1.getFirstCache().getNativeCache();
@@ -214,11 +214,11 @@ public class CacheCoreTest {
         String cacheName = "cache:name";
         String cacheKey1 = "cache:key:22";
         LayeringCache cache1 = (LayeringCache) cacheManager.getCache(cacheName, layeringCacheSetting1);
-        cache1.get(cacheKey1, () -> null);
+        cache1.get(cacheKey1, String.class, () -> null);
         String str1 = cache1.get(cacheKey1, String.class);
         Assert.assertNull(str1);
         sleep(11);
-        cache1.get(cacheKey1, () -> initCache(String.class));
+        cache1.get(cacheKey1, String.class, () -> initCache(String.class));
 
         str1 = cache1.get(cacheKey1, String.class);
         Assert.assertEquals(str1, initCache(String.class));
@@ -231,8 +231,8 @@ public class CacheCoreTest {
         String cacheKey1 = "cache:key2";
         String cacheKey2 = "cache:key3";
         LayeringCache cache1 = (LayeringCache) cacheManager.getCache(cacheName, layeringCacheSetting1);
-        cache1.get(cacheKey1, () -> initCache(String.class));
-        cache1.get(cacheKey2, () -> initCache(String.class));
+        cache1.get(cacheKey1, String.class, () -> initCache(String.class));
+        cache1.get(cacheKey2, String.class, () -> initCache(String.class));
         // 测试删除方法
         cache1.evict(cacheKey1);
         Thread.sleep(500);
@@ -243,7 +243,7 @@ public class CacheCoreTest {
         // 测试删除方法
         cache1.evict(cacheKey1);
         Thread.sleep(500);
-        str1 = cache1.get(cacheKey1, () -> initCache(String.class));
+        str1 = cache1.get(cacheKey1, String.class, () -> initCache(String.class));
         str2 = cache1.get(cacheKey2, String.class);
         Assert.assertNotNull(str1);
         Assert.assertNotNull(str2);
@@ -256,8 +256,8 @@ public class CacheCoreTest {
         String cacheKey1 = "cache:key4";
         String cacheKey2 = "cache:key5";
         LayeringCache cache = (LayeringCache) cacheManager.getCache(cacheName, layeringCacheSetting1);
-        cache.get(cacheKey1, () -> initCache(String.class));
-        cache.get(cacheKey2, () -> initCache(String.class));
+        cache.get(cacheKey1, String.class, () -> initCache(String.class));
+        cache.get(cacheKey2, String.class, () -> initCache(String.class));
         // 测试清除方法
         cache.clear();
         Thread.sleep(500);
@@ -268,8 +268,8 @@ public class CacheCoreTest {
         // 测试清除方法
         cache.clear();
         Thread.sleep(500);
-        str1 = cache.get(cacheKey1, () -> initCache(String.class));
-        str2 = cache.get(cacheKey2, () -> initCache(String.class));
+        str1 = cache.get(cacheKey1, String.class, () -> initCache(String.class));
+        str2 = cache.get(cacheKey2, String.class, () -> initCache(String.class));
         Assert.assertNotNull(str1);
         Assert.assertNotNull(str2);
     }
@@ -289,7 +289,7 @@ public class CacheCoreTest {
 
         cache.put(cacheKey1, "test2");
         Thread.sleep(2000);
-        Object value = cache.getFirstCache().get(cacheKey1);
+        Object value = cache.getFirstCache().get(cacheKey1, String.class);
         Assert.assertNull(value);
         str1 = cache.get(cacheKey1, String.class);
         Assert.assertEquals(str1, "test2");
@@ -319,7 +319,7 @@ public class CacheCoreTest {
         sleep(5);
         st2 = cache1.getSecondCache().get(cacheKey1, String.class);
         Assert.assertTrue(st2 == null);
-        cache1.getSecondCache().get(cacheKey1, () -> initNullCache());
+        cache1.getSecondCache().get(cacheKey1, String.class, () -> initNullCache());
         sleep(1);
         ttl = redisClient.getExpire(redisCacheKey.getKey());
         Assert.assertTrue(ttl <= 10 && ttl > 5);
@@ -355,14 +355,14 @@ public class CacheCoreTest {
         String cacheName = "cache:name";
         String cacheKey1 = "cache:key7";
         LayeringCache cache = (LayeringCache) cacheManager.getCache(cacheName, layeringCacheSetting1);
-        cache.putIfAbsent(cacheKey1, "test1");
+        cache.putIfAbsent(cacheKey1, "test1", String.class);
         Thread.sleep(2000);
-        Object value = cache.getFirstCache().get(cacheKey1);
+        Object value = cache.getFirstCache().get(cacheKey1, String.class);
         Assert.assertNull(value);
         String str1 = cache.get(cacheKey1, String.class);
         Assert.assertEquals(str1, "test1");
 
-        cache.putIfAbsent(cacheKey1, "test2");
+        cache.putIfAbsent(cacheKey1, "test2", String.class);
         str1 = cache.get(cacheKey1, String.class);
         Assert.assertEquals(str1, "test1");
     }
@@ -377,13 +377,13 @@ public class CacheCoreTest {
         String cacheName = "cache:name:3-1-3:1";
         String cacheKey1 = "cache:key:123";
         LayeringCache cache1 = (LayeringCache) cacheManager.getCache(cacheName, layeringCacheSetting1);
-        cache1.get(cacheKey1, () -> initCache(String.class));
-        cache1.get(cacheKey1, () -> initCache(String.class));
+        cache1.get(cacheKey1, String.class, () -> initCache(String.class));
+        cache1.get(cacheKey1, String.class, () -> initCache(String.class));
         sleep(5);
-        cache1.get(cacheKey1, () -> initCache(String.class));
+        cache1.get(cacheKey1, String.class, () -> initCache(String.class));
 
         sleep(11);
-        cache1.get(cacheKey1, () -> initCache(String.class));
+        cache1.get(cacheKey1, String.class, () -> initCache(String.class));
 
         CacheStats cacheStats = cache1.getCacheStats();
         CacheStats cacheStats2 = cache1.getCacheStats();
@@ -423,11 +423,11 @@ public class CacheCoreTest {
         String cacheName = "cache:name:3-0-2";
         String cacheKey1 = "cache:key:302-1";
         LayeringCache cache1 = (LayeringCache) cacheManager.getCache(cacheName, layeringCacheSetting6);
-        cache1.get(cacheKey1, () -> initCache(String.class));
+        cache1.get(cacheKey1, String.class, () -> initCache(String.class));
 
         String cacheKey2 = "cache:key:302-2";
         LayeringCache cache2 = (LayeringCache) cacheManager.getCache(cacheName, layeringCacheSetting6);
-        cache2.get(cacheKey2, () -> initCache(String.class));
+        cache2.get(cacheKey2, String.class, () -> initCache(String.class));
 
         pushDeleteMessage(cacheName, cacheKey1);
         pushDeleteMessage(cacheName, cacheKey2);
@@ -451,11 +451,11 @@ public class CacheCoreTest {
         String cacheName = "cache:name:3-0-2";
         String cacheKey1 = "cache:key:302-3";
         LayeringCache cache1 = (LayeringCache) cacheManager.getCache(cacheName, layeringCacheSetting6);
-        cache1.get(cacheKey1, () -> initCache(String.class));
+        cache1.get(cacheKey1, String.class, () -> initCache(String.class));
 
         String cacheKey2 = "cache:key:302-4";
         LayeringCache cache2 = (LayeringCache) cacheManager.getCache(cacheName, layeringCacheSetting6);
-        cache2.get(cacheKey2, () -> initCache(String.class));
+        cache2.get(cacheKey2, String.class, () -> initCache(String.class));
 
         pushDeleteClear(cacheName);
 
@@ -477,20 +477,20 @@ public class CacheCoreTest {
         String cacheName = "cache:name:3-0-2";
         String cacheKey1 = "cache:key:302-5";
         LayeringCache cache1 = (LayeringCache) cacheManager.getCache(cacheName, layeringCacheSetting7);
-        cache1.get(cacheKey1, () -> initCache(String.class));
+        cache1.get(cacheKey1, String.class, () -> initCache(String.class));
 
         // 二级缓存不为空
-        Object result = cache1.getSecondCache().get(cacheKey1);
+        Object result = cache1.getSecondCache().get(cacheKey1, String.class);
         Assert.assertNotNull(result);
 
         // 测试禁用一级缓存，一级缓存为空
         String str1 = cache1.getFirstCache().get(cacheKey1, String.class);
         Assert.assertNull(str1);
-        Object result1 = cache1.getFirstCache().get(cacheKey1);
+        Object result1 = cache1.getFirstCache().get(cacheKey1, String.class);
         Assert.assertNull(result1);
 
         // 二级缓存不为空
-        result = cache1.getSecondCache().get(cacheKey1);
+        result = cache1.getSecondCache().get(cacheKey1, String.class);
         Assert.assertNotNull(result);
     }
 
@@ -506,17 +506,17 @@ public class CacheCoreTest {
         cache1.put(cacheKey1, initCache(String.class));
 
         // 二级缓存不为空
-        Object result = cache1.getSecondCache().get(cacheKey1);
+        Object result = cache1.getSecondCache().get(cacheKey1, String.class);
         Assert.assertNotNull(result);
 
         // 测试禁用一级缓存，一级缓存为空
         String str1 = cache1.getFirstCache().get(cacheKey1, String.class);
         Assert.assertNull(str1);
-        Object result1 = cache1.getFirstCache().get(cacheKey1);
+        Object result1 = cache1.getFirstCache().get(cacheKey1, String.class);
         Assert.assertNull(result1);
 
         // 二级缓存不为空
-        result = cache1.getSecondCache().get(cacheKey1);
+        result = cache1.getSecondCache().get(cacheKey1, String.class);
         Assert.assertNotNull(result);
     }
 
@@ -529,20 +529,20 @@ public class CacheCoreTest {
         String cacheName = "cache:name:3-0-2";
         String cacheKey1 = "cache:key:302-7";
         LayeringCache cache1 = (LayeringCache) cacheManager.getCache(cacheName, layeringCacheSetting7);
-        cache1.putIfAbsent(cacheKey1, initCache(String.class));
+        cache1.putIfAbsent(cacheKey1, initCache(String.class), String.class);
 
         // 二级缓存不为空
-        Object result = cache1.getSecondCache().get(cacheKey1);
+        Object result = cache1.getSecondCache().get(cacheKey1, String.class);
         Assert.assertNotNull(result);
 
         // 测试禁用一级缓存，一级缓存为空
         String str1 = cache1.getFirstCache().get(cacheKey1, String.class);
         Assert.assertNull(str1);
-        Object result1 = cache1.getFirstCache().get(cacheKey1);
+        Object result1 = cache1.getFirstCache().get(cacheKey1, String.class);
         Assert.assertNull(result1);
 
         // 二级缓存不为空
-        result = cache1.getSecondCache().get(cacheKey1);
+        result = cache1.getSecondCache().get(cacheKey1, String.class);
         Assert.assertNotNull(result);
     }
 
@@ -563,17 +563,17 @@ public class CacheCoreTest {
         Assert.assertTrue(llen1 == llen2);
 
         // 二级缓存不为空
-        Object result = cache1.getSecondCache().get(cacheKey1);
+        Object result = cache1.getSecondCache().get(cacheKey1, String.class);
         Assert.assertNull(result);
 
         // 测试禁用一级缓存，一级缓存为空
         String str1 = cache1.getFirstCache().get(cacheKey1, String.class);
         Assert.assertNull(str1);
-        Object result1 = cache1.getFirstCache().get(cacheKey1);
+        Object result1 = cache1.getFirstCache().get(cacheKey1, String.class);
         Assert.assertNull(result1);
 
         // 二级缓存不为空
-        result = cache1.getSecondCache().get(cacheKey1);
+        result = cache1.getSecondCache().get(cacheKey1, String.class);
         Assert.assertNull(result);
     }
 
@@ -595,17 +595,17 @@ public class CacheCoreTest {
         Assert.assertTrue(llen1 == llen2);
 
         // 二级缓存不为空
-        Object result = cache1.getSecondCache().get(cacheKey1);
+        Object result = cache1.getSecondCache().get(cacheKey1, String.class);
         Assert.assertNull(result);
 
         // 测试禁用一级缓存，一级缓存为空
         String str1 = cache1.getFirstCache().get(cacheKey1, String.class);
         Assert.assertNull(str1);
-        Object result1 = cache1.getFirstCache().get(cacheKey1);
+        Object result1 = cache1.getFirstCache().get(cacheKey1, String.class);
         Assert.assertNull(result1);
 
         // 二级缓存不为空
-        result = cache1.getSecondCache().get(cacheKey1);
+        result = cache1.getSecondCache().get(cacheKey1, String.class);
         Assert.assertNull(result);
     }
 
@@ -620,10 +620,10 @@ public class CacheCoreTest {
         String cacheKey1 = "cache:key:316-1";
         LayeringCache cache1 = (LayeringCache) cacheManager.getCache(cacheName, layeringCacheSetting8);
         // 初始化缓存
-        cache1.get(cacheKey1, () -> initCache(String.class));
+        cache1.get(cacheKey1, String.class, () -> initCache(String.class));
         sleep(4);
         // 刷新二级缓存，结果没变，不更新一级缓存
-        cache1.get(cacheKey1, () -> initCache(String.class));
+        cache1.get(cacheKey1, String.class, () -> initCache(String.class));
         String str1 = cache1.getFirstCache().get(cacheKey1, String.class);
         Assert.assertEquals(str1, initCache(String.class));
 
@@ -632,12 +632,12 @@ public class CacheCoreTest {
 
         sleep(4);
         // 刷新二级缓存，结果没变了，更新一级缓存
-        cache1.get(cacheKey1, () -> initCache2(String.class));
+        cache1.get(cacheKey1, String.class, () -> initCache2(String.class));
         sleep(1);
         str1 = cache1.getFirstCache().get(cacheKey1, String.class);
         Assert.assertNull(str1);
 
-        str1 =  cache1.get(cacheKey1, () -> initCache2(String.class));
+        str1 = cache1.get(cacheKey1, String.class, () -> initCache2(String.class));
         Assert.assertEquals(str1, initCache2(String.class));
 
         Long llen3 = ((AbstractCacheManager) cacheManager).getRedisClient().llen(GlobalConfig.getMessageRedisKey());

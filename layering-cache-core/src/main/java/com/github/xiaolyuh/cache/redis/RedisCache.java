@@ -34,28 +34,28 @@ public class RedisCache extends AbstractValueAdaptingCache {
     /**
      * 等待线程容器
      */
-    private AwaitThreadContainer container = new AwaitThreadContainer();
+    private final AwaitThreadContainer container = new AwaitThreadContainer();
 
     /**
      * redis 客户端
      */
-    private RedisClient redisClient;
+    private final RedisClient redisClient;
 
     /**
      * 缓存有效时间,毫秒
      */
-    private long expiration;
+    private final long expiration;
 
     /**
      * 缓存主动在失效前强制刷新缓存的时间
      * 单位：毫秒
      */
-    private long preloadTime = 0;
+    private long preloadTime;
 
     /**
      * 是否强制刷新（执行被缓存的方法），默认是false
      */
-    private boolean forceRefresh = false;
+    private boolean forceRefresh;
 
     /**
      * 是否使用缓存名称作为 redis key 前缀
@@ -121,7 +121,7 @@ public class RedisCache extends AbstractValueAdaptingCache {
     }
 
     @Override
-    public Object get(String key) {
+    public <T> T get(String key, Class<T> resultType) {
         if (isStats()) {
             getCacheStats().addCacheRequestCount(1);
         }
@@ -130,11 +130,11 @@ public class RedisCache extends AbstractValueAdaptingCache {
         if (logger.isDebugEnabled()) {
             logger.debug("redis缓存 key= {} 查询redis缓存", redisCacheKey.getKey());
         }
-        return redisClient.get(redisCacheKey.getKey());
+        return redisClient.get(redisCacheKey.getKey(), resultType);
     }
 
     @Override
-    public <T> T get(String key, Callable<T> valueLoader) {
+    public <T> T get(String key, Class<T> resultType, Callable<T> valueLoader) {
         if (isStats()) {
             getCacheStats().addCacheRequestCount(1);
         }
@@ -164,13 +164,13 @@ public class RedisCache extends AbstractValueAdaptingCache {
     }
 
     @Override
-    public Object putIfAbsent(String key, Object value) {
+    public <T> T putIfAbsent(String key, Object value, Class<T> resultType) {
         if (logger.isDebugEnabled()) {
             logger.debug("redis缓存 key= {} putIfAbsent缓存，缓存值：{}", getRedisCacheKey(key).getKey(), JSON.toJSONString(value));
         }
-        Object reult = get(key);
-        if (reult != null) {
-            return reult;
+        T result = get(key, resultType);
+        if (result != null) {
+            return result;
         }
         put(key, value);
         return null;

@@ -76,6 +76,7 @@ public interface Cache {
      * @param key        缓存key
      * @param value      缓存key对应的值
      * @param resultType 返回值类型
+     * @param <T> T
      * @return 因为值本身可能为NULL，或者缓存key本来就没有对应值的时候也为NULL，
      * 所以如果返回NULL就表示已经将key-value键值对放到了缓存中
      * @since 4.1

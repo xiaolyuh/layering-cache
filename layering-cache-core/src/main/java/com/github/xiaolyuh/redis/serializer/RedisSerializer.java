@@ -13,6 +13,7 @@ public interface RedisSerializer {
      * 将给定对象序列化为二进制数据。
      *
      * @param value 需要序列化的对象.允许为 {@literal null}.
+     * @param <T>   T
      * @return 返回对象的二进制数据. 允许为 {@literal null}.
      * @throws SerializationException 序列化异常
      */
@@ -24,6 +25,7 @@ public interface RedisSerializer {
      *
      * @param bytes      给定的二进制数据. 允许为 {@literal null}.
      * @param resultType 返回值类型
+     * @param <T>        T
      * @return 反序列化后的对象.允许为 {@literal null}.
      * @throws SerializationException 序列化异常
      */

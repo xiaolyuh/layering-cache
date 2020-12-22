@@ -78,6 +78,8 @@ public interface RedisClient {
      *
      * @param key   key
      * @param value value
+     * @param time  时间
+     * @param unit  时间单位
      * @return 成功 返回OK 失败返回 0
      */
     String set(String key, Object value, long time, TimeUnit unit);
@@ -92,6 +94,8 @@ public interface RedisClient {
      *
      * @param key                  key
      * @param value                value
+     * @param time                 时间
+     * @param unit                 时间单位
      * @param valueRedisSerializer 指定序列化器
      * @return 成功 返回OK 失败返回 0
      */
@@ -190,8 +194,8 @@ public interface RedisClient {
      * 通过key返回list的长度
      * </p>
      *
-     * @param key
-     * @return
+     * @param key key
+     * @return long
      */
     Long llen(String key);
 
@@ -207,7 +211,7 @@ public interface RedisClient {
      * @param start                起始位置
      * @param end                  结束位置
      * @param valueRedisSerializer 指定序列化器
-     * @return List<String>
+     * @return List
      */
     List<String> lrange(String key, long start, long end, RedisSerializer valueRedisSerializer);
 

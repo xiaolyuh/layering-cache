@@ -5,7 +5,7 @@
 
     <groupId>com.github.xiaolyuh</groupId>
     <artifactId>layering-cache-web</artifactId>
-    <version>3.0.0</version>
+    <version>3.2.0</version>
     <packaging>jar</packaging>
 
     <name>layering-cache-web</name>

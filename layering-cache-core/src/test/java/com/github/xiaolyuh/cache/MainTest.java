@@ -25,8 +25,8 @@ public class MainTest {
         FastJsonRedisSerializer fastJsonRedisSerializer = new FastJsonRedisSerializer();
         System.out.println("FastJsonRedisSerializer:" + Arrays.toString(fastJsonRedisSerializer.getNullValueBytes()));
 
-        JackJsonRedisSerializer jackJsonRedisSerializer = new JackJsonRedisSerializer();
-        System.out.println("JackJsonRedisSerializer:" + Arrays.toString(jackJsonRedisSerializer.getNullValueBytes()));
+        JacksonRedisSerializer jacksonRedisSerializer = new JacksonRedisSerializer();
+        System.out.println("JacksonRedisSerializer:" + Arrays.toString(jacksonRedisSerializer.getNullValueBytes()));
 
         JdkRedisSerializer jdkRedisSerializer = new JdkRedisSerializer();
         System.out.println("JdkRedisSerializer:" + Arrays.toString(jdkRedisSerializer.getNullValueBytes()));

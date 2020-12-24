@@ -11,7 +11,9 @@ import com.github.xiaolyuh.redis.clinet.RedisClient;
 import com.github.xiaolyuh.redis.serializer.*;
 import com.github.xiaolyuh.support.CacheMode;
 import com.github.xiaolyuh.util.GlobalConfig;
+import com.sun.management.OperatingSystemMXBean;
 import org.junit.Assert;
+import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.slf4j.Logger;
@@ -20,9 +22,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
+import java.lang.management.ManagementFactory;
 import java.math.BigDecimal;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
+
 
 // SpringJUnit4ClassRunner再Junit环境下提供Spring TestContext Framework的功能。
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -619,23 +623,113 @@ public class CacheAspectTest {
         User user = new User();
         KryoRedisSerializer kryoRedisSerializer = new KryoRedisSerializer();
         FastJsonRedisSerializer fastJsonRedisSerializer = new FastJsonRedisSerializer();
-        JackJsonRedisSerializer jackJsonRedisSerializer = new JackJsonRedisSerializer();
+        JacksonRedisSerializer jacksonRedisSerializer = new JacksonRedisSerializer();
         JdkRedisSerializer jdkRedisSerializer = new JdkRedisSerializer();
         ProtostuffRedisSerializer protostuffRedisSerializer = new ProtostuffRedisSerializer();
 
 
+        int count = 100_000;
+        long start = System.currentTimeMillis();
+        for (int i = 0; i < count; i++) {
+            redisClient.set("Serializer:KryoRedisSerializer", user, 10, TimeUnit.MINUTES, kryoRedisSerializer);
+        }
+        long kryoSet = System.currentTimeMillis() - start;
+
+        start = System.currentTimeMillis();
+        for (int i = 0; i < count; i++) {
+            redisClient.set("Serializer:fastJsonRedisSerializer", user, 10, TimeUnit.MINUTES, fastJsonRedisSerializer);
+        }
+        long fastJsonSet = System.currentTimeMillis() - start;
+
+        start = System.currentTimeMillis();
+        for (int i = 0; i < count; i++) {
+            redisClient.set("Serializer:jacksonRedisSerializer", user, 10, TimeUnit.MINUTES, jacksonRedisSerializer);
+        }
+        long jacksonSet = System.currentTimeMillis() - start;
+
+        start = System.currentTimeMillis();
+        for (int i = 0; i < count; i++) {
+            redisClient.set("Serializer:jdkRedisSerializer", user, 10, TimeUnit.MINUTES, jdkRedisSerializer);
+        }
+        long jdkSet = System.currentTimeMillis() - start;
+
+        start = System.currentTimeMillis();
+        for (int i = 0; i < count; i++) {
+            redisClient.set("Serializer:protostuffRedisSerializer", user, 10, TimeUnit.MINUTES, protostuffRedisSerializer);
+        }
+        long protostufSet = System.currentTimeMillis() - start;
+
+
+        start = System.currentTimeMillis();
+        for (int i = 0; i < count; i++) {
+            redisClient.get("Serializer:KryoRedisSerializer", User.class, kryoRedisSerializer);
+        }
+        long kryoGet = System.currentTimeMillis() - start;
+
+        start = System.currentTimeMillis();
+        for (int i = 0; i < count; i++) {
+            redisClient.get("Serializer:fastJsonRedisSerializer", User.class, fastJsonRedisSerializer);
+        }
+        long fastJsonGet = System.currentTimeMillis() - start;
+
+        start = System.currentTimeMillis();
+        for (int i = 0; i < count; i++) {
+            redisClient.get("Serializer:jacksonRedisSerializer", User.class, jacksonRedisSerializer);
+        }
+        long jacksonGet = System.currentTimeMillis() - start;
+
+        start = System.currentTimeMillis();
+        for (int i = 0; i < count; i++) {
+            redisClient.get("Serializer:jdkRedisSerializer", User.class, jdkRedisSerializer);
+        }
+        long jdkGet = System.currentTimeMillis() - start;
+
+        start = System.currentTimeMillis();
+        for (int i = 0; i < count; i++) {
+            redisClient.get("Serializer:protostuffRedisSerializer", User.class, protostuffRedisSerializer);
+        }
+        long protostufGet = System.currentTimeMillis() - start;
+
+
         System.out.println("KryoRedisSerializer:" + kryoRedisSerializer.serialize(user).length + " b");
         System.out.println("fastJsonRedisSerializer:" + fastJsonRedisSerializer.serialize(user).length + " b");
-        System.out.println("jackJsonRedisSerializer:" + jackJsonRedisSerializer.serialize(user).length + " b");
+        System.out.println("jacksonRedisSerializer:" + jacksonRedisSerializer.serialize(user).length + " b");
         System.out.println("jdkRedisSerializer:" + jdkRedisSerializer.serialize(user).length + " b");
         System.out.println("protostuffRedisSerializer:" + protostuffRedisSerializer.serialize(user).length + " b");
+        System.out.println();
 
+        System.out.println("KryoRedisSerializer serialize:" + kryoSet + " ms");
+        System.out.println("fastJsonRedisSerializer serialize:" + fastJsonSet + " ms");
+        System.out.println("jacksonRedisSerializer serialize:" + jacksonSet + " ms");
+        System.out.println("jdkRedisSerializer serialize:" + jdkSet + " ms");
+        System.out.println("protostuffRedisSerializer serialize:" + protostufSet + " ms");
+        System.out.println();
 
-        redisClient.set("Serializer:KryoRedisSerializer", user, 10, TimeUnit.MINUTES, kryoRedisSerializer);
-        redisClient.set("Serializer:fastJsonRedisSerializer", user, 10, TimeUnit.MINUTES, fastJsonRedisSerializer);
-        redisClient.set("Serializer:jackJsonRedisSerializer", user, 10, TimeUnit.MINUTES, jackJsonRedisSerializer);
-        redisClient.set("Serializer:jdkRedisSerializer", user, 10, TimeUnit.MINUTES, jdkRedisSerializer);
-        redisClient.set("Serializer:protostuffRedisSerializer", user, 10, TimeUnit.MINUTES, protostuffRedisSerializer);
+        System.out.println("KryoRedisSerializer deserialize:" + kryoGet + " ms");
+        System.out.println("fastJsonRedisSerializer deserialize:" + fastJsonGet + " ms");
+        System.out.println("jacksonRedisSerializer deserialize:" + jacksonGet + " ms");
+        System.out.println("jdkRedisSerializer deserialize:" + jdkGet + " ms");
+        System.out.println("protostuffRedisSerializer deserialize:" + protostufGet + " ms");
+    }
+
+    private String systemInfo() {
+        OperatingSystemMXBean osmxb = (OperatingSystemMXBean) ManagementFactory.getOperatingSystemMXBean();
+
+        //获取CPU
+        double cpuLoad = osmxb.getSystemLoadAverage();
+        int percentCpuLoad = (int) (cpuLoad * 100);
+        //获取内存
+        double totalvirtualMemory = osmxb.getSystemCpuLoad();
+        double freePhysicalMemorySize = osmxb.getFreePhysicalMemorySize();
+        double value = freePhysicalMemorySize / totalvirtualMemory;
+        int percentMemoryLoad = (int) ((1 - value) * 100);
+
+        return String.format("CPU = %s,Mem = %s", percentCpuLoad, percentMemoryLoad);
+    }
+
+    @BeforeClass
+    public static void beforeClass() {
+        System.setProperty("java.util.logging.config.file", ClassLoader.getSystemResource("log4j.properties").getPath());
     }
 
     private void sleep(int time) {

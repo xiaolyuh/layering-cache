@@ -8,7 +8,7 @@ import io.protostuff.runtime.RuntimeSchema;
 import java.util.Arrays;
 
 /**
- * Protostuff 序列化方式(这种方式还有一个坑，构造函数里面如果有list，那么add方法会调用两次)
+ * Protostuff 序列化方式
  *
  * @author yuhao.wang
  */
@@ -32,13 +32,11 @@ public class ProtostuffRedisSerializer extends AbstractRedisSerializer {
 
         LinkedBuffer buffer = LinkedBuffer.allocate(LinkedBuffer.DEFAULT_BUFFER_SIZE);
         try {
-            return ProtostuffIOUtil.toByteArray(new Wrapper<T>(value), schema, buffer);
+            return ProtostuffIOUtil.toByteArray(new Wrapper<>(value), schema, buffer);
         } catch (Exception e) {
             throw new SerializationException(String.format("ProtostuffRedisSerializer 序列化异常: %s, 【%s】", e.getMessage(), JSON.toJSONString(value)), e);
         } finally {
-            if (buffer != null) {
-                buffer.clear();
-            }
+            buffer.clear();
         }
     }
 
@@ -52,31 +50,30 @@ public class ProtostuffRedisSerializer extends AbstractRedisSerializer {
             return null;
         }
 
-        Wrapper<T> wrapper;
         try {
-            wrapper = new Wrapper<T>(null);
+            Wrapper<T> wrapper = new Wrapper<>(null);
             ProtostuffIOUtil.mergeFrom(bytes, wrapper, schema);
+            return wrapper.getData();
         } catch (Exception e) {
             throw new SerializationException(String.format("ProtostuffRedisSerializer 反序列化异常: %s, 【%s】", e.getMessage(), JSON.toJSONString(bytes)), e);
         }
-
-        return wrapper.getData();
-    }
-}
-
-/**
- * protobuff只能序列化pojo类，不能直接序列化List 或者Map,如果要序列化list或者map，需要用一个wrapper类包装一下
- *
- * @param <T> T
- */
-class Wrapper<T> {
-    T data;
-
-    public Wrapper(T data) {
-        this.data = data;
     }
 
-    public T getData() {
-        return data;
+    /**
+     * protobuff只能序列化pojo类，不能直接序列化List 或者Map,如果要序列化list或者map，需要用一个wrapper类包装一下
+     *
+     * @param <T> T
+     */
+    static class Wrapper<T> {
+        T data;
+
+        public Wrapper(T data) {
+            this.data = data;
+        }
+
+        public T getData() {
+            return data;
+        }
     }
+
 }

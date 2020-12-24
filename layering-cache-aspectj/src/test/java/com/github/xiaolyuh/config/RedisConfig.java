@@ -36,7 +36,7 @@ public class RedisConfig {
 
         KryoRedisSerializer kryoRedisSerializer = new KryoRedisSerializer();
         FastJsonRedisSerializer fastJsonRedisSerializer = new FastJsonRedisSerializer();
-        JackJsonRedisSerializer jackJsonRedisSerializer = new JackJsonRedisSerializer();
+        JacksonRedisSerializer jacksonRedisSerializer = new JacksonRedisSerializer();
         JdkRedisSerializer jdkRedisSerializer = new JdkRedisSerializer();
         ProtostuffRedisSerializer protostuffRedisSerializer = new ProtostuffRedisSerializer();
 
@@ -45,7 +45,7 @@ public class RedisConfig {
         SingleRedisClient redisClient = new SingleRedisClient(redisProperties);
 
         redisClient.setKeySerializer(keyRedisSerializer);
-        redisClient.setValueSerializer(kryoRedisSerializer);
+        redisClient.setValueSerializer(protostuffRedisSerializer);
         return redisClient;
     }
 }

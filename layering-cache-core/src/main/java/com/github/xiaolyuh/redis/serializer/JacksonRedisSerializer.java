@@ -14,7 +14,7 @@ import java.util.Arrays;
  *
  * @author yuhao.wang
  */
-public class JackJsonRedisSerializer extends AbstractRedisSerializer {
+public class JacksonRedisSerializer extends AbstractRedisSerializer {
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     {
@@ -31,7 +31,7 @@ public class JackJsonRedisSerializer extends AbstractRedisSerializer {
         try {
             return this.objectMapper.writeValueAsBytes(value);
         } catch (Exception e) {
-            throw new SerializationException(String.format("JackJsonRedisSerializer 序列化异常: %s, 【%s】", e.getMessage(), JSON.toJSONString(value)), e);
+            throw new SerializationException(String.format("JacksonRedisSerializer 序列化异常: %s, 【%s】", e.getMessage(), JSON.toJSONString(value)), e);
         }
     }
 
@@ -48,7 +48,7 @@ public class JackJsonRedisSerializer extends AbstractRedisSerializer {
         try {
             return this.objectMapper.readValue(bytes, 0, bytes.length, resultType);
         } catch (Exception e) {
-            throw new SerializationException(String.format("JackJsonRedisSerializer 反序列化异常: %s, 【%s】", e.getMessage(), JSON.toJSONString(bytes)), e);
+            throw new SerializationException(String.format("JacksonRedisSerializer 反序列化异常: %s, 【%s】", e.getMessage(), JSON.toJSONString(bytes)), e);
         }
 
     }

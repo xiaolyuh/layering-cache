@@ -21,7 +21,7 @@ public class LayeringCacheRedisProperties {
      * 序列化方式:
      * com.github.xiaolyuh.redis.serializer.KryoRedisSerializer
      * com.github.xiaolyuh.redis.serializer.FastJsonRedisSerializer
-     * com.github.xiaolyuh.redis.serializer.JackJsonRedisSerializer
+     * com.github.xiaolyuh.redis.serializer.JacksonRedisSerializer
      * com.github.xiaolyuh.redis.serializer.JdkRedisSerializer
      * com.github.xiaolyuh.redis.serializer.ProtostuffRedisSerializer（暂时不建议使用）
      */

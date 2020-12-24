@@ -35,7 +35,7 @@ public class RedisController {
             redisProperties.setPassword(StringUtils.isBlank(password) ? null : password);
             redisProperties.setPort(port);
             redisProperties.setDatabase(database);
-            redisProperties.setSerializer("com.github.xiaolyuh.redis.serializer.JackJsonRedisSerializer");
+            redisProperties.setSerializer("com.github.xiaolyuh.redis.serializer.JacksonRedisSerializer");
 
             String key = address + ":" + port + ":" + database;
             redisClientMap.put(key, getRedisClient(redisProperties));

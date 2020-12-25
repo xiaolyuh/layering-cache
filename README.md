@@ -26,6 +26,18 @@ layering-cache是一个支持分布式环境的多级缓存框架，使用方式
 # 文档
 
 [中文文档](https://github.com/xiaolyuh/layering-cache/wiki/%E6%96%87%E6%A1%A3)
+
+# Redis序列化方式对比
+[Redis序列化方式对比](https://github.com/xiaolyuh/layering-cache/wiki/Redis%E5%BA%8F%E5%88%97%E5%8C%96%E6%96%B9%E5%BC%8F%E5%AF%B9%E6%AF%94)
+
+||size|serialize(get 10W次)|deserialize(set 10W次)|serialize(cup)|deserialize(cup)|
+---|---|---|---|---|---
+Kryo|273 b|82919 ms|90917 ms|8%|12%
+FastJson|329 b|15405 ms|18886 ms|12%|13%
+Jackson|473 b|16066 ms|16140 ms|15%|14%
+Jdk|1036 b|17344 ms|24917 ms|14%|13%
+Protostuff|282 b|14295 ms|14355 ms|15%|13%
+
 # 打开监控统计功能
 
 [打开监控统计功能](https://github.com/xiaolyuh/layering-cache/wiki/%E7%9B%91%E6%8E%A7%E7%BB%9F%E8%AE%A1%E5%8A%9F%E8%83%BD)
@@ -60,7 +72,7 @@ github 地址：https://github.com/xiaolyuh/layering-cache
 # 技术支持
 添加微信记得备注 ```layering-cache```，捐赠用户可享有需求优先解决、协助部署、二次开发帮助。
 
-![微信](https://github.com/xiaolyuh/layering-cache/blob/master/images/wechat.png)
+![微信](https://img-blog.csdnimg.cn/2020122516245862.png)
 
 
 

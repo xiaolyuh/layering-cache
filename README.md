@@ -26,6 +26,10 @@ layering-cache是一个支持分布式环境的多级缓存框架，使用方式
 # 文档
 
 [中文文档](https://github.com/xiaolyuh/layering-cache/wiki/%E6%96%87%E6%A1%A3)
+
+# Redis序列化方式对比
+[Redis序列化方式对比](https://github.com/xiaolyuh/layering-cache/wiki/Redis%E5%BA%8F%E5%88%97%E5%8C%96%E6%96%B9%E5%BC%8F%E5%AF%B9%E6%AF%94)
+
 # 打开监控统计功能
 
 [打开监控统计功能](https://github.com/xiaolyuh/layering-cache/wiki/%E7%9B%91%E6%8E%A7%E7%BB%9F%E8%AE%A1%E5%8A%9F%E8%83%BD)

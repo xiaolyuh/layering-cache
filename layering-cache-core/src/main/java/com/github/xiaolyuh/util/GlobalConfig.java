@@ -1,6 +1,6 @@
 package com.github.xiaolyuh.util;
 
-import com.github.xiaolyuh.redis.serializer.ProtostuffRedisSerializer;
+import com.github.xiaolyuh.redis.serializer.JdkRedisSerializer;
 import com.github.xiaolyuh.redis.serializer.RedisSerializer;
 
 /**
@@ -28,5 +28,5 @@ public class GlobalConfig {
     /**
      * 缓存统计和消息推送序列化器
      */
-    public static final RedisSerializer GLOBAL_REDIS_SERIALIZER = new ProtostuffRedisSerializer();
+    public static final RedisSerializer GLOBAL_REDIS_SERIALIZER = new JdkRedisSerializer();
 }

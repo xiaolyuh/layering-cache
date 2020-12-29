@@ -2,10 +2,7 @@ package com.github.xiaolyuh.redis.clinet;
 
 import com.alibaba.fastjson.JSON;
 import com.github.xiaolyuh.listener.RedisMessageListener;
-import com.github.xiaolyuh.redis.serializer.KryoRedisSerializer;
-import com.github.xiaolyuh.redis.serializer.RedisSerializer;
-import com.github.xiaolyuh.redis.serializer.SerializationException;
-import com.github.xiaolyuh.redis.serializer.StringRedisSerializer;
+import com.github.xiaolyuh.redis.serializer.*;
 import com.github.xiaolyuh.util.StringUtils;
 import io.lettuce.core.*;
 import io.lettuce.core.api.StatefulRedisConnection;
@@ -35,7 +32,7 @@ public class SingleRedisClient implements RedisClient {
     /**
      * 默认value序列化方式
      */
-    private RedisSerializer valueSerializer = new KryoRedisSerializer();
+    private RedisSerializer valueSerializer = new ProtostuffRedisSerializer();
 
     private io.lettuce.core.RedisClient client;
 

@@ -11,7 +11,7 @@ layering-cache是一个支持分布式环境的多级缓存框架，使用方式
 - 支持缓存过期时间在注解上直接配置
 - 支持缓存的自动刷新（当缓存命中并发现二级缓存将要过期时，会开启一个异步线程刷新缓存）
 - 缓存Key支持SpEL表达式
-- Redis支持Kryo、FastJson、Jackson、Jdk和Protostuff序列化，默认使用Kryo序列化，并支持自定义的序列化
+- Redis支持Kryo、FastJson、Jackson、Jdk和Protostuff序列化，默认使用Protostuff序列化，并支持自定义的序列化
 - 支持同一个缓存名称设置不同的过期时间
 - 支持禁用一级缓存，只使用二级缓存
 - 通过允许存空值来解决缓存穿透问题

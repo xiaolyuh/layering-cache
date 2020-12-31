@@ -1,6 +1,10 @@
 package com.github.xiaolyuh.test;
 
-import com.github.xiaolyuh.annotation.*;
+import com.github.xiaolyuh.annotation.CacheEvict;
+import com.github.xiaolyuh.annotation.CachePut;
+import com.github.xiaolyuh.annotation.Cacheable;
+import com.github.xiaolyuh.annotation.FirstCache;
+import com.github.xiaolyuh.annotation.SecondaryCache;
 import com.github.xiaolyuh.domain.User;
 import com.github.xiaolyuh.support.CacheMode;
 import org.slf4j.Logger;
@@ -8,7 +12,12 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 @Service

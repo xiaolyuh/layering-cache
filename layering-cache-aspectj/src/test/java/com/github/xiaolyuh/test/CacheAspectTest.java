@@ -8,7 +8,11 @@ import com.github.xiaolyuh.domain.User;
 import com.github.xiaolyuh.manager.CacheManager;
 import com.github.xiaolyuh.manager.LayeringCacheManager;
 import com.github.xiaolyuh.redis.clinet.RedisClient;
-import com.github.xiaolyuh.redis.serializer.*;
+import com.github.xiaolyuh.redis.serializer.FastJsonRedisSerializer;
+import com.github.xiaolyuh.redis.serializer.JacksonRedisSerializer;
+import com.github.xiaolyuh.redis.serializer.JdkRedisSerializer;
+import com.github.xiaolyuh.redis.serializer.KryoRedisSerializer;
+import com.github.xiaolyuh.redis.serializer.ProtostuffRedisSerializer;
 import com.github.xiaolyuh.support.CacheMode;
 import com.github.xiaolyuh.util.GlobalConfig;
 import com.sun.management.OperatingSystemMXBean;
@@ -24,7 +28,11 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import java.lang.management.ManagementFactory;
 import java.math.BigDecimal;
-import java.util.*;
+import java.util.Collection;
+import java.util.Date;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 

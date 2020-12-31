@@ -1,7 +1,11 @@
 package com.github.xiaolyuh.cache;
 
 import com.alibaba.fastjson.JSON;
-import com.github.xiaolyuh.redis.serializer.*;
+import com.github.xiaolyuh.redis.serializer.FastJsonRedisSerializer;
+import com.github.xiaolyuh.redis.serializer.JacksonRedisSerializer;
+import com.github.xiaolyuh.redis.serializer.JdkRedisSerializer;
+import com.github.xiaolyuh.redis.serializer.KryoRedisSerializer;
+import com.github.xiaolyuh.redis.serializer.ProtostuffRedisSerializer;
 import com.github.xiaolyuh.support.NullValue;
 
 import java.util.Arrays;

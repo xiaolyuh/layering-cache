@@ -9,7 +9,11 @@ import com.github.xiaolyuh.redis.serializer.SerializationException;
 import com.github.xiaolyuh.redis.serializer.StringRedisSerializer;
 import com.github.xiaolyuh.util.NamedThreadFactory;
 import com.github.xiaolyuh.util.StringUtils;
-import io.lettuce.core.*;
+import io.lettuce.core.RedisURI;
+import io.lettuce.core.ScanArgs;
+import io.lettuce.core.ScanIterator;
+import io.lettuce.core.ScriptOutputType;
+import io.lettuce.core.SetArgs;
 import io.lettuce.core.cluster.RedisClusterClient;
 import io.lettuce.core.cluster.api.StatefulRedisClusterConnection;
 import io.lettuce.core.cluster.api.sync.RedisClusterCommands;
@@ -22,7 +26,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.util.CollectionUtils;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Objects;
+import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -282,15 +293,12 @@ public class ClusterRedisClient implements RedisClient {
 
         // 普通redis
         try {
-            RedisClusterCommands<byte[], byte[]> sync = connection.sync();
-            boolean finished;
-            ScanCursor cursor = ScanCursor.INITIAL;
-            do {
-                KeyScanCursor<byte[]> scanCursor = sync.scan(cursor, ScanArgs.Builder.limit(10000).match(pattern));
-                scanCursor.getKeys().forEach(key -> keys.add(getKeySerializer().deserialize(key, String.class)));
-                finished = scanCursor.isFinished();
-                cursor = ScanCursor.of(scanCursor.getCursor());
-            } while (!finished);
+            this.cluster.connect(new ByteArrayCodec());
+            ScanIterator<byte[]> scan = ScanIterator.scan(connection.sync(), ScanArgs.Builder.limit(10000).match(pattern));
+            while (scan.hasNext()) {
+                String next = getKeySerializer().deserialize(scan.next(), String.class);
+                keys.add(next);
+            }
         } catch (SerializationException e) {
             throw e;
         } catch (Exception e) {

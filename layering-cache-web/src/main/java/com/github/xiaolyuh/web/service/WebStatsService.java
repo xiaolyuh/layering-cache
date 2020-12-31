@@ -3,13 +3,19 @@ package com.github.xiaolyuh.web.service;
 import com.github.xiaolyuh.redis.clinet.RedisClient;
 import com.github.xiaolyuh.stats.CacheStatsInfo;
 import com.github.xiaolyuh.stats.StatsService;
+import com.github.xiaolyuh.util.GlobalConfig;
 import com.github.xiaolyuh.util.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Objects;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -44,11 +50,12 @@ public class WebStatsService {
             }
 
             try {
-                CacheStatsInfo cacheStats = redisClient.get(key, CacheStatsInfo.class);
+                CacheStatsInfo cacheStats = redisClient.get(key, CacheStatsInfo.class, GlobalConfig.GLOBAL_REDIS_SERIALIZER);
                 if (!Objects.isNull(cacheStats)) {
                     statsList.add(cacheStats);
                 }
             } catch (Exception e) {
+                redisClient.delete(key);
                 logger.error(e.getMessage(), e);
             }
         }
@@ -75,7 +82,7 @@ public class WebStatsService {
      */
     public void resetCacheStat(RedisClient redisClient, String redisKey) {
         try {
-            CacheStatsInfo cacheStats = redisClient.get(redisKey, CacheStatsInfo.class);
+            CacheStatsInfo cacheStats = redisClient.get(redisKey, CacheStatsInfo.class, GlobalConfig.GLOBAL_REDIS_SERIALIZER);
             if (Objects.nonNull(cacheStats)) {
                 cacheStats.clearStatsInfo();
                 // 将缓存统计数据写到redis

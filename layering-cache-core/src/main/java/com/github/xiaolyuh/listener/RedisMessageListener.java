@@ -1,15 +1,10 @@
 package com.github.xiaolyuh.listener;
 
-import com.alibaba.fastjson.JSON;
-import com.github.xiaolyuh.cache.Cache;
-import com.github.xiaolyuh.cache.LayeringCache;
 import com.github.xiaolyuh.manager.AbstractCacheManager;
 import com.github.xiaolyuh.util.BeanFactory;
 import io.lettuce.core.pubsub.RedisPubSubListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.Collection;
 
 /**
  * redis消息的订阅者

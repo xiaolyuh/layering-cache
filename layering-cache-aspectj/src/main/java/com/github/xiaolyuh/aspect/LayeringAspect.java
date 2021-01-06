@@ -88,23 +88,7 @@ public class LayeringAspect {
             // 如果是序列化异常需要先删除原有缓存,在执行缓存方法
             String[] cacheNames = cacheable.cacheNames();
             delete(cacheNames, cacheable.key(), method, joinPoint.getArgs(), joinPoint.getTarget());
-            try {
-                return executeCacheable(joinPoint, cacheable, method, joinPoint.getArgs(), joinPoint.getTarget());
-            } catch (Exception exception) {
-                // 忽略操作缓存过程中遇到的异常
-                if (cacheable.ignoreException()) {
-                    logger.warn(e.getMessage(), e);
-                    return joinPoint.proceed();
-                }
-                throw e;
-            }
-        } catch (Exception e) {
-            // 忽略操作缓存过程中遇到的异常
-            if (cacheable.ignoreException()) {
-                logger.warn(e.getMessage(), e);
-                return joinPoint.proceed();
-            }
-            throw e;
+            return executeCacheable(joinPoint, cacheable, method, joinPoint.getArgs(), joinPoint.getTarget());
         }
     }
 
@@ -115,17 +99,8 @@ public class LayeringAspect {
         // 获取注解
         CacheEvict cacheEvict = AnnotationUtils.findAnnotation(method, CacheEvict.class);
 
-        try {
-            // 执行查询缓存方法
-            return executeEvict(joinPoint, cacheEvict, method, joinPoint.getArgs(), joinPoint.getTarget());
-        } catch (Exception e) {
-            // 忽略操作缓存过程中遇到的异常
-            if (cacheEvict.ignoreException()) {
-                logger.warn(e.getMessage(), e);
-                return joinPoint.proceed();
-            }
-            throw e;
-        }
+        // 执行查询缓存方法
+        return executeEvict(joinPoint, cacheEvict, method, joinPoint.getArgs(), joinPoint.getTarget());
     }
 
     @Around("cachePutPointcut()")
@@ -135,17 +110,8 @@ public class LayeringAspect {
         // 获取注解
         CachePut cacheEvict = AnnotationUtils.findAnnotation(method, CachePut.class);
 
-        try {
-            // 执行查询缓存方法
-            return executePut(joinPoint, cacheEvict, method, joinPoint.getArgs(), joinPoint.getTarget());
-        } catch (Exception e) {
-            // 忽略操作缓存过程中遇到的异常
-            if (cacheEvict.ignoreException()) {
-                logger.warn(e.getMessage(), e);
-                return joinPoint.proceed();
-            }
-            throw e;
-        }
+        // 执行查询缓存方法
+        return executePut(joinPoint, cacheEvict, method, joinPoint.getArgs(), joinPoint.getTarget());
     }
 
     /**

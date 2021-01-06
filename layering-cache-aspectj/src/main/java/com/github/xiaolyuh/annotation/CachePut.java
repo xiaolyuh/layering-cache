@@ -83,6 +83,7 @@ public @interface CachePut {
      *
      * @return boolean
      */
+    @Deprecated
     boolean ignoreException() default true;
 
     /**

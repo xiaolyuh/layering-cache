@@ -82,6 +82,7 @@ public @interface Cacheable {
      *
      * @return boolean
      */
+    @Deprecated
     boolean ignoreException() default true;
 
     /**

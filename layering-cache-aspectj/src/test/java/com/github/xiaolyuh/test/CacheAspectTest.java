@@ -636,7 +636,7 @@ public class CacheAspectTest {
         ProtostuffRedisSerializer protostuffRedisSerializer = new ProtostuffRedisSerializer();
 
 
-        int count = 100_000;
+        int count = 1_000;
         long start = System.currentTimeMillis();
         for (int i = 0; i < count; i++) {
             redisClient.set("Serializer:KryoRedisSerializer", user, 10, TimeUnit.MINUTES, kryoRedisSerializer);
@@ -654,7 +654,6 @@ public class CacheAspectTest {
             redisClient.set("Serializer:jacksonRedisSerializer", user, 10, TimeUnit.MINUTES, jacksonRedisSerializer);
         }
         long jacksonSet = System.currentTimeMillis() - start;
-
         start = System.currentTimeMillis();
         for (int i = 0; i < count; i++) {
             redisClient.set("Serializer:jdkRedisSerializer", user, 10, TimeUnit.MINUTES, jdkRedisSerializer);

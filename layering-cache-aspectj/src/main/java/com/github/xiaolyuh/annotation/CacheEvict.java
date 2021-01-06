@@ -61,6 +61,7 @@ public @interface CacheEvict {
      *
      * @return boolean
      */
+    @Deprecated
     boolean ignoreException() default true;
 
     /**

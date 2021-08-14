@@ -165,6 +165,7 @@ public class CaffeineCache extends AbstractValueAdaptingCache {
         Caffeine<Object, Object> builder = Caffeine.newBuilder();
         builder.initialCapacity(firstCacheSetting.getInitialCapacity());
         builder.maximumSize(firstCacheSetting.getMaximumSize());
+        builder.softValues();
         if (ExpireMode.WRITE.equals(firstCacheSetting.getExpireMode())) {
             builder.expireAfterWrite(firstCacheSetting.getExpireTime(), firstCacheSetting.getTimeUnit());
         } else if (ExpireMode.ACCESS.equals(firstCacheSetting.getExpireMode())) {

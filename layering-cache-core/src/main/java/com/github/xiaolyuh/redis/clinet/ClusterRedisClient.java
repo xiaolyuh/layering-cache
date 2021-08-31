@@ -14,6 +14,7 @@ import io.lettuce.core.ScanArgs;
 import io.lettuce.core.ScanIterator;
 import io.lettuce.core.ScriptOutputType;
 import io.lettuce.core.SetArgs;
+import io.lettuce.core.cluster.ClusterClientOptions;
 import io.lettuce.core.cluster.RedisClusterClient;
 import io.lettuce.core.cluster.api.StatefulRedisClusterConnection;
 import io.lettuce.core.cluster.api.sync.RedisClusterCommands;
@@ -91,6 +92,10 @@ public class ClusterRedisClient implements RedisClient {
         }
 
         this.cluster = RedisClusterClient.create(redisURIs);
+        this.cluster.setOptions(ClusterClientOptions.builder()
+                .autoReconnect(true)
+                .pingBeforeActivateConnection(true)
+                .build());
         this.connection = this.cluster.connect(new ByteArrayCodec());
         this.pubSubConnection = this.cluster.connectPubSub();
     }

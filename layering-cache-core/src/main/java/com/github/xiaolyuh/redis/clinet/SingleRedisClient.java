@@ -7,12 +7,7 @@ import com.github.xiaolyuh.redis.serializer.RedisSerializer;
 import com.github.xiaolyuh.redis.serializer.SerializationException;
 import com.github.xiaolyuh.redis.serializer.StringRedisSerializer;
 import com.github.xiaolyuh.util.StringUtils;
-import io.lettuce.core.KeyScanCursor;
-import io.lettuce.core.RedisURI;
-import io.lettuce.core.ScanArgs;
-import io.lettuce.core.ScanCursor;
-import io.lettuce.core.ScriptOutputType;
-import io.lettuce.core.SetArgs;
+import io.lettuce.core.*;
 import io.lettuce.core.api.StatefulRedisConnection;
 import io.lettuce.core.api.sync.RedisCommands;
 import io.lettuce.core.codec.ByteArrayCodec;
@@ -64,6 +59,10 @@ public class SingleRedisClient implements RedisClient {
 
         logger.info("layering-cache redis配置" + JSON.toJSONString(properties));
         this.client = io.lettuce.core.RedisClient.create(redisURI);
+        this.client.setOptions(ClientOptions.builder()
+                .autoReconnect(true)
+                .pingBeforeActivateConnection(true)
+                .build());
         this.connection = client.connect(new ByteArrayCodec());
         this.pubSubConnection = client.connectPubSub();
     }

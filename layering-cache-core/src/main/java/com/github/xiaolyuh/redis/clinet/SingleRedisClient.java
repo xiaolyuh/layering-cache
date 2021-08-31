@@ -64,6 +64,10 @@ public class SingleRedisClient implements RedisClient {
 
         logger.info("layering-cache redis配置" + JSON.toJSONString(properties));
         this.client = io.lettuce.core.RedisClient.create(redisURI);
+        this.client.setOptions(ClientOptions.builder()
+                .autoReconnect(true)
+                .pingBeforeActivateConnection(true)
+                .build());
         this.connection = client.connect(new ByteArrayCodec());
         this.pubSubConnection = client.connectPubSub();
     }

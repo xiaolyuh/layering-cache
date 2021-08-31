@@ -91,6 +91,10 @@ public class ClusterRedisClient implements RedisClient {
         }
 
         this.cluster = RedisClusterClient.create(redisURIs);
+        this.cluster.setOptions(ClusterClientOptions.builder()
+                .autoReconnect(true)
+                .pingBeforeActivateConnection(true)
+                .build());
         this.connection = this.cluster.connect(new ByteArrayCodec());
         this.pubSubConnection = this.cluster.connectPubSub();
     }

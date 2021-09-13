@@ -142,7 +142,7 @@ public class LayeringAspect {
 
         SecondaryCacheSetting secondaryCacheSetting = new SecondaryCacheSetting(secondaryCache.expireTime(),
                 secondaryCache.preloadTime(), secondaryCache.timeUnit(), secondaryCache.forceRefresh(),
-                secondaryCache.isAllowNullValue(), secondaryCache.magnification());
+                true, secondaryCache.magnification());
 
         LayeringCacheSetting layeringCacheSetting = new LayeringCacheSetting(firstCacheSetting, secondaryCacheSetting,
                 cacheable.depict(), cacheable.enableFirstCache());
@@ -250,7 +250,7 @@ public class LayeringAspect {
 
         SecondaryCacheSetting secondaryCacheSetting = new SecondaryCacheSetting(secondaryCache.expireTime(),
                 secondaryCache.preloadTime(), secondaryCache.timeUnit(), secondaryCache.forceRefresh(),
-                secondaryCache.isAllowNullValue(), secondaryCache.magnification());
+                true, secondaryCache.magnification());
 
         LayeringCacheSetting layeringCacheSetting = new LayeringCacheSetting(firstCacheSetting, secondaryCacheSetting,
                 cachePut.depict(), cachePut.enableFirstCache());
@@ -285,7 +285,7 @@ public class LayeringAspect {
     private Object generateKey(String keySpEl, Method method, Object[] args, Object target) {
 
         // 获取注解上的key属性值
-        Class<?> targetClass = getTargetClass(target);
+        Class<?> targetClass = AopProxyUtils.ultimateTargetClass(target);
         if (StringUtils.hasText(keySpEl)) {
             EvaluationContext evaluationContext = evaluator.createEvaluationContext(method, args, target,
                     targetClass, CacheOperationExpressionEvaluator.NO_RESULT);
@@ -297,21 +297,6 @@ public class LayeringAspect {
         }
         return this.keyGenerator.generate(target, method, args);
     }
-
-    /**
-     * 获取类信息
-     *
-     * @param target Object
-     * @return targetClass
-     */
-    private Class<?> getTargetClass(Object target) {
-        Class<?> targetClass = AopProxyUtils.ultimateTargetClass(target);
-        if (targetClass == null) {
-            targetClass = target.getClass();
-        }
-        return targetClass;
-    }
-
 
     /**
      * 获取Method

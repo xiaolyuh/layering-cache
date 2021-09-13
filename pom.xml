@@ -7,7 +7,7 @@
     <groupId>com.github.xiaolyuh</groupId>
     <artifactId>layering-cache</artifactId>
     <packaging>pom</packaging>
-    <version>3.3.3</version>
+    <version>3.3.4</version>
 
     <parent>
         <groupId>org.sonatype.oss</groupId>
@@ -61,10 +61,9 @@
         <aspectj.version>1.9.2</aspectj.version>
         <servlet.version>4.0.1</servlet.version>
         <lombok.version>1.18.12</lombok.version>
-        <jackson.version>2.9.10.7</jackson.version>
         <kryo.version>3.0.3</kryo.version>
         <protostuff.version>1.7.2</protostuff.version>
-        <jsckson.version>2.9.10.7</jsckson.version>
+        <jsckson.version>2.9.9</jsckson.version>
 
         <spring.boot.version>2.1.1.RELEASE</spring.boot.version>
 
@@ -185,12 +184,6 @@
             </dependency>
 
             <dependency>
-                <groupId>com.fasterxml.jackson.core</groupId>
-                <artifactId>jackson-databind</artifactId>
-                <version>${jackson.version}</version>
-            </dependency>
-
-            <dependency>
                 <groupId>javax.servlet</groupId>
                 <artifactId>javax.servlet-api</artifactId>
                 <version>${servlet.version}</version>
@@ -212,23 +205,30 @@
             <distributionManagement>
                 <snapshotRepository>
                     <id>sonatype</id>
-                    <url>https://oss.sonatype.org/content/repositories/snapshots/</url>
+                    <url>https://oss.sonatype.org/content/repositories/snapshots</url>
                 </snapshotRepository>
-                <repository>
-                    <id>sonatype</id>
-                    <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
-                </repository>
             </distributionManagement>
             <build>
-                <!-- Javadoc -->
                 <plugins>
+                    <plugin>
+                        <groupId>org.sonatype.plugins</groupId>
+                        <artifactId>nexus-staging-maven-plugin</artifactId>
+                        <version>1.6.7</version>
+                        <extensions>true</extensions>
+                        <configuration>
+                            <serverId>sonatype</serverId>
+                            <nexusUrl>https://oss.sonatype.org/</nexusUrl>
+                            <autoReleaseAfterClose>true</autoReleaseAfterClose>
+                        </configuration>
+                    </plugin>
+
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-javadoc-plugin</artifactId>
                         <version>2.9.1</version>
                         <executions>
                             <execution>
-                                <phase>package</phase>
+                                <id>attach-javadocs</id>
                                 <goals>
                                     <goal>jar</goal>
                                 </goals>
@@ -242,7 +242,6 @@
                         <version>1.6</version>
                         <executions>
                             <execution>
-                                <id>sign-artifacts</id>
                                 <phase>verify</phase>
                                 <goals>
                                     <goal>sign</goal>
@@ -260,6 +259,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.8.1</version>
                 <configuration>
                     <source>1.8</source>
                     <target>1.8</target>
@@ -267,13 +267,12 @@
             </plugin>
             <!-- 生成sources源码包的插件 -->
             <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-source-plugin</artifactId>
-                <version>2.4</version>
-                <configuration>
-                    <attach>true</attach>
-                </configuration>
+                <version>3.2.1</version>
                 <executions>
                     <execution>
+                        <id>attach-sources</id>
                         <phase>package</phase>
                         <goals>
                             <goal>jar-no-fork</goal>

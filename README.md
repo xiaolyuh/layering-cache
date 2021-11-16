@@ -3,7 +3,7 @@
 [![License](https://img.shields.io/badge/license-Apache%202-4EB1BA.svg)](https://www.apache.org/licenses/LICENSE-2.0.html)
 
 # 简介
-layering-cache是一个支持分布式环境的多级缓存框架，使用方式和spring-cache类似。使用Caffeine作为一级本地缓存，使用redis作为二级集中式缓存。一级缓存和二级缓存的数据一致性是通过推和拉两种模式相结合的方式来实现的。推主要是基于redis的pub/sub机制，拉主要是基于消息队列和记录消费消息的偏移量来实现的。
+layering-cache是一个支持分布式环境的多级缓存框架，使用方式和spring-cache类似。它使用Caffeine作为一级本地缓存，redis作为二级集中式缓存。一级缓存和二级缓存的数据一致性是通过推和拉两种模式相结合的方式来保证。推主要是基于redis的pub/sub机制，拉主要是基于消息队列和记录消费消息的偏移量来实现的。
 
 # 支持
 - 支持缓存命中率的监控统计，统计数据上报支持自定义扩展
@@ -14,7 +14,6 @@ layering-cache是一个支持分布式环境的多级缓存框架，使用方式
 - Redis支持Kryo、FastJson、Jackson、Jdk和Protostuff序列化，默认使用Protostuff序列化，并支持自定义的序列化
 - 支持同一个缓存名称设置不同的过期时间
 - 支持禁用一级缓存，只使用二级缓存
-- 通过允许存空值来解决缓存穿透问题
 
 # 优势
 1. 提供缓存命中率的监控统计，统计数据上报支持自定义扩展
@@ -22,6 +21,8 @@ layering-cache是一个支持分布式环境的多级缓存框架，使用方式
 3. 接入成本和使用成本都非常低
 4. 无缝集成Spring、Spring boot
 5. 内置dashboard使得缓存具备可运维性
+6. 通过缓存空值来解决缓存穿透问题、通过异步加载缓存的方式来解决缓存击穿和雪崩问题
+
 
 # 文档
 

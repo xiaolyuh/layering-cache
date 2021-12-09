@@ -63,7 +63,7 @@
         <lombok.version>1.18.12</lombok.version>
         <kryo.version>3.0.3</kryo.version>
         <protostuff.version>1.7.2</protostuff.version>
-        <jsckson.version>2.9.9</jsckson.version>
+        <jsckson.version>2.9.10.8</jsckson.version>
 
         <spring.boot.version>2.1.1.RELEASE</spring.boot.version>
 

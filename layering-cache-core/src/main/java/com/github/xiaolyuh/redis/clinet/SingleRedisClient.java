@@ -16,6 +16,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.util.CollectionUtils;
 
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -52,6 +53,7 @@ public class SingleRedisClient implements RedisClient {
         RedisURI redisURI = RedisURI.builder().withHost(properties.getHost())
                 .withDatabase(properties.getDatabase())
                 .withPort(properties.getPort())
+                .withTimeout(Duration.ofSeconds(properties.getTimeout()))
                 .build();
         if (StringUtils.isNotBlank(properties.getPassword())) {
             redisURI.setPassword(properties.getPassword());

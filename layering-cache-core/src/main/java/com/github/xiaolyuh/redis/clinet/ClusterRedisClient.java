@@ -27,6 +27,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.util.CollectionUtils;
 
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -85,6 +86,7 @@ public class ClusterRedisClient implements RedisClient {
         for (String part : parts) {
             HostAndPort hostAndPort = HostAndPort.parse(part);
             RedisURI nodeUri = RedisURI.create(hostAndPort.getHostText(), hostAndPort.hasPort() ? hostAndPort.getPort() : 6379);
+            nodeUri.setTimeout(Duration.ofSeconds(properties.getTimeout()));
             if (StringUtils.isNotBlank(properties.getPassword())) {
                 nodeUri.setPassword(properties.getPassword());
             }

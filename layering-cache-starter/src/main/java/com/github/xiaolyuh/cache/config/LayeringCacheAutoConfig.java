@@ -66,6 +66,7 @@ public class LayeringCacheAutoConfig {
         redisProperties.setCluster(layeringCacheRedisProperties.getCluster());
         redisProperties.setPassword(StringUtils.isBlank(layeringCacheRedisProperties.getPassword()) ? null : layeringCacheRedisProperties.getPassword());
         redisProperties.setPort(layeringCacheRedisProperties.getPort());
+        redisProperties.setTimeout(layeringCacheRedisProperties.getTimeout());
         redisProperties.setSerializer(layeringCacheRedisProperties.getSerializer());
         return redisProperties;
     }

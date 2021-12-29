@@ -14,6 +14,10 @@ public class RedisProperties {
     Integer port = 6379;
     String password = null;
     /**
+     * 超时时间 单位秒 默认一个小时
+     */
+    Integer timeout = 3600;
+    /**
      * 序列化方式:
      * com.github.xiaolyuh.redis.serializer.KryoRedisSerializer
      * com.github.xiaolyuh.redis.serializer.FastJsonRedisSerializer

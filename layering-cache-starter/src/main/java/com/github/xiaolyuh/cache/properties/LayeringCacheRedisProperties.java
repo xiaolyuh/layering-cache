@@ -17,6 +17,7 @@ public class LayeringCacheRedisProperties {
     String host = "localhost";
     Integer port = 6379;
     String password = null;
+    Integer timeout = 3600;
     /**
      * 序列化方式:
      * com.github.xiaolyuh.redis.serializer.KryoRedisSerializer

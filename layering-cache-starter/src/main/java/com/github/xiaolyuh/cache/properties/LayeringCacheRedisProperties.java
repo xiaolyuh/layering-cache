@@ -5,6 +5,11 @@ import com.github.xiaolyuh.util.StringUtils;
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
+/**
+ * Redis 配置
+ *
+ * @author wangyuhao
+ */
 @Data
 @ConfigurationProperties(prefix = "layering-cache.redis")
 public class LayeringCacheRedisProperties {
@@ -17,6 +22,9 @@ public class LayeringCacheRedisProperties {
     String host = "localhost";
     Integer port = 6379;
     String password = null;
+    /**
+     * 超时时间 单位秒 默认一个小时
+     */
     Integer timeout = 3600;
     /**
      * 序列化方式:

@@ -70,11 +70,13 @@ public class ClusterRedisClient implements RedisClient {
      */
     private RedisSerializer valueSerializer = new JdkRedisSerializer();
 
-    private RedisClusterClient cluster;
+    private final RedisClusterClient clusterClient;
 
-    private StatefulRedisClusterConnection<byte[], byte[]> connection;
+    private final RedisClusterClient clusterClientPubSub;
 
-    private StatefulRedisPubSubConnection<String, String> pubSubConnection;
+    private final StatefulRedisClusterConnection<byte[], byte[]> connection;
+
+    private final StatefulRedisPubSubConnection<String, String> pubSubConnection;
 
     public ClusterRedisClient(RedisProperties properties) {
         logger.info("layering-cache redis配置" + JSON.toJSONString(properties));
@@ -93,13 +95,19 @@ public class ClusterRedisClient implements RedisClient {
             redisURIs.add(nodeUri);
         }
 
-        this.cluster = RedisClusterClient.create(redisURIs);
-        this.cluster.setOptions(ClusterClientOptions.builder()
+        this.clusterClient = RedisClusterClient.create(redisURIs);
+        this.clusterClient.setOptions(ClusterClientOptions.builder()
                 .autoReconnect(true)
                 .pingBeforeActivateConnection(true)
                 .build());
-        this.connection = this.cluster.connect(new ByteArrayCodec());
-        this.pubSubConnection = this.cluster.connectPubSub();
+        this.connection = this.clusterClient.connect(new ByteArrayCodec());
+
+        this.clusterClientPubSub = RedisClusterClient.create(redisURIs);
+        this.clusterClientPubSub.setOptions(ClusterClientOptions.builder()
+                .autoReconnect(true)
+                .pingBeforeActivateConnection(true)
+                .build());
+        this.pubSubConnection = this.clusterClientPubSub.connectPubSub();
     }
 
     @Override
@@ -300,7 +308,7 @@ public class ClusterRedisClient implements RedisClient {
 
         // 普通redis
         try {
-            this.cluster.connect(new ByteArrayCodec());
+            this.clusterClient.connect(new ByteArrayCodec());
             ScanIterator<byte[]> scan = ScanIterator.scan(connection.sync(), ScanArgs.Builder.limit(10000).match(pattern));
             while (scan.hasNext()) {
                 String next = getKeySerializer().deserialize(scan.next(), String.class);
@@ -376,8 +384,8 @@ public class ClusterRedisClient implements RedisClient {
 
         try {
             RedisClusterCommands<byte[], byte[]> sync = connection.sync();
-            List<byte[]> bkeys = keys.stream().map(key -> getKeySerializer().serialize(key)).collect(Collectors.toList());
             List<byte[]> bargs = args.stream().map(arg -> getValueSerializer().serialize(arg)).collect(Collectors.toList());
+            List<byte[]> bkeys = keys.stream().map(key -> getKeySerializer().serialize(key)).collect(Collectors.toList());
             return sync.eval(script, ScriptOutputType.INTEGER, bkeys.toArray(new byte[0][0]), bargs.toArray(new byte[0][0]));
         } catch (SerializationException e) {
             throw e;
@@ -402,7 +410,7 @@ public class ClusterRedisClient implements RedisClient {
     @Override
     public void subscribe(RedisMessageListener messageListener, String... channels) {
         try {
-            StatefulRedisPubSubConnection<String, String> connection = cluster.connectPubSub();
+            StatefulRedisPubSubConnection<String, String> connection = this.clusterClientPubSub.connectPubSub();
             logger.info("layering-cache和redis创建订阅关系，订阅频道【{}】", Arrays.toString(channels));
             connection.sync().subscribe(channels);
             connection.addListener(messageListener);

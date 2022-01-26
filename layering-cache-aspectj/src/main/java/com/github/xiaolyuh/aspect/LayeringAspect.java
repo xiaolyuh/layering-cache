@@ -12,6 +12,7 @@ import com.github.xiaolyuh.redis.serializer.SerializationException;
 import com.github.xiaolyuh.setting.FirstCacheSetting;
 import com.github.xiaolyuh.setting.LayeringCacheSetting;
 import com.github.xiaolyuh.setting.SecondaryCacheSetting;
+import com.github.xiaolyuh.support.CacheMode;
 import com.github.xiaolyuh.support.KeyGenerator;
 import com.github.xiaolyuh.support.SimpleKeyGenerator;
 import com.github.xiaolyuh.util.ToStringUtils;
@@ -108,10 +109,10 @@ public class LayeringAspect {
         // 获取method
         Method method = this.getSpecificmethod(joinPoint);
         // 获取注解
-        CachePut cacheEvict = AnnotationUtils.findAnnotation(method, CachePut.class);
+        CachePut cachePut = AnnotationUtils.findAnnotation(method, CachePut.class);
 
         // 执行查询缓存方法
-        return executePut(joinPoint, cacheEvict, method, joinPoint.getArgs(), joinPoint.getTarget());
+        return executePut(joinPoint, cachePut, method, joinPoint.getArgs(), joinPoint.getTarget());
     }
 
     /**
@@ -145,7 +146,7 @@ public class LayeringAspect {
                 true, secondaryCache.magnification());
 
         LayeringCacheSetting layeringCacheSetting = new LayeringCacheSetting(firstCacheSetting, secondaryCacheSetting,
-                cacheable.depict(), cacheable.enableFirstCache());
+                cacheable.depict(), cacheable.cacheMode());
 
         // 通过cacheName和缓存配置获取Cache
         Cache cache = cacheManager.getCache(cacheName, layeringCacheSetting);
@@ -181,7 +182,7 @@ public class LayeringAspect {
                 if (CollectionUtils.isEmpty(caches)) {
                     // 如果没有找到Cache就新建一个默认的
                     Cache cache = cacheManager.getCache(cacheName,
-                            new LayeringCacheSetting(new FirstCacheSetting(), new SecondaryCacheSetting(), "默认缓存配置（清除时生成）", true));
+                            new LayeringCacheSetting(new FirstCacheSetting(), new SecondaryCacheSetting(), "默认缓存配置（清除时生成）", cacheEvict.cacheMode()));
                     cache.clear();
                 } else {
                     for (Cache cache : caches) {
@@ -214,7 +215,7 @@ public class LayeringAspect {
             if (CollectionUtils.isEmpty(caches)) {
                 // 如果没有找到Cache就新建一个默认的
                 Cache cache = cacheManager.getCache(cacheName,
-                        new LayeringCacheSetting(new FirstCacheSetting(), new SecondaryCacheSetting(), "默认缓存配置（删除时生成）", true));
+                        new LayeringCacheSetting(new FirstCacheSetting(), new SecondaryCacheSetting(), "默认缓存配置（删除时生成）", CacheMode.ALL));
                 cache.evict(ToStringUtils.toString(key));
             } else {
                 for (Cache cache : caches) {
@@ -253,7 +254,7 @@ public class LayeringAspect {
                 true, secondaryCache.magnification());
 
         LayeringCacheSetting layeringCacheSetting = new LayeringCacheSetting(firstCacheSetting, secondaryCacheSetting,
-                cachePut.depict(), cachePut.enableFirstCache());
+                cachePut.depict(), cachePut.cacheMode());
 
         // 指定调用方法获取缓存值
         Object result = joinPoint.proceed();

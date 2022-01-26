@@ -240,10 +240,10 @@ public class CacheAspectTest {
         CacheMode cacheMode = testService.getEnum(214);
         Assert.assertNotNull(cacheMode);
         cacheMode = testService.getEnum(214);
-        Assert.assertEquals(cacheMode, CacheMode.ONLY_FIRST);
+        Assert.assertEquals(cacheMode, CacheMode.FIRST);
         sleep(5);
         cacheMode = testService.getEnum(214);
-        Assert.assertEquals(cacheMode, CacheMode.ONLY_FIRST);
+        Assert.assertEquals(cacheMode, CacheMode.FIRST);
     }
 
     @Test
@@ -442,15 +442,6 @@ public class CacheAspectTest {
         Assert.assertNull(user);
         sleep(4);
         user = testService.getUserById(userId);
-        Assert.assertNotNull(user);
-    }
-
-    @Test
-    public void testPutNullUserAllowNullValueFalse() {
-        long userId = 118_1117_6;
-        testService.putNullUserAllowNullValueFalse(userId);
-        User user = testService.getUserById(userId);
-        logger.debug(JSON.toJSONString(user));
         Assert.assertNotNull(user);
     }
 

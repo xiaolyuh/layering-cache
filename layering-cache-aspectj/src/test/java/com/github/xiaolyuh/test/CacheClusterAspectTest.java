@@ -229,10 +229,10 @@ public class CacheClusterAspectTest {
         CacheMode cacheMode = testService.getEnum(214);
         Assert.assertNotNull(cacheMode);
         cacheMode = testService.getEnum(214);
-        Assert.assertEquals(cacheMode, CacheMode.ONLY_FIRST);
+        Assert.assertEquals(cacheMode, CacheMode.FIRST);
         sleep(5);
         cacheMode = testService.getEnum(214);
-        Assert.assertEquals(cacheMode, CacheMode.ONLY_FIRST);
+        Assert.assertEquals(cacheMode, CacheMode.FIRST);
     }
 
     @Test
@@ -439,15 +439,6 @@ public class CacheClusterAspectTest {
         expire = redisClient.getExpire("user:info:11811171");
         System.out.println("==================3:" + expire);
         user = testService.getUserById(userId);
-        Assert.assertNotNull(user);
-    }
-
-    @Test
-    public void testPutNullUserAllowNullValueFalse() {
-        long userId = 118_1117_6;
-        testService.putNullUserAllowNullValueFalse(userId);
-        User user = testService.getUserById(userId);
-        logger.debug(JSON.toJSONString(user));
         Assert.assertNotNull(user);
     }
 

@@ -15,6 +15,7 @@ import com.github.xiaolyuh.setting.FirstCacheSetting;
 import com.github.xiaolyuh.setting.LayeringCacheSetting;
 import com.github.xiaolyuh.setting.SecondaryCacheSetting;
 import com.github.xiaolyuh.stats.CacheStats;
+import com.github.xiaolyuh.support.CacheMode;
 import com.github.xiaolyuh.support.ExpireMode;
 import com.github.xiaolyuh.support.LayeringCacheRedisLock;
 import com.github.xiaolyuh.util.GlobalConfig;
@@ -58,38 +59,38 @@ public class CacheClusterCoreTest {
         // 测试 CacheManager getCache方法
         FirstCacheSetting firstCacheSetting1 = new FirstCacheSetting(10, 1000, 4, TimeUnit.SECONDS, ExpireMode.WRITE);
         SecondaryCacheSetting secondaryCacheSetting1 = new SecondaryCacheSetting(10, 4, TimeUnit.SECONDS, true, true, 1);
-        layeringCacheSetting1 = new LayeringCacheSetting(firstCacheSetting1, secondaryCacheSetting1, "", true);
+        layeringCacheSetting1 = new LayeringCacheSetting(firstCacheSetting1, secondaryCacheSetting1, "", CacheMode.ALL);
 
         // 二级缓存可以缓存null,时间倍率是1
         FirstCacheSetting firstCacheSetting2 = new FirstCacheSetting(10, 1000, 5, TimeUnit.SECONDS, ExpireMode.WRITE);
         SecondaryCacheSetting secondaryCacheSetting2 = new SecondaryCacheSetting(3000, 14, TimeUnit.SECONDS, true, true, 1);
-        layeringCacheSetting2 = new LayeringCacheSetting(firstCacheSetting2, secondaryCacheSetting2, "", true);
+        layeringCacheSetting2 = new LayeringCacheSetting(firstCacheSetting2, secondaryCacheSetting2, "", CacheMode.ALL);
 
         // 二级缓存可以缓存null,时间倍率是10
         FirstCacheSetting firstCacheSetting4 = new FirstCacheSetting(10, 1000, 5, TimeUnit.SECONDS, ExpireMode.WRITE);
         SecondaryCacheSetting secondaryCacheSetting4 = new SecondaryCacheSetting(100, 70, TimeUnit.SECONDS, true, true, 10);
-        layeringCacheSetting4 = new LayeringCacheSetting(firstCacheSetting4, secondaryCacheSetting4, "", true);
+        layeringCacheSetting4 = new LayeringCacheSetting(firstCacheSetting4, secondaryCacheSetting4, "", CacheMode.ALL);
 
 
         // 二级缓存不可以缓存null
         FirstCacheSetting firstCacheSetting5 = new FirstCacheSetting(10, 1000, 5, TimeUnit.SECONDS, ExpireMode.WRITE);
         SecondaryCacheSetting secondaryCacheSetting5 = new SecondaryCacheSetting(10, 7, TimeUnit.SECONDS, true, false, 1);
-        layeringCacheSetting5 = new LayeringCacheSetting(firstCacheSetting5, secondaryCacheSetting5, "", true);
+        layeringCacheSetting5 = new LayeringCacheSetting(firstCacheSetting5, secondaryCacheSetting5, "", CacheMode.ALL);
 
         // pull message
         FirstCacheSetting firstCacheSetting6 = new FirstCacheSetting(10, 1000, 5, TimeUnit.MINUTES, ExpireMode.WRITE);
         SecondaryCacheSetting secondaryCacheSetting6 = new SecondaryCacheSetting(10, 7, TimeUnit.MINUTES, true, false, 1);
-        layeringCacheSetting6 = new LayeringCacheSetting(firstCacheSetting6, secondaryCacheSetting6, "", true);
+        layeringCacheSetting6 = new LayeringCacheSetting(firstCacheSetting6, secondaryCacheSetting6, "", CacheMode.ALL);
 
         // 禁用一级缓存
         FirstCacheSetting firstCacheSetting7 = new FirstCacheSetting(10, 1000, 5, TimeUnit.SECONDS, ExpireMode.WRITE);
         SecondaryCacheSetting secondaryCacheSetting7 = new SecondaryCacheSetting(10, 7, TimeUnit.SECONDS, true, false, 1);
-        layeringCacheSetting7 = new LayeringCacheSetting(firstCacheSetting7, secondaryCacheSetting7, "", false);
+        layeringCacheSetting7 = new LayeringCacheSetting(firstCacheSetting7, secondaryCacheSetting7, "", CacheMode.SECOND);
 
         // 刷新二级级缓存，同步更新一级缓存
         FirstCacheSetting firstCacheSetting8 = new FirstCacheSetting(10, 10, 4, TimeUnit.SECONDS, ExpireMode.WRITE);
         SecondaryCacheSetting secondaryCacheSetting8 = new SecondaryCacheSetting(10, 9, TimeUnit.SECONDS, true, true, 1);
-        layeringCacheSetting8 = new LayeringCacheSetting(firstCacheSetting8, secondaryCacheSetting8, "", true);
+        layeringCacheSetting8 = new LayeringCacheSetting(firstCacheSetting8, secondaryCacheSetting8, "", CacheMode.ALL);
 
 
         String cacheName = "cache:name:cluster";

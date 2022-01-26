@@ -1,6 +1,7 @@
 package com.github.xiaolyuh.setting;
 
 import com.alibaba.fastjson.annotation.JSONField;
+import com.github.xiaolyuh.support.CacheMode;
 
 import java.io.Serializable;
 
@@ -24,7 +25,7 @@ public class LayeringCacheSetting implements Serializable {
     /**
      * 是否使用一级缓存
      */
-    boolean enableFirstCache = true;
+    CacheMode cacheMode = CacheMode.ALL;
 
     /**
      * 一级缓存配置
@@ -40,11 +41,11 @@ public class LayeringCacheSetting implements Serializable {
     }
 
     public LayeringCacheSetting(FirstCacheSetting firstCacheSetting, SecondaryCacheSetting secondaryCacheSetting,
-                                String depict, boolean enableFirstCache) {
+                                String depict, CacheMode cacheMode) {
         this.firstCacheSetting = firstCacheSetting;
         this.secondaryCacheSetting = secondaryCacheSetting;
         this.depict = depict;
-        this.enableFirstCache = enableFirstCache;
+        this.cacheMode = cacheMode;
         internalKey();
     }
 
@@ -74,16 +75,12 @@ public class LayeringCacheSetting implements Serializable {
         return internalKey;
     }
 
+    public CacheMode getCacheMode() {
+        return cacheMode;
+    }
+
     public void internalKey(String internalKey) {
         this.internalKey = internalKey;
-    }
-
-    public boolean isEnableFirstCache() {
-        return enableFirstCache;
-    }
-
-    public void setEnableFirstCache(boolean enableFirstCache) {
-        this.enableFirstCache = enableFirstCache;
     }
 
     public void setFirstCacheSetting(FirstCacheSetting firstCacheSetting) {

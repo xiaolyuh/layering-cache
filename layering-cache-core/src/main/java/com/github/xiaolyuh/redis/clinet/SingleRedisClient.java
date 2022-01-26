@@ -7,7 +7,13 @@ import com.github.xiaolyuh.redis.serializer.RedisSerializer;
 import com.github.xiaolyuh.redis.serializer.SerializationException;
 import com.github.xiaolyuh.redis.serializer.StringRedisSerializer;
 import com.github.xiaolyuh.util.StringUtils;
-import io.lettuce.core.*;
+import io.lettuce.core.ClientOptions;
+import io.lettuce.core.KeyScanCursor;
+import io.lettuce.core.RedisURI;
+import io.lettuce.core.ScanArgs;
+import io.lettuce.core.ScanCursor;
+import io.lettuce.core.ScriptOutputType;
+import io.lettuce.core.SetArgs;
 import io.lettuce.core.api.StatefulRedisConnection;
 import io.lettuce.core.api.sync.RedisCommands;
 import io.lettuce.core.codec.ByteArrayCodec;
@@ -43,9 +49,9 @@ public class SingleRedisClient implements RedisClient {
      */
     private RedisSerializer valueSerializer = new JdkRedisSerializer();
 
-    private io.lettuce.core.RedisClient client;
+    private final io.lettuce.core.RedisClient clientPubSub;
 
-    private StatefulRedisConnection<byte[], byte[]> connection;
+    private final StatefulRedisConnection<byte[], byte[]> connection;
 
     StatefulRedisPubSubConnection<String, String> pubSubConnection;
 
@@ -60,13 +66,19 @@ public class SingleRedisClient implements RedisClient {
         }
 
         logger.info("layering-cache redis配置" + JSON.toJSONString(properties));
-        this.client = io.lettuce.core.RedisClient.create(redisURI);
-        this.client.setOptions(ClientOptions.builder()
+        io.lettuce.core.RedisClient client = io.lettuce.core.RedisClient.create(redisURI);
+        client.setOptions(ClientOptions.builder()
                 .autoReconnect(true)
                 .pingBeforeActivateConnection(true)
                 .build());
         this.connection = client.connect(new ByteArrayCodec());
-        this.pubSubConnection = client.connectPubSub();
+
+        this.clientPubSub = io.lettuce.core.RedisClient.create(redisURI);
+        this.clientPubSub.setOptions(ClientOptions.builder()
+                .autoReconnect(true)
+                .pingBeforeActivateConnection(true)
+                .build());
+        this.pubSubConnection = clientPubSub.connectPubSub();
     }
 
     @Override
@@ -311,7 +323,7 @@ public class SingleRedisClient implements RedisClient {
     @Override
     public void subscribe(RedisMessageListener messageListener, String... channels) {
         try {
-            StatefulRedisPubSubConnection<String, String> connection = client.connectPubSub();
+            StatefulRedisPubSubConnection<String, String> connection = this.clientPubSub.connectPubSub();
             logger.info("layering-cache和redis创建订阅关系，订阅频道【{}】", Arrays.toString(channels));
             connection.sync().subscribe(channels);
             connection.addListener(messageListener);

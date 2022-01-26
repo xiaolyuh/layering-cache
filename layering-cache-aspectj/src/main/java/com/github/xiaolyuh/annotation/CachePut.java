@@ -1,6 +1,6 @@
 package com.github.xiaolyuh.annotation;
 
-import com.github.xiaolyuh.support.KeyGenerator;
+import com.github.xiaolyuh.support.CacheMode;
 import org.springframework.core.annotation.AliasFor;
 
 import java.lang.annotation.Documented;
@@ -67,31 +67,11 @@ public @interface CachePut {
     String key() default "";
 
     /**
-     * The bean name of the custom {@link KeyGenerator}
-     * to use.
-     * <p>Mutually exclusive with the {@link #key} attribute.
-     *
-     * @return String
-     */
-    @Deprecated
-    String keyGenerator() default "";
-
-    /**
-     * 是否忽略在操作缓存中遇到的异常，如反序列化异常，默认true。
-     * <p>true: 有异常会输出warn级别的日志，并直接执行被缓存的方法（缓存将失效）</p>
-     * <p>false:有异常会输出error级别的日志，并抛出异常</p>
+     * 缓存模式(只使用一级缓存或者二级缓存)
      *
      * @return boolean
      */
-    @Deprecated
-    boolean ignoreException() default true;
-
-    /**
-     * 是否启用一级缓存
-     *
-     * @return boolean
-     */
-    boolean enableFirstCache() default true;
+    CacheMode cacheMode() default CacheMode.ALL;
 
     /**
      * 一级缓存配置

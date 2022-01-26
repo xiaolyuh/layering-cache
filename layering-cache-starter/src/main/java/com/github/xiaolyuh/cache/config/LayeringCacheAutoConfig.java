@@ -13,6 +13,7 @@ import com.github.xiaolyuh.stats.extend.CacheStatsReportService;
 import com.github.xiaolyuh.stats.extend.DefaultCacheStatsReportServiceImpl;
 import com.github.xiaolyuh.util.GlobalConfig;
 import com.github.xiaolyuh.util.StringUtils;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -25,6 +26,7 @@ import org.springframework.context.annotation.EnableAspectJAutoProxy;
  *
  * @author xiaolyuh
  */
+@Slf4j
 @Configuration
 @EnableAspectJAutoProxy
 @EnableConfigurationProperties({LayeringCacheProperties.class, LayeringCacheRedisProperties.class})

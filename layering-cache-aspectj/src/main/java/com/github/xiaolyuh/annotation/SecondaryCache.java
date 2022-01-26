@@ -48,15 +48,6 @@ public @interface SecondaryCache {
     boolean forceRefresh() default false;
 
     /**
-     * 是否允许缓存NULL值
-     * 已废弃，如果设置不允许为空值，那么返回空值的查询会被串行化。可以通过设置magnification参数来设置Null值存放的时间。
-     *
-     * @return boolean
-     */
-    @Deprecated
-    boolean isAllowNullValue() default true;
-
-    /**
      * 非空值和null值之间的时间倍率，默认是1。isAllowNullValue=true才有效
      * <p>
      * 如配置缓存的有效时间是200秒，倍率这设置成10，

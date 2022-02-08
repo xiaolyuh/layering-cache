@@ -117,7 +117,7 @@ public class LayeringCache extends AbstractValueAdaptingCache {
     public <T> T get(String key, Class<T> resultType, Callable<T> valueLoader) {
         // 开启一级缓存
         if (!CacheMode.SECOND.equals(cacheMode)) {
-            T result = firstCache.get(key, resultType);
+            T result = CacheMode.FIRST.equals(cacheMode) ? firstCache.get(key, resultType, valueLoader) : firstCache.get(key, resultType);
             if (logger.isDebugEnabled()) {
                 logger.debug("查询一级缓存。 key={}:{},返回值是:{}", getName(), key, JSON.toJSONString(result));
             }
@@ -143,27 +143,31 @@ public class LayeringCache extends AbstractValueAdaptingCache {
 
     @Override
     public void put(String key, Object value) {
-        // 开启二级缓存
-        if (!CacheMode.FIRST.equals(cacheMode)) {
-            secondCache.put(key, value);
+        // 只开启一级缓存
+        if (CacheMode.FIRST.equals(cacheMode)) {
+            firstCache.put(key, value);
+            return;
         }
 
+        // 开启二级缓存
+        secondCache.put(key, value);
         // 删除一级缓存
-        if (!CacheMode.SECOND.equals(cacheMode)) {
+        if (CacheMode.ALL.equals(cacheMode)) {
             deleteFirstCache(key, redisClient);
         }
     }
 
     @Override
     public <T> T putIfAbsent(String key, Object value, Class<T> resultType) {
-        // 开启二级缓存
-        T result = null;
-        if (!CacheMode.FIRST.equals(cacheMode)) {
-            result = secondCache.putIfAbsent(key, value, resultType);
+        // 只开启一级缓存
+        if (CacheMode.FIRST.equals(cacheMode)) {
+            return firstCache.putIfAbsent(key, value, resultType);
         }
 
+        // 开启二级缓存
+        T result = secondCache.putIfAbsent(key, value, resultType);
         // 删除一级缓存
-        if (!CacheMode.SECOND.equals(cacheMode)) {
+        if (CacheMode.ALL.equals(cacheMode)) {
             deleteFirstCache(key, redisClient);
         }
         return result;
@@ -171,25 +175,33 @@ public class LayeringCache extends AbstractValueAdaptingCache {
 
     @Override
     public void evict(String key) {
-        // 开启二级缓存、删除的时候要先删除二级缓存再删除一级缓存，否则有并发问题
-        if (!CacheMode.FIRST.equals(cacheMode)) {
-            secondCache.evict(key);
+        // 只开启一级缓存
+        if (CacheMode.FIRST.equals(cacheMode)) {
+            firstCache.evict(key);
+            return;
         }
 
+        // 开启二级缓存、删除的时候要先删除二级缓存再删除一级缓存，否则有并发问题
+        secondCache.evict(key);
+
         // 删除一级缓存
-        if (!CacheMode.SECOND.equals(cacheMode)) {
+        if (CacheMode.ALL.equals(cacheMode)) {
             deleteFirstCache(key, redisClient);
         }
     }
 
     @Override
     public void clear() {
-        // 开启二级缓存、删除的时候要先删除二级缓存再删除一级缓存，否则有并发问题
-        if (!CacheMode.FIRST.equals(cacheMode)) {
-            secondCache.clear();
+        // 只开启一级缓存
+        if (CacheMode.FIRST.equals(cacheMode)) {
+            firstCache.clear();
+            return;
         }
+
+        // 开启二级缓存、删除的时候要先删除二级缓存再删除一级缓存，否则有并发问题
+        secondCache.clear();
         // 开启一级缓存
-        if (!CacheMode.SECOND.equals(cacheMode)) {
+        if (CacheMode.ALL.equals(cacheMode)) {
             // 清除一级缓存需要用到redis的订阅/发布模式，否则集群中其他服服务器节点的一级缓存数据无法删除
             RedisPubSubMessage message = new RedisPubSubMessage();
             message.setCacheName(getName());

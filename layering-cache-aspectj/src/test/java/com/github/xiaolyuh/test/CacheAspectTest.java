@@ -615,6 +615,219 @@ public class CacheAspectTest {
     }
 
     /**
+     * 测试禁用二级缓存
+     */
+    @Test
+    public void testDisableSecondCachePutIfAbsent() {
+        User user = testService.disableSecondCachePutIfAbsent(118_118);
+        sleep(2);
+        Collection<Cache> caches = cacheManager.getCache("user:info:3-4-0");
+        String key = "118118";
+        for (Cache cache : caches) {
+            User result = cache.get(key, User.class);
+            Assert.assertNotNull(result);
+
+            result = ((LayeringCache) cache).getFirstCache().get(key, User.class);
+            Assert.assertNotNull(result);
+
+            result = ((LayeringCache) cache).getSecondCache().get(key, User.class);
+            Assert.assertNull(result);
+        }
+    }
+
+    /**
+     * 测试Caching
+     */
+    @Test
+    public void testCachingAll() {
+        TestService.COUNT.set(0);
+        User user = testService.cachingAll(118_118);
+        Assert.assertNotNull(user);
+        Assert.assertEquals(TestService.COUNT.get(), 1);
+        Collection<Cache> caches = cacheManager.getCache("user:info:caching:3-4-0");
+        caches.stream().filter(cache -> ((LayeringCache) cache).getLayeringCacheSetting().getInternalKey().equals("4000-10000"))
+                .forEach(cache -> {
+                    String key = "118118";
+                    User result = cache.get(key, User.class);
+                    Assert.assertNotNull(result);
+
+                    result = ((LayeringCache) cache).getFirstCache().get(key, User.class);
+                    Assert.assertNotNull(result);
+
+                    result = ((LayeringCache) cache).getSecondCache().get(key, User.class);
+                    Assert.assertNotNull(result);
+                });
+    }
+
+    /**
+     * 测试Caching
+     */
+    @Test
+    public void testCaching() {
+        TestService.COUNT.set(0);
+        User user = testService.caching(118_119);
+        Assert.assertNotNull(user);
+        Assert.assertEquals(TestService.COUNT.get(), 1);
+        Collection<Cache> caches = cacheManager.getCache("user:info:caching:3-4-0");
+        caches.stream().filter(cache -> ((LayeringCache) cache).getLayeringCacheSetting().getInternalKey().equals("4000-10000"))
+                .forEach(cache -> {
+                    String key = "118119";
+                    User result = cache.get(key, User.class);
+                    Assert.assertNull(result);
+
+                    result = ((LayeringCache) cache).getFirstCache().get(key, User.class);
+                    Assert.assertNull(result);
+
+                    result = ((LayeringCache) cache).getSecondCache().get(key, User.class);
+                    Assert.assertNull(result);
+                });
+    }
+
+    /**
+     * 测试Caching
+     */
+    @Test
+    public void testCachingEvictPut() {
+        TestService.COUNT.set(0);
+        User user = testService.cachingEvictPut(118_120);
+        Assert.assertNotNull(user);
+        Assert.assertEquals(TestService.COUNT.get(), 1);
+        Collection<Cache> caches = cacheManager.getCache("user:info:caching:3-4-0");
+        caches.stream().filter(cache -> ((LayeringCache) cache).getLayeringCacheSetting().getInternalKey().equals("4000-10000"))
+                .forEach(cache -> {
+                    String key = "118120";
+                    User result = cache.get(key, User.class);
+                    Assert.assertNull(result);
+
+                    result = ((LayeringCache) cache).getFirstCache().get(key, User.class);
+                    Assert.assertNull(result);
+
+                    result = ((LayeringCache) cache).getSecondCache().get(key, User.class);
+                    Assert.assertNull(result);
+                });
+    }
+
+    /**
+     * 测试Caching
+     */
+    @Test
+    public void testCachingEvictCacheable() {
+        TestService.COUNT.set(0);
+        User user = testService.cachingEvictCacheable(118_121);
+        Assert.assertNotNull(user);
+        Assert.assertEquals(TestService.COUNT.get(), 1);
+        Collection<Cache> caches = cacheManager.getCache("user:info:caching:3-4-0");
+        caches.stream().filter(cache -> ((LayeringCache) cache).getLayeringCacheSetting().getInternalKey().equals("4000-10000"))
+                .forEach(cache -> {
+                    String key = "118121";
+                    User result = cache.get(key, User.class);
+                    Assert.assertNotNull(result);
+
+                    result = ((LayeringCache) cache).getFirstCache().get(key, User.class);
+                    Assert.assertNotNull(result);
+
+                    result = ((LayeringCache) cache).getSecondCache().get(key, User.class);
+                    Assert.assertNotNull(result);
+                });
+    }
+
+    /**
+     * 测试Caching
+     */
+    @Test
+    public void testCachingPutCacheable() {
+        TestService.COUNT.set(0);
+        User user = testService.cachingPutCacheable(118_122);
+        Assert.assertNotNull(user);
+        Assert.assertEquals(TestService.COUNT.get(), 1);
+        Collection<Cache> caches = cacheManager.getCache("user:info:caching:3-4-0");
+        caches.stream().filter(cache -> ((LayeringCache) cache).getLayeringCacheSetting().getInternalKey().equals("4000-10000"))
+                .forEach(cache -> {
+                    String key = "118122";
+                    User result = cache.get(key, User.class);
+                    Assert.assertNotNull(result);
+
+                    result = ((LayeringCache) cache).getFirstCache().get(key, User.class);
+                    Assert.assertNotNull(result);
+
+                    result = ((LayeringCache) cache).getSecondCache().get(key, User.class);
+                    Assert.assertNotNull(result);
+                });
+    }
+
+    /**
+     * 测试Caching
+     */
+    @Test
+    public void testCachingEvict() {
+        TestService.COUNT.set(0);
+        User user = testService.cachingEvict(118_123);
+        Assert.assertNotNull(user);
+        Assert.assertEquals(TestService.COUNT.get(), 1);
+        Collection<Cache> caches = cacheManager.getCache("user:info:caching:evict:3-4-0");
+        caches.stream().filter(cache -> ((LayeringCache) cache).getLayeringCacheSetting().getInternalKey().equals("4000-10000"))
+                .forEach(cache -> {
+                    String key = "118123";
+                    User result = cache.get(key, User.class);
+                    Assert.assertNull(result);
+
+                    result = ((LayeringCache) cache).getFirstCache().get(key, User.class);
+                    Assert.assertNull(result);
+
+                    result = ((LayeringCache) cache).getSecondCache().get(key, User.class);
+                    Assert.assertNull(result);
+                });
+    }
+
+    /**
+     * 测试Caching
+     */
+    @Test
+    public void testCachingPut() {
+        TestService.COUNT.set(0);
+        User user = testService.cachingPut(118_124);
+        Assert.assertNotNull(user);
+        Assert.assertEquals(TestService.COUNT.get(), 1);
+        Collection<Cache> caches = cacheManager.getCache("user:info:caching:put:3-4-0");
+        caches.stream().filter(cache -> ((LayeringCache) cache).getLayeringCacheSetting().getInternalKey().equals("4000-10000"))
+                .forEach(cache -> {
+                    String key = "118124";
+                    User result = cache.get(key, User.class);
+                    Assert.assertNotNull(result);
+
+                    result = ((LayeringCache) cache).getFirstCache().get(key, User.class);
+                    Assert.assertNotNull(result);
+
+                    result = ((LayeringCache) cache).getSecondCache().get(key, User.class);
+                    Assert.assertNotNull(result);
+                });
+    }
+
+    /**
+     * 测试Caching
+     */
+    @Test
+    public void testCachingCacheable() {
+        TestService.COUNT.set(0);
+        User user = testService.cachingCacheable(118_125);
+        Assert.assertNotNull(user);
+        Assert.assertEquals(TestService.COUNT.get(), 1);
+        Collection<Cache> caches = cacheManager.getCache("user:info:caching:cacheable:3-4-0");
+        caches.stream().filter(cache -> ((LayeringCache) cache).getLayeringCacheSetting().getInternalKey().equals("4000-10000"))
+                .forEach(cache -> {
+                    String key = "118125";
+                    User result = cache.get(key, User.class);
+                    Assert.assertNotNull(result);
+
+                    result = ((LayeringCache) cache).getFirstCache().get(key, User.class);
+                    Assert.assertNotNull(result);
+
+                    result = ((LayeringCache) cache).getSecondCache().get(key, User.class);
+                    Assert.assertNotNull(result);
+                });
+    }
+
+    /**
      * 测试刷新二级缓存，同步更新一级缓存
      */
     @Test

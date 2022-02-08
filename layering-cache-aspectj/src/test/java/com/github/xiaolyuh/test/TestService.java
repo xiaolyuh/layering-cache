@@ -3,6 +3,7 @@ package com.github.xiaolyuh.test;
 import com.github.xiaolyuh.annotation.CacheEvict;
 import com.github.xiaolyuh.annotation.CachePut;
 import com.github.xiaolyuh.annotation.Cacheable;
+import com.github.xiaolyuh.annotation.Caching;
 import com.github.xiaolyuh.annotation.FirstCache;
 import com.github.xiaolyuh.annotation.SecondaryCache;
 import com.github.xiaolyuh.domain.User;
@@ -19,6 +20,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
 @Service
 public class TestService {
@@ -406,4 +408,121 @@ public class TestService {
         return user;
     }
 
+    @Cacheable(value = "user:info:3-4-0", key = "#userId", cacheMode = CacheMode.FIRST,
+            firstCache = @FirstCache(expireTime = 4, timeUnit = TimeUnit.SECONDS),
+            secondaryCache = @SecondaryCache(expireTime = 10, preloadTime = 7, forceRefresh = true, timeUnit = TimeUnit.SECONDS))
+    public User disableSecondCachePutIfAbsent(long userId) {
+        logger.debug("3.4.0 测试禁用二级缓存");
+        User user = new User();
+        user.setUserId(userId);
+        user.setAge(311);
+        user.setLastName(new String[]{"w", "y", "h"});
+        return user;
+    }
+
+    public static final AtomicInteger COUNT = new AtomicInteger();
+
+    @Caching(evict = {@CacheEvict(value = "user:info:caching:3-4-0", key = "'evict'+#userId"), @CacheEvict(value = "user:info:caching", allEntries = true)},
+            put = {@CachePut(value = "user:info:caching:3-4-0", key = "'put'+#userId",
+                    secondaryCache = @SecondaryCache(expireTime = 10, preloadTime = 3, timeUnit = TimeUnit.SECONDS))},
+            cacheable = {@Cacheable(value = "user:info:caching:3-4-0", key = "#userId",
+                    firstCache = @FirstCache(expireTime = 4, timeUnit = TimeUnit.SECONDS),
+                    secondaryCache = @SecondaryCache(expireTime = 10, preloadTime = 7, timeUnit = TimeUnit.SECONDS))})
+    public User cachingAll(long userId) {
+        COUNT.incrementAndGet();
+        logger.debug("3.4.0 Caching 所有注解都包含");
+        User user = new User();
+        user.setUserId(userId);
+        user.setAge(311);
+        user.setLastName(new String[]{"w", "y", "h"});
+        return user;
+    }
+
+    @Caching
+    public User caching(long userId) {
+        COUNT.incrementAndGet();
+        logger.debug("3.4.0 Caching");
+        User user = new User();
+        user.setUserId(userId);
+        user.setAge(311);
+        user.setLastName(new String[]{"w", "y", "h"});
+        return user;
+    }
+
+    @Caching(evict = {@CacheEvict(value = "user:info:caching:3-4-0", key = "'evict'+#userId")},
+            put = {@CachePut(value = "user:info:caching:3-4-0", key = "'put'+#userId",
+                    secondaryCache = @SecondaryCache(expireTime = 10, preloadTime = 3, timeUnit = TimeUnit.SECONDS))})
+    public User cachingEvictPut(long userId) {
+        COUNT.incrementAndGet();
+        logger.debug("3.4.0 EvictPut 删除");
+        User user = new User();
+        user.setUserId(userId);
+        user.setAge(311);
+        user.setLastName(new String[]{"w", "y", "h"});
+        return user;
+    }
+
+    @Caching(evict = {@CacheEvict(value = "user:info:caching:3-4-0", key = "'evict'+#userId")},
+            cacheable = {@Cacheable(value = "user:info:caching:3-4-0", key = "#userId",
+                    firstCache = @FirstCache(expireTime = 4, timeUnit = TimeUnit.SECONDS),
+                    secondaryCache = @SecondaryCache(expireTime = 10, preloadTime = 7, timeUnit = TimeUnit.SECONDS))})
+    public User cachingEvictCacheable(long userId) {
+        COUNT.incrementAndGet();
+        logger.debug("3.4.0 EvictCacheable 删除");
+        User user = new User();
+        user.setUserId(userId);
+        user.setAge(311);
+        user.setLastName(new String[]{"w", "y", "h"});
+        return user;
+    }
+
+    @Caching(put = {@CachePut(value = "user:info:caching:3-4-0", key = "'put'+#userId")},
+            cacheable = {@Cacheable(value = "user:info:caching:3-4-0", key = "#userId",
+                    firstCache = @FirstCache(expireTime = 4, timeUnit = TimeUnit.SECONDS),
+                    secondaryCache = @SecondaryCache(expireTime = 10, preloadTime = 7, timeUnit = TimeUnit.SECONDS))})
+    public User cachingPutCacheable(long userId) {
+        COUNT.incrementAndGet();
+        logger.debug("3.4.0 PutCacheable 删除");
+        User user = new User();
+        user.setUserId(userId);
+        user.setAge(311);
+        user.setLastName(new String[]{"w", "y", "h"});
+        return user;
+    }
+
+    @Caching(evict = {@CacheEvict(value = "user:info:caching:evict:3-4-0", key = "#userId")})
+    public User cachingEvict(long userId) {
+        COUNT.incrementAndGet();
+        logger.debug("3.4.0 Evict 删除");
+        User user = new User();
+        user.setUserId(userId);
+        user.setAge(311);
+        user.setLastName(new String[]{"w", "y", "h"});
+        return user;
+    }
+
+    @Caching(put = {@CachePut(value = "user:info:caching:put:3-4-0", key = "#userId",
+            secondaryCache = @SecondaryCache(expireTime = 10, preloadTime = 3, timeUnit = TimeUnit.SECONDS))})
+    public User cachingPut(long userId) {
+        COUNT.incrementAndGet();
+        logger.debug("3.4.0 Put 删除");
+        User user = new User();
+        user.setUserId(userId);
+        user.setAge(311);
+        user.setLastName(new String[]{"w", "y", "h"});
+        return user;
+    }
+
+    @Caching(cacheable = {@Cacheable(value = "user:info:caching:cacheable:3-4-0", key = "#userId",
+            firstCache = @FirstCache(expireTime = 4, timeUnit = TimeUnit.SECONDS),
+            secondaryCache = @SecondaryCache(expireTime = 10, preloadTime = 7, timeUnit = TimeUnit.SECONDS))})
+    public User cachingCacheable(long userId) {
+        COUNT.incrementAndGet();
+        logger.debug("3.4.0 Cacheable 删除");
+        User user = new User();
+        user.setUserId(userId);
+        user.setAge(311);
+        user.setLastName(new String[]{"w", "y", "h"});
+        return user;
+    }
 }

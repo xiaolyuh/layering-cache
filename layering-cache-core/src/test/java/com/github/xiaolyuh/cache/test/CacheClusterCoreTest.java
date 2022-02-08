@@ -53,6 +53,7 @@ public class CacheClusterCoreTest {
     private LayeringCacheSetting layeringCacheSetting6;
     private LayeringCacheSetting layeringCacheSetting7;
     private LayeringCacheSetting layeringCacheSetting8;
+    private LayeringCacheSetting layeringCacheSetting9;
 
     @Before
     public void testGetCache() {
@@ -91,6 +92,11 @@ public class CacheClusterCoreTest {
         FirstCacheSetting firstCacheSetting8 = new FirstCacheSetting(10, 10, 4, TimeUnit.SECONDS, ExpireMode.WRITE);
         SecondaryCacheSetting secondaryCacheSetting8 = new SecondaryCacheSetting(10, 9, TimeUnit.SECONDS, true, true, 1);
         layeringCacheSetting8 = new LayeringCacheSetting(firstCacheSetting8, secondaryCacheSetting8, "", CacheMode.ALL);
+
+        // 刷新二级级缓存，同步更新一级缓存
+        FirstCacheSetting firstCacheSetting9 = new FirstCacheSetting(10, 10, 4, TimeUnit.SECONDS, ExpireMode.WRITE);
+        SecondaryCacheSetting secondaryCacheSetting9 = new SecondaryCacheSetting(10, 9, TimeUnit.SECONDS, true, true, 1);
+        layeringCacheSetting9 = new LayeringCacheSetting(firstCacheSetting9, secondaryCacheSetting9, "", CacheMode.FIRST);
 
 
         String cacheName = "cache:name:cluster";
@@ -610,6 +616,148 @@ public class CacheClusterCoreTest {
         String cacheName = "cache:name:3-0-2";
         String cacheKey1 = "cache:key:302-9";
         LayeringCache cache1 = (LayeringCache) cacheManager.getCache(cacheName, layeringCacheSetting7);
+        cache1.clear();
+
+        sleep(5);
+        Long llen2 = ((AbstractCacheManager) cacheManager).getRedisClient().llen(GlobalConfig.getMessageRedisKey());
+        Assert.assertEquals(llen1, llen2);
+
+        // 二级缓存不为空
+        Object result = cache1.getSecondCache().get(cacheKey1, String.class);
+        Assert.assertNull(result);
+
+        // 测试禁用一级缓存，一级缓存为空
+        String str1 = cache1.getFirstCache().get(cacheKey1, String.class);
+        Assert.assertNull(str1);
+        Object result1 = cache1.getFirstCache().get(cacheKey1, String.class);
+        Assert.assertNull(result1);
+
+        // 二级缓存不为空
+        result = cache1.getSecondCache().get(cacheKey1, String.class);
+        Assert.assertNull(result);
+    }
+
+
+    /**
+     * 测试禁用二级缓存
+     */
+    @Test
+    public void testDisableSecondCacheGet() {
+        // 测试 缓存过期时间
+        String cacheName = "cache:name:disable-second:3-0-2";
+        String cacheKey1 = "cache:key:disable-second:302-5";
+        LayeringCache cache1 = (LayeringCache) cacheManager.getCache(cacheName, layeringCacheSetting9);
+        cache1.get(cacheKey1, String.class, () -> initCache(String.class));
+
+        // 二级缓存为空
+        Object result = cache1.getSecondCache().get(cacheKey1, String.class);
+        Assert.assertNull(result);
+
+        // 测试禁用二级缓存，二级缓存为空
+        String str1 = cache1.getFirstCache().get(cacheKey1, String.class);
+        Assert.assertNotNull(str1);
+        String result1 = cache1.getFirstCache().get(cacheKey1, String.class);
+        Assert.assertNotNull(result1);
+
+        // 二级缓存为空
+        result = cache1.getSecondCache().get(cacheKey1, String.class);
+        Assert.assertNull(result);
+    }
+
+    /**
+     * 测试禁用二级缓存
+     */
+    @Test
+    public void testDisableSecondCachePut() {
+        // 测试 缓存过期时间
+        String cacheName = "cache:name:disable-second:3-0-2";
+        String cacheKey1 = "cache:key:disable-second:302-6";
+        LayeringCache cache1 = (LayeringCache) cacheManager.getCache(cacheName, layeringCacheSetting9);
+        cache1.put(cacheKey1, initCache(String.class));
+
+        // 二级缓存为空
+        Object result = cache1.getSecondCache().get(cacheKey1, String.class);
+        Assert.assertNull(result);
+
+        // 测试禁用二级缓存，二级缓存为空
+        String str1 = cache1.getFirstCache().get(cacheKey1, String.class);
+        Assert.assertNotNull(str1);
+        String result1 = cache1.getFirstCache().get(cacheKey1, String.class);
+        Assert.assertNotNull(result1);
+
+        // 二级缓存为空
+        result = cache1.getSecondCache().get(cacheKey1, String.class);
+        Assert.assertNull(result);
+    }
+
+    /**
+     * 测试禁用二级缓存
+     */
+    @Test
+    public void testDisableSecondCachePutIfAbsent() {
+        // 测试 缓存过期时间
+        String cacheName = "cache:name:disable-second:3-0-2";
+        String cacheKey1 = "cache:key:disable-second:302-7";
+        LayeringCache cache1 = (LayeringCache) cacheManager.getCache(cacheName, layeringCacheSetting9);
+        cache1.putIfAbsent(cacheKey1, initCache(String.class), String.class);
+
+        // 二级缓存为空
+        Object result = cache1.getSecondCache().get(cacheKey1, String.class);
+        Assert.assertNull(result);
+
+        // 测试禁用二级缓存，二级缓存为空
+        String str1 = cache1.getFirstCache().get(cacheKey1, String.class);
+        Assert.assertNotNull(str1);
+        String result1 = cache1.getFirstCache().get(cacheKey1, String.class);
+        Assert.assertNotNull(result1);
+
+        // 二级缓存为空
+        result = cache1.getSecondCache().get(cacheKey1, String.class);
+        Assert.assertNull(result);
+    }
+
+    /**
+     * 测试禁用二级缓存
+     */
+    @Test
+    public void testDisableSecondCacheDelete() {
+        Long llen1 = ((AbstractCacheManager) cacheManager).getRedisClient().llen(GlobalConfig.getMessageRedisKey());
+        // 测试 缓存过期时间
+        String cacheName = "cache:name:disable-second:3-0-2";
+        String cacheKey1 = "cache:key:disable-second:302-8";
+        LayeringCache cache1 = (LayeringCache) cacheManager.getCache(cacheName, layeringCacheSetting9);
+        cache1.evict(cacheKey1);
+
+        sleep(5);
+        Long llen2 = ((AbstractCacheManager) cacheManager).getRedisClient().llen(GlobalConfig.getMessageRedisKey());
+        Assert.assertEquals(llen1, llen2);
+
+        // 二级缓存不为空
+        Object result = cache1.getSecondCache().get(cacheKey1, String.class);
+        Assert.assertNull(result);
+
+        // 测试禁用一级缓存，一级缓存为空
+        String str1 = cache1.getFirstCache().get(cacheKey1, String.class);
+        Assert.assertNull(str1);
+        Object result1 = cache1.getFirstCache().get(cacheKey1, String.class);
+        Assert.assertNull(result1);
+
+        // 二级缓存不为空
+        result = cache1.getSecondCache().get(cacheKey1, String.class);
+        Assert.assertNull(result);
+    }
+
+
+    /**
+     * 测试禁用二级缓存
+     */
+    @Test
+    public void testDisableSecondCacheClear() {
+        Long llen1 = ((AbstractCacheManager) cacheManager).getRedisClient().llen(GlobalConfig.getMessageRedisKey());
+        // 测试 缓存过期时间
+        String cacheName = "cache:name:disable-second:3-0-2";
+        String cacheKey1 = "cache:key:disable-second:302-9";
+        LayeringCache cache1 = (LayeringCache) cacheManager.getCache(cacheName, layeringCacheSetting9);
         cache1.clear();
 
         sleep(5);

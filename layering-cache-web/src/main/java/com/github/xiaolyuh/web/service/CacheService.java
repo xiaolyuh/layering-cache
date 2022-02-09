@@ -6,6 +6,7 @@ import com.github.xiaolyuh.setting.FirstCacheSetting;
 import com.github.xiaolyuh.setting.LayeringCacheSetting;
 import com.github.xiaolyuh.setting.SecondaryCacheSetting;
 import com.github.xiaolyuh.stats.StatsService;
+import com.github.xiaolyuh.support.CacheMode;
 import com.github.xiaolyuh.util.BeanFactory;
 import com.github.xiaolyuh.util.StringUtils;
 import org.springframework.stereotype.Service;
@@ -32,7 +33,7 @@ public class CacheService {
         if (StringUtils.isBlank(cacheName) || StringUtils.isBlank(internalKey)) {
             return;
         }
-        LayeringCacheSetting defaultSetting = new LayeringCacheSetting(new FirstCacheSetting(), new SecondaryCacheSetting(), "默认缓存配置（删除时生成）", true);
+        LayeringCacheSetting defaultSetting = new LayeringCacheSetting(new FirstCacheSetting(), new SecondaryCacheSetting(), "默认缓存配置（删除时生成）", CacheMode.ALL);
         Set<AbstractCacheManager> cacheManagers = AbstractCacheManager.getCacheManager();
         if (StringUtils.isBlank(key)) {
             // 清空缓存

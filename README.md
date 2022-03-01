@@ -13,7 +13,7 @@ layering-cache是一个支持分布式环境的多级缓存框架，使用方式
 - 缓存Key支持SpEL表达式
 - Redis支持Kryo、FastJson、Jackson、Jdk和Protostuff序列化，默认使用Protostuff序列化，并支持自定义的序列化
 - 支持同一个缓存名称设置不同的过期时间
-- 支持禁用一级缓存，只使用二级缓存
+- 支持只使用一级缓存或者只使用二级缓存
 
 # 优势
 1. 提供缓存命中率的监控统计，统计数据上报支持自定义扩展
@@ -31,7 +31,7 @@ layering-cache是一个支持分布式环境的多级缓存框架，使用方式
 # Redis序列化方式对比
 [Redis序列化同一个User对象对比](https://github.com/xiaolyuh/layering-cache/wiki/Redis%E5%BA%8F%E5%88%97%E5%8C%96%E6%96%B9%E5%BC%8F%E5%AF%B9%E6%AF%94)
 
-||size|serialize(get 10W次)|deserialize(set 10W次)|serialize(cup)|deserialize(cup)|
+||size|serialize(get 10W次)|deserialize(set 10W次)|serialize(cpu)|deserialize(cpu)|
 ---|---|---|---|---|---
 Kryo|273 b|82919 ms|90917 ms|8%|12%
 FastJson|329 b|15405 ms|18886 ms|12%|13%

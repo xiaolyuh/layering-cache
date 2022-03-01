@@ -31,8 +31,8 @@ public class RedisMessagePullTask {
 
     public void init(AbstractCacheManager cacheManager) {
         Random random = new Random();
-        int initialDelay = Math.abs(random.nextInt()) % 23;
-        int delay = Math.abs(random.nextInt()) % 7;
+        int initialDelay = Math.abs(random.nextInt()) % 23 + 1;
+        int delay = Math.abs(random.nextInt()) % 7 + 1;
         log.info("一级缓存拉模式同步消息每隔{}秒，执行一次", delay);
         redisMessageService = BeanFactory.getBean(RedisMessageService.class).init(cacheManager);
         // 1. 服务启动同步最新的偏移量
@@ -70,7 +70,7 @@ public class RedisMessagePullTask {
         cal.set(Calendar.MINUTE, 0);
         cal.set(Calendar.SECOND, 0);
         long initialDelay = System.currentTimeMillis() - cal.getTimeInMillis();
-        initialDelay = initialDelay > 0 ? initialDelay : 0;
+        initialDelay = initialDelay > 0 ? initialDelay : 1;
         // 每天晚上凌晨3:00执行任务
         EXECUTOR.scheduleWithFixedDelay(() -> {
             try {

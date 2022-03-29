@@ -22,6 +22,7 @@ import com.github.xiaolyuh.listener.RedisPubSubMessageType;
 import com.github.xiaolyuh.listener.RedisPublisher;
 import com.github.xiaolyuh.redis.clinet.RedisClient;
 import com.github.xiaolyuh.stats.CacheStats;
+import com.github.xiaolyuh.support.CacheMode;
 import com.github.xiaolyuh.support.NullValue;
 import org.springframework.util.Assert;
 
@@ -53,15 +54,21 @@ public abstract class AbstractValueAdaptingCache implements Cache {
     private CacheStats cacheStats = new CacheStats();
 
     /**
+     * 缓存模式
+     */
+    final CacheMode cacheMode;
+
+    /**
      * 通过构造方法设置缓存配置
      *
      * @param stats 是否开启监控统计
      * @param name  缓存名称
      */
-    protected AbstractValueAdaptingCache(boolean stats, String name) {
+    protected AbstractValueAdaptingCache(boolean stats, String name, CacheMode cacheMode) {
         Assert.notNull(name, "缓存名称不能为NULL");
         this.stats = stats;
         this.name = name;
+        this.cacheMode = cacheMode;
     }
 
     /**
@@ -145,13 +152,28 @@ public abstract class AbstractValueAdaptingCache implements Cache {
         this.cacheStats = cacheStats;
     }
 
-    public void deleteFirstCache(String key, RedisClient redisClient) {
-        // 删除一级缓存需要用到redis的Pub/Sub（订阅/发布）模式，否则集群中其他服服务器节点的一级缓存数据无法删除
-        RedisPubSubMessage message = new RedisPubSubMessage();
-        message.setCacheName(getName());
-        message.setKey(key);
-        message.setMessageType(RedisPubSubMessageType.EVICT);
-        // 发布消息
-        RedisPublisher.publisher(redisClient, message);
+    public void deleteFirstCacheByKey(String key, RedisClient redisClient) {
+        // 删除一级缓存
+        if (CacheMode.ALL.equals(cacheMode)) {
+            // 删除一级缓存需要用到redis的Pub/Sub（订阅/发布）模式，否则集群中其他服服务器节点的一级缓存数据无法删除
+            RedisPubSubMessage message = new RedisPubSubMessage();
+            message.setCacheName(getName());
+            message.setKey(key);
+            message.setMessageType(RedisPubSubMessageType.EVICT);
+            // 发布消息
+            RedisPublisher.publisher(redisClient, message);
+        }
+    }
+
+    public void clearFirstCache(RedisClient redisClient) {
+        // 清除一级缓存
+        if (CacheMode.ALL.equals(cacheMode)) {
+            // 清除一级缓存需要用到redis的订阅/发布模式，否则集群中其他服服务器节点的一级缓存数据无法删除
+            RedisPubSubMessage message = new RedisPubSubMessage();
+            message.setCacheName(getName());
+            message.setMessageType(RedisPubSubMessageType.CLEAR);
+            // 发布消息
+            RedisPublisher.publisher(redisClient, message);
+        }
     }
 }

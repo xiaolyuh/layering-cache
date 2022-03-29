@@ -1,9 +1,6 @@
 package com.github.xiaolyuh.cache;
 
 import com.alibaba.fastjson.JSON;
-import com.github.xiaolyuh.listener.RedisPubSubMessage;
-import com.github.xiaolyuh.listener.RedisPubSubMessageType;
-import com.github.xiaolyuh.listener.RedisPublisher;
 import com.github.xiaolyuh.redis.clinet.RedisClient;
 import com.github.xiaolyuh.setting.LayeringCacheSetting;
 import com.github.xiaolyuh.stats.CacheStats;
@@ -42,11 +39,6 @@ public class LayeringCache extends AbstractValueAdaptingCache {
     private final LayeringCacheSetting layeringCacheSetting;
 
     /**
-     * 缓存模式
-     */
-    private final CacheMode cacheMode;
-
-    /**
      * @param redisClient          redisClient
      * @param firstCache           一级缓存
      * @param secondCache          二级缓存
@@ -71,11 +63,10 @@ public class LayeringCache extends AbstractValueAdaptingCache {
      */
     public LayeringCache(RedisClient redisClient, AbstractValueAdaptingCache firstCache,
                          AbstractValueAdaptingCache secondCache, CacheMode cacheMode, boolean stats, String name, LayeringCacheSetting layeringCacheSetting) {
-        super(stats, name);
+        super(stats, name,cacheMode);
         this.redisClient = redisClient;
         this.firstCache = firstCache;
         this.secondCache = secondCache;
-        this.cacheMode = cacheMode;
         this.layeringCacheSetting = layeringCacheSetting;
     }
 
@@ -152,9 +143,7 @@ public class LayeringCache extends AbstractValueAdaptingCache {
         // 开启二级缓存
         secondCache.put(key, value);
         // 删除一级缓存
-        if (CacheMode.ALL.equals(cacheMode)) {
-            deleteFirstCache(key, redisClient);
-        }
+        deleteFirstCacheByKey(key, redisClient);
     }
 
     @Override
@@ -167,9 +156,7 @@ public class LayeringCache extends AbstractValueAdaptingCache {
         // 开启二级缓存
         T result = secondCache.putIfAbsent(key, value, resultType);
         // 删除一级缓存
-        if (CacheMode.ALL.equals(cacheMode)) {
-            deleteFirstCache(key, redisClient);
-        }
+        deleteFirstCacheByKey(key, redisClient);
         return result;
     }
 
@@ -185,9 +172,7 @@ public class LayeringCache extends AbstractValueAdaptingCache {
         secondCache.evict(key);
 
         // 删除一级缓存
-        if (CacheMode.ALL.equals(cacheMode)) {
-            deleteFirstCache(key, redisClient);
-        }
+        deleteFirstCacheByKey(key, redisClient);
     }
 
     @Override
@@ -200,15 +185,7 @@ public class LayeringCache extends AbstractValueAdaptingCache {
 
         // 开启二级缓存、删除的时候要先删除二级缓存再删除一级缓存，否则有并发问题
         secondCache.clear();
-        // 开启一级缓存
-        if (CacheMode.ALL.equals(cacheMode)) {
-            // 清除一级缓存需要用到redis的订阅/发布模式，否则集群中其他服服务器节点的一级缓存数据无法删除
-            RedisPubSubMessage message = new RedisPubSubMessage();
-            message.setCacheName(getName());
-            message.setMessageType(RedisPubSubMessageType.CLEAR);
-            // 发布消息
-            RedisPublisher.publisher(redisClient, message);
-        }
+        clearFirstCache(redisClient);
     }
 
 

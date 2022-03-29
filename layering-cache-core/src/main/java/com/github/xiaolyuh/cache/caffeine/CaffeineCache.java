@@ -6,6 +6,7 @@ import com.github.benmanes.caffeine.cache.Caffeine;
 import com.github.benmanes.caffeine.cache.LoadingCache;
 import com.github.xiaolyuh.cache.AbstractValueAdaptingCache;
 import com.github.xiaolyuh.setting.FirstCacheSetting;
+import com.github.xiaolyuh.support.CacheMode;
 import com.github.xiaolyuh.support.ExpireMode;
 import com.github.xiaolyuh.support.NullValue;
 import org.slf4j.Logger;
@@ -32,10 +33,11 @@ public class CaffeineCache extends AbstractValueAdaptingCache {
      * @param name              缓存名称
      * @param firstCacheSetting 一级缓存配置 {@link FirstCacheSetting}
      * @param stats             是否开启统计模式
+     * @param cacheMode         缓存模式
      */
-    public CaffeineCache(String name, FirstCacheSetting firstCacheSetting, boolean stats) {
+    public CaffeineCache(String name, FirstCacheSetting firstCacheSetting, boolean stats, CacheMode cacheMode) {
 
-        super(stats, name);
+        super(stats, name, cacheMode);
         this.cache = getCache(firstCacheSetting);
     }
 

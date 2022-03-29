@@ -5,6 +5,7 @@ import com.github.xiaolyuh.cache.AbstractValueAdaptingCache;
 import com.github.xiaolyuh.redis.clinet.RedisClient;
 import com.github.xiaolyuh.setting.SecondaryCacheSetting;
 import com.github.xiaolyuh.support.AwaitThreadContainer;
+import com.github.xiaolyuh.support.CacheMode;
 import com.github.xiaolyuh.support.LayeringCacheRedisLock;
 import com.github.xiaolyuh.support.NullValue;
 import com.github.xiaolyuh.util.ThreadTaskUtils;
@@ -81,13 +82,14 @@ public class RedisCache extends AbstractValueAdaptingCache {
      * @param redisClient           redis客户端 redis 客户端
      * @param secondaryCacheSetting 二级缓存配置{@link SecondaryCacheSetting}
      * @param stats                 是否开启统计模式
+     * @param stats                 是否开启统计模式
      */
-    public RedisCache(String name, RedisClient redisClient, SecondaryCacheSetting secondaryCacheSetting, boolean stats) {
+    public RedisCache(String name, RedisClient redisClient, SecondaryCacheSetting secondaryCacheSetting, boolean stats, CacheMode cacheMode) {
 
         this(name, redisClient, secondaryCacheSetting.getTimeUnit().toMillis(secondaryCacheSetting.getExpiration()),
                 secondaryCacheSetting.getTimeUnit().toMillis(secondaryCacheSetting.getPreloadTime()),
                 secondaryCacheSetting.isForceRefresh(), secondaryCacheSetting.isUsePrefix(),
-                secondaryCacheSetting.isAllowNullValue(), secondaryCacheSetting.getMagnification(), stats);
+                secondaryCacheSetting.isAllowNullValue(), secondaryCacheSetting.getMagnification(), stats, cacheMode);
     }
 
     /**
@@ -102,8 +104,8 @@ public class RedisCache extends AbstractValueAdaptingCache {
      * @param stats           是否开启统计模式
      */
     public RedisCache(String name, RedisClient redisClient, long expiration, long preloadTime,
-                      boolean forceRefresh, boolean usePrefix, boolean allowNullValues, int magnification, boolean stats) {
-        super(stats, name);
+                      boolean forceRefresh, boolean usePrefix, boolean allowNullValues, int magnification, boolean stats, CacheMode cacheMode) {
+        super(stats, name, cacheMode);
 
         Assert.notNull(redisClient, "RedisTemplate 不能为NULL");
         this.redisClient = redisClient;
@@ -367,7 +369,7 @@ public class RedisCache extends AbstractValueAdaptingCache {
                         // 比较新老数据是否相等，如果不想等就删除一级缓存
                         if (!Objects.equals(oldDate, newDate) && !JSON.toJSONString(oldDate).equals(JSON.toJSONString(newDate))) {
                             logger.debug("二级缓存数据发生变更，同步刷新一级缓存");
-                            deleteFirstCache((String) redisCacheKey.getKeyElement(), redisClient);
+                            deleteFirstCacheByKey((String) redisCacheKey.getKeyElement(), redisClient);
                         }
                     }
                 }

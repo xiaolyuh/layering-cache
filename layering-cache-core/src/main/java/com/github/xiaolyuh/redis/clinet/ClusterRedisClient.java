@@ -15,6 +15,7 @@ import io.lettuce.core.ScanIterator;
 import io.lettuce.core.ScriptOutputType;
 import io.lettuce.core.SetArgs;
 import io.lettuce.core.cluster.ClusterClientOptions;
+import io.lettuce.core.cluster.ClusterTopologyRefreshOptions;
 import io.lettuce.core.cluster.RedisClusterClient;
 import io.lettuce.core.cluster.api.StatefulRedisClusterConnection;
 import io.lettuce.core.cluster.api.sync.RedisClusterCommands;
@@ -95,10 +96,17 @@ public class ClusterRedisClient implements RedisClient {
             redisURIs.add(nodeUri);
         }
 
+        // https://github.com/lettuce-io/lettuce-core/wiki/Redis-Cluster#user-content-refreshing-the-cluster-topology-view
+        ClusterTopologyRefreshOptions clusterTopologyRefreshOptions = ClusterTopologyRefreshOptions.builder()
+                .enableAdaptiveRefreshTrigger(ClusterTopologyRefreshOptions.RefreshTrigger.MOVED_REDIRECT, ClusterTopologyRefreshOptions.RefreshTrigger.PERSISTENT_RECONNECTS)
+                .adaptiveRefreshTriggersTimeout(Duration.ofSeconds(10))
+                .build();
+
         this.clusterClient = RedisClusterClient.create(redisURIs);
         this.clusterClient.setOptions(ClusterClientOptions.builder()
                 .autoReconnect(true)
                 .pingBeforeActivateConnection(true)
+                .topologyRefreshOptions(clusterTopologyRefreshOptions)
                 .build());
         this.connection = this.clusterClient.connect(new ByteArrayCodec());
 

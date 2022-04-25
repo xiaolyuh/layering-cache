@@ -3,7 +3,7 @@ package com.github.xiaolyuh.cache.test;
 import com.alibaba.fastjson.JSON;
 import com.github.xiaolyuh.cache.Cache;
 import com.github.xiaolyuh.cache.LayeringCache;
-import com.github.xiaolyuh.cache.config.CacheConfig;
+import com.github.xiaolyuh.cache.config.CacheSingleConfig;
 import com.github.xiaolyuh.cache.redis.RedisCache;
 import com.github.xiaolyuh.cache.redis.RedisCacheKey;
 import com.github.xiaolyuh.listener.RedisPubSubMessage;
@@ -36,9 +36,9 @@ import java.util.concurrent.TimeUnit;
 // SpringJUnit4ClassRunner再Junit环境下提供Spring TestContext Framework的功能。
 @RunWith(SpringJUnit4ClassRunner.class)
 // @ContextConfiguration用来加载配置ApplicationContext，其中classes用来加载配置类
-@ContextConfiguration(classes = {CacheConfig.class})
-public class CacheCoreTest {
-    private Logger logger = LoggerFactory.getLogger(CacheCoreTest.class);
+@ContextConfiguration(classes = {CacheSingleConfig.class})
+public class CacheSingleCoreTest {
+    private Logger logger = LoggerFactory.getLogger(CacheSingleCoreTest.class);
 
     @Autowired
     private CacheManager cacheManager;

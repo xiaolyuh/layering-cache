@@ -8,8 +8,8 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 
 @Configuration
-@Import({RedisConfig.class})
-public class CacheConfig {
+@Import({RedisSingleConfig.class})
+public class CacheSingleConfig {
 
     @Bean
     public CacheManager layeringCacheManager(RedisClient layeringCacheRedisClient) {

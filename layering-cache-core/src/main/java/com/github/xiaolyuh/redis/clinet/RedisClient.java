@@ -25,6 +25,8 @@ public interface RedisClient {
         RedisClient redisClient;
         if (StringUtils.isNotBlank(redisProperties.getCluster())) {
             redisClient = new ClusterRedisClient(redisProperties);
+        } else if (StringUtils.isNotBlank(redisProperties.getSentinelNodes())) {
+            redisClient = new SentinelRedisClient(redisProperties);
         } else {
             redisClient = new SingleRedisClient(redisProperties);
         }

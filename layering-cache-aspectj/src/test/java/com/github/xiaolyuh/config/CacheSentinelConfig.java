@@ -11,9 +11,9 @@ import org.springframework.context.annotation.EnableAspectJAutoProxy;
 import org.springframework.context.annotation.Import;
 
 @Configuration
-@Import({RedisConfig.class})
+@Import({RedisSentinelConfig.class})
 @EnableAspectJAutoProxy
-public class CacheConfig {
+public class CacheSentinelConfig {
 
     @Bean
     public CacheManager layeringCacheManager(RedisClient layeringCacheRedisClient) {

@@ -1,8 +1,8 @@
-package com.github.xiaolyuh.config;
+package com.github.xiaolyuh.cache.config;
 
 import com.github.xiaolyuh.redis.clinet.RedisClient;
 import com.github.xiaolyuh.redis.clinet.RedisProperties;
-import com.github.xiaolyuh.redis.clinet.SingleRedisClient;
+import com.github.xiaolyuh.redis.clinet.SentinelRedisClient;
 import com.github.xiaolyuh.redis.serializer.FastJsonRedisSerializer;
 import com.github.xiaolyuh.redis.serializer.JacksonRedisSerializer;
 import com.github.xiaolyuh.redis.serializer.JdkRedisSerializer;
@@ -17,27 +17,19 @@ import org.springframework.context.annotation.PropertySource;
 
 @Configuration
 @PropertySource({"classpath:application.properties"})
-public class RedisConfig {
+public class RedisSentinelConfig {
 
-    @Value("${spring.redis.database:0}")
-    private int database;
-
-    @Value("${spring.redis.host:127.0.0.1}")
-    private String host;
+    @Value("${layering-cache.redis.nodes:127.0.0.1:26379,127.0.0.1:26380,127.0.0.1:26381}")
+    private String nodes;
 
     @Value("${spring.redis.password:}")
     private String password;
 
-    @Value("${spring.redis.port:6378}")
-    private int port;
-
     @Bean
     public RedisClient layeringCacheRedisClient() {
         RedisProperties redisProperties = new RedisProperties();
-        redisProperties.setDatabase(database);
-        redisProperties.setHost(host);
+        redisProperties.setSentinelNodes(nodes);
         redisProperties.setPassword(StringUtils.isBlank(password) ? null : password);
-        redisProperties.setPort(port);
 
         KryoRedisSerializer kryoRedisSerializer = new KryoRedisSerializer();
         FastJsonRedisSerializer fastJsonRedisSerializer = new FastJsonRedisSerializer();
@@ -46,11 +38,10 @@ public class RedisConfig {
         ProtostuffRedisSerializer protostuffRedisSerializer = new ProtostuffRedisSerializer();
 
         StringRedisSerializer keyRedisSerializer = new StringRedisSerializer();
-
-        SingleRedisClient redisClient = new SingleRedisClient(redisProperties);
+        RedisClient redisClient = new SentinelRedisClient(redisProperties);
 
         redisClient.setKeySerializer(keyRedisSerializer);
-        redisClient.setValueSerializer(protostuffRedisSerializer);
+        redisClient.setValueSerializer(kryoRedisSerializer);
         return redisClient;
     }
 }

@@ -14,6 +14,7 @@ layering-cache是一个支持分布式环境的多级缓存框架，使用方式
 - Redis支持Kryo、FastJson、Jackson、Jdk和Protostuff序列化，默认使用Protostuff序列化，并支持自定义的序列化
 - 支持同一个缓存名称设置不同的过期时间
 - 支持只使用一级缓存或者只使用二级缓存
+- 支持redis单机、集群、Sentinel三种客户端
 
 # 优势
 1. 提供缓存命中率的监控统计，统计数据上报支持自定义扩展

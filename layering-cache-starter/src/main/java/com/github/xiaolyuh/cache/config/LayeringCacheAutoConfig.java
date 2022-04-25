@@ -70,6 +70,8 @@ public class LayeringCacheAutoConfig {
         redisProperties.setPort(layeringCacheRedisProperties.getPort());
         redisProperties.setTimeout(layeringCacheRedisProperties.getTimeout());
         redisProperties.setSerializer(layeringCacheRedisProperties.getSerializer());
+        redisProperties.setSentinelNodes(layeringCacheRedisProperties.getSentinelNodes());
+        redisProperties.setSentinelMaster(layeringCacheRedisProperties.getSentinelMaster());
         return redisProperties;
     }
 

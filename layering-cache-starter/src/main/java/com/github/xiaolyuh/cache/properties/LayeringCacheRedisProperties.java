@@ -36,7 +36,7 @@ public class LayeringCacheRedisProperties {
     /**
      * 哨兵节点，示例：localhost:26397,localhost2:26397
      */
-    String sentinelNodes = "localhost:26397";
+    String sentinelNodes = "";
 
     //********************通用配置**************************/
     /**

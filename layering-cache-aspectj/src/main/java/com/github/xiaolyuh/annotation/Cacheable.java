@@ -66,6 +66,12 @@ public @interface Cacheable {
     String key() default "";
 
     /**
+     * 不需要缓存的key
+     * @return
+     */
+    String noNeedCacheKey() default "";
+
+    /**
      * 缓存模式(只使用一级缓存或者二级缓存)
      *
      * @return boolean

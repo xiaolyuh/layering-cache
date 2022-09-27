@@ -182,8 +182,8 @@ public class LayeringAspect {
         String[] cacheNames = cacheable.cacheNames();
         Assert.notEmpty(cacheable.cacheNames(), CACHE_NAME_ERROR_MESSAGE);
         String cacheName = cacheNames[0];
-        boolean isNoNeedCache = isNoNeedCache(cacheable.noNeedCacheKey(), method, args, target);
-        if(isNoNeedCache) {
+        boolean isNeedCache = isNeedCache(cacheable.condition(), method, args, target);
+        if(!isNeedCache) {
             try {
                 return valueLoader.call();
             } catch (Exception e) {
@@ -214,24 +214,24 @@ public class LayeringAspect {
     }
 
     /**
-     * 解析SpEL表达式，获取注解上的noNeedCachekey属性值
+     * 解析SpEL表达式，获取注解上的condition属性值
      *
      * @return Object
      */
-    private boolean isNoNeedCache(String noNeedCacheKeySpEl, Method method, Object[] args, Object target) {
+    private boolean isNeedCache(String conditionSpEl, Method method, Object[] args, Object target) {
 
         // 获取注解上的key属性值
         Class<?> targetClass = AopProxyUtils.ultimateTargetClass(target);
-        if (StringUtils.hasText(noNeedCacheKeySpEl)) {
+        if (StringUtils.hasText(conditionSpEl)) {
             EvaluationContext evaluationContext = evaluator.createEvaluationContext(method, args, target,
                 targetClass, CacheOperationExpressionEvaluator.NO_RESULT);
 
             AnnotatedElementKey methodCacheKey = new AnnotatedElementKey(method, targetClass);
             // 兼容传null值得情况
-            Object keyValue = evaluator.key(noNeedCacheKeySpEl, methodCacheKey, evaluationContext);
-            return Objects.isNull(keyValue) ? false : (Boolean)keyValue;
+            Object keyValue = evaluator.key(conditionSpEl, methodCacheKey, evaluationContext);
+            return Objects.isNull(keyValue) ? true : (Boolean)keyValue;
         }
-        return false;
+        return true;
     }
 
     /**

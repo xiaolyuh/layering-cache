@@ -526,6 +526,18 @@ public class TestService {
         return user;
     }
 
+    @Cacheable(value = "user:info", key = "#userId", condition = "#userId>110",
+        secondaryCache = @SecondaryCache(expireTime = 10, preloadTime = 3,
+            forceRefresh = true, timeUnit = TimeUnit.SECONDS))
+    public User getUserByIdCondition(long userId) {
+        logger.debug("测试正常配置的缓存方法，参数是基本类型");
+        User user = new User();
+        user.setUserId(userId);
+        user.setAge(31);
+        user.setLastName(new String[]{"w", "y", "h"});
+        return user;
+    }
+
     @Cacheable(value = "user:info:caching:evict:3-4-7", key = "#userId",
             firstCache = @FirstCache(expireTime = 4, timeUnit = TimeUnit.SECONDS),
             secondaryCache = @SecondaryCache(expireTime = 10, preloadTime = 3, forceRefresh = true, timeUnit = TimeUnit.SECONDS))

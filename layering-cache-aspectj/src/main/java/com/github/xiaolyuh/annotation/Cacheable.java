@@ -66,6 +66,12 @@ public @interface Cacheable {
     String key() default "";
 
     /**
+     * 生成缓存的条件，默认空全部缓存。支持SpEL表达式
+     * @return
+     */
+    String condition() default "";
+
+    /**
      * 缓存模式(只使用一级缓存或者二级缓存)
      *
      * @return boolean

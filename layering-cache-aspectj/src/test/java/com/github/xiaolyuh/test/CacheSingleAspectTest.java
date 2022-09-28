@@ -54,6 +54,20 @@ public class CacheSingleAspectTest {
     private CacheManager cacheManager;
 
     @Test
+    public void testCondition() {
+        long userId = 100;
+
+        User user = testService.getUserByIdCondition(userId);
+        Object result = redisClient.get("user:info:100", User.class);
+        Assert.assertNull(result);
+
+
+        testService.getUserByIdCondition(111);
+        result = redisClient.get("user:info:111", User.class);
+        Assert.assertNotNull(result);
+    }
+
+    @Test
     public void testGetUserNameLongParam() {
         long userId = 111;
 

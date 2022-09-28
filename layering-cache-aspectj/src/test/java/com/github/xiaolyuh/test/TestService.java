@@ -525,4 +525,15 @@ public class TestService {
         user.setLastName(new String[]{"w", "y", "h"});
         return user;
     }
+
+    @Cacheable(value = "user:info:caching:evict:3-4-7", key = "#userId",
+            firstCache = @FirstCache(expireTime = 4, timeUnit = TimeUnit.SECONDS),
+            secondaryCache = @SecondaryCache(expireTime = 10, preloadTime = 3, forceRefresh = true, timeUnit = TimeUnit.SECONDS))
+    public User testNullArrayAndNullList(long userId) {
+        logger.debug("3.4.7 Protostuff 序列化后数组后，再取值为空 #67");
+        User user = new User();
+        user.setLastNameList(new ArrayList<>());
+        user.setLastName(new String[]{});
+        return user;
+    }
 }

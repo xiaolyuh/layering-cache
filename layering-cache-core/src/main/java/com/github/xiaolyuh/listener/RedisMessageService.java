@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSON;
 import com.github.xiaolyuh.cache.Cache;
 import com.github.xiaolyuh.cache.LayeringCache;
 import com.github.xiaolyuh.manager.AbstractCacheManager;
+import com.github.xiaolyuh.redis.clinet.RedisClient;
 import com.github.xiaolyuh.support.LayeringCacheRedisLock;
 import com.github.xiaolyuh.util.BeanFactory;
 import com.github.xiaolyuh.util.GlobalConfig;
@@ -22,7 +23,7 @@ import java.util.concurrent.atomic.AtomicLong;
  * @author yuhao.wang
  */
 public class RedisMessageService {
-    private static final Logger log = LoggerFactory.getLogger(RedisMessageService.class);
+    private static final Logger logger = LoggerFactory.getLogger(RedisMessageService.class);
 
     /**
      * 本地消息偏移量
@@ -58,7 +59,8 @@ public class RedisMessageService {
      * 拉消息
      */
     public void pullMessage() {
-        long maxOffset = cacheManager.getRedisClient().llen(GlobalConfig.getMessageRedisKey()) - 1;
+        RedisClient redisClient = cacheManager.getRedisClient();
+        long maxOffset = redisClient.llen(GlobalConfig.getMessageRedisKey()) - 1;
         // 没有消息
         if (maxOffset < 0) {
             return;
@@ -68,7 +70,7 @@ public class RedisMessageService {
         if (oldOffset >= maxOffset) {
             return;
         }
-        List<String> messages = cacheManager.getRedisClient().lrange(GlobalConfig.getMessageRedisKey(), 0, maxOffset - oldOffset - 1, GlobalConfig.GLOBAL_REDIS_SERIALIZER);
+        List<String> messages = redisClient.lrange(GlobalConfig.getMessageRedisKey(), 0, maxOffset - oldOffset - 1, GlobalConfig.GLOBAL_REDIS_SERIALIZER);
         if (CollectionUtils.isEmpty(messages)) {
             return;
         }
@@ -77,8 +79,8 @@ public class RedisMessageService {
         RedisMessageService.updateLastPullTime();
 
         for (String message : messages) {
-            if (log.isDebugEnabled()) {
-                log.debug("redis 通过PULL方式处理本地缓，消息内容：{}", message);
+            if (logger.isDebugEnabled()) {
+                logger.debug("redis 通过PULL方式处理本地缓，消息内容：{}", message);
             }
             if (StringUtils.isBlank(message)) {
                 continue;
@@ -89,33 +91,80 @@ public class RedisMessageService {
             Collection<Cache> caches = cacheManager.getCache(redisPubSubMessage.getCacheName());
             for (Cache cache : caches) {
                 // 判断缓存是否是多级缓存
-                if (cache != null && cache instanceof LayeringCache) {
-                    switch (redisPubSubMessage.getMessageType()) {
-                        case EVICT:
-                            if (RedisPubSubMessage.SOURCE.equals(redisPubSubMessage.getSource())) {
-                                ((LayeringCache) cache).getSecondCache().evict(redisPubSubMessage.getKey());
-                            }
-                            // 获取一级缓存，并删除一级缓存数据
-                            ((LayeringCache) cache).getFirstCache().evict(redisPubSubMessage.getKey());
-                            log.info("删除一级缓存 {} 数据,key={}", redisPubSubMessage.getCacheName(), redisPubSubMessage.getKey());
-                            break;
+                if (cache instanceof LayeringCache) {
+                    // 删除二级缓存
+                    removeSecondCache(redisClient, redisPubSubMessage, (LayeringCache) cache);
 
-                        case CLEAR:
-                            if (RedisPubSubMessage.SOURCE.equals(redisPubSubMessage.getSource())) {
-                                ((LayeringCache) cache).getSecondCache().clear();
-                            }
-                            // 获取一级缓存，并删除一级缓存数据
-                            ((LayeringCache) cache).getFirstCache().clear();
-                            log.info("清除一级缓存 {} 数据", redisPubSubMessage.getCacheName());
-                            break;
-
-                        default:
-                            log.error("接收到没有定义的消息数据");
-                            break;
-                    }
+                    // 删除一级缓存数据
+                    removeFirstCache(redisPubSubMessage, (LayeringCache) cache);
 
                 }
             }
+        }
+    }
+
+    /**
+     * 删除一级缓存数据
+     *
+     * @param redisPubSubMessage RedisPubSubMessage
+     * @param cache              LayeringCache
+     */
+    private void removeFirstCache(RedisPubSubMessage redisPubSubMessage, LayeringCache cache) {
+        switch (redisPubSubMessage.getMessageType()) {
+            case EVICT:
+                // 获取一级缓存，并删除一级缓存数据
+                cache.getFirstCache().evict(redisPubSubMessage.getKey());
+                logger.info("删除一级缓存 {} 数据,key={}", redisPubSubMessage.getCacheName(), redisPubSubMessage.getKey());
+                break;
+
+            case CLEAR:
+                // 获取一级缓存，并删除一级缓存数据
+                cache.getFirstCache().clear();
+                logger.info("清除一级缓存 {} 数据", redisPubSubMessage.getCacheName());
+                break;
+
+            default:
+                logger.error("接收到没有定义的消息数据");
+                break;
+        }
+    }
+
+    /**
+     * 删除二级缓存
+     *
+     * @param redisClient        RedisClient
+     * @param redisPubSubMessage RedisPubSubMessage
+     * @param cache              LayeringCache
+     */
+    private void removeSecondCache(RedisClient redisClient, RedisPubSubMessage redisPubSubMessage, LayeringCache cache) {
+        if (!RedisPubSubMessage.SOURCE.equals(redisPubSubMessage.getSource())) {
+            // 只有通过管理页面过来的操作才需要删除二级缓存
+            return;
+        }
+        String lockKey = RedisPubSubMessageType.EVICT.equals(redisPubSubMessage.getMessageType()) ? redisPubSubMessage.getKey() : redisPubSubMessage.getCacheName();
+        LayeringCacheRedisLock redisLock = new LayeringCacheRedisLock(redisClient, lockKey + "_remove_lock");
+        try {
+            if (redisLock.lock()) {
+                switch (redisPubSubMessage.getMessageType()) {
+                    case EVICT:
+                        cache.getSecondCache().evict(redisPubSubMessage.getKey());
+                        logger.info("删除二级缓存 {} 数据,key={}", redisPubSubMessage.getCacheName(), redisPubSubMessage.getKey());
+                        break;
+                    case CLEAR:
+                        cache.getSecondCache().clear();
+                        logger.info("清除二级级缓存 {} 数据", redisPubSubMessage.getCacheName());
+                        break;
+                    default:
+                        logger.error("接收到没有定义的消息数据");
+                        break;
+                }
+                // 防止消息传输的时间差
+                Thread.sleep(5000);
+            }
+        } catch (Exception e) {
+            logger.error(e.getMessage(), e);
+        } finally {
+            redisLock.unlock();
         }
     }
 
@@ -156,7 +205,7 @@ public class RedisMessageService {
                 BeanFactory.getBean(RedisMessageListener.class).init(cacheManager);
 
             } catch (Exception e) {
-                log.error("layering-cache 清楚一级缓存异常：{}", e.getMessage(), e);
+                logger.error("layering-cache 清楚一级缓存异常：{}", e.getMessage(), e);
             }
         }
     }

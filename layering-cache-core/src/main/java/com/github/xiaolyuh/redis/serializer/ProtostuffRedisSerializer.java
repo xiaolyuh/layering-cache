@@ -3,6 +3,8 @@ package com.github.xiaolyuh.redis.serializer;
 import com.alibaba.fastjson.JSON;
 import io.protostuff.LinkedBuffer;
 import io.protostuff.ProtostuffIOUtil;
+import io.protostuff.runtime.DefaultIdStrategy;
+import io.protostuff.runtime.IdStrategy;
 import io.protostuff.runtime.RuntimeSchema;
 
 import java.util.Arrays;
@@ -13,8 +15,8 @@ import java.util.Arrays;
  * @author yuhao.wang
  */
 public class ProtostuffRedisSerializer extends AbstractRedisSerializer {
-
-    RuntimeSchema<Wrapper> schema = RuntimeSchema.createFrom(Wrapper.class);
+    IdStrategy strategy = new DefaultIdStrategy(IdStrategy.DEFAULT_FLAGS | IdStrategy.COLLECTION_SCHEMA_ON_REPEATED_FIELDS, null, 0);
+    RuntimeSchema<Wrapper> schema = RuntimeSchema.createFrom(Wrapper.class, strategy);
 
     static {
         System.getProperties().setProperty("protostuff.runtime.always_use_sun_reflection_factory", "true");
@@ -49,6 +51,7 @@ public class ProtostuffRedisSerializer extends AbstractRedisSerializer {
         if (Arrays.equals(getNullValueBytes(), bytes)) {
             return null;
         }
+
 
         try {
             Wrapper<T> wrapper = new Wrapper<>(null);

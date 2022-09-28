@@ -28,6 +28,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import java.lang.management.ManagementFactory;
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.LinkedList;
@@ -833,6 +834,9 @@ public class CacheSingleAspectTest {
     @Test
     public void testSerializer() {
         User user = new User();
+        user.setLastNameList(new ArrayList<>());
+        user.setLastName(new String[]{});
+
         KryoRedisSerializer kryoRedisSerializer = new KryoRedisSerializer();
         FastJsonRedisSerializer fastJsonRedisSerializer = new FastJsonRedisSerializer();
         JacksonRedisSerializer jacksonRedisSerializer = new JacksonRedisSerializer();
@@ -873,32 +877,42 @@ public class CacheSingleAspectTest {
 
         start = System.currentTimeMillis();
         for (int i = 0; i < count; i++) {
-            redisClient.get("Serializer:KryoRedisSerializer", User.class, kryoRedisSerializer);
+            user = redisClient.get("Serializer:KryoRedisSerializer", User.class, kryoRedisSerializer);
         }
-        long kryoGet = System.currentTimeMillis() - start;
+        Assert.assertNotNull(user.getLastName());
+        Assert.assertNotNull(user.getLastNameList());
 
+        long kryoGet = System.currentTimeMillis() - start;
         start = System.currentTimeMillis();
         for (int i = 0; i < count; i++) {
-            redisClient.get("Serializer:fastJsonRedisSerializer", User.class, fastJsonRedisSerializer);
+            user = redisClient.get("Serializer:fastJsonRedisSerializer", User.class, fastJsonRedisSerializer);
         }
+        Assert.assertNotNull(user.getLastName());
+        Assert.assertNotNull(user.getLastNameList());
         long fastJsonGet = System.currentTimeMillis() - start;
 
         start = System.currentTimeMillis();
         for (int i = 0; i < count; i++) {
-            redisClient.get("Serializer:jacksonRedisSerializer", User.class, jacksonRedisSerializer);
+            user = redisClient.get("Serializer:jacksonRedisSerializer", User.class, jacksonRedisSerializer);
         }
+        Assert.assertNotNull(user.getLastName());
+        Assert.assertNotNull(user.getLastNameList());
         long jacksonGet = System.currentTimeMillis() - start;
 
         start = System.currentTimeMillis();
         for (int i = 0; i < count; i++) {
-            redisClient.get("Serializer:jdkRedisSerializer", User.class, jdkRedisSerializer);
+            user = redisClient.get("Serializer:jdkRedisSerializer", User.class, jdkRedisSerializer);
         }
+        Assert.assertNotNull(user.getLastName());
+        Assert.assertNotNull(user.getLastNameList());
         long jdkGet = System.currentTimeMillis() - start;
 
         start = System.currentTimeMillis();
         for (int i = 0; i < count; i++) {
-            redisClient.get("Serializer:protostuffRedisSerializer", User.class, protostuffRedisSerializer);
+            user = redisClient.get("Serializer:protostuffRedisSerializer", User.class, protostuffRedisSerializer);
         }
+        Assert.assertNotNull(user.getLastName());
+        Assert.assertNotNull(user.getLastNameList());
         long protostufGet = System.currentTimeMillis() - start;
 
 
@@ -937,6 +951,30 @@ public class CacheSingleAspectTest {
 
         return String.format("CPU = %s,Mem = %s", percentCpuLoad, percentMemoryLoad);
     }
+
+    @Test
+    public void testNullArrayAndNullList() {
+
+        User user = new User();
+        user.setLastNameList(new ArrayList<>());
+        user.setLastName(new String[]{});
+
+        long userId = 111;
+        user = testService.testNullArrayAndNullList(userId);
+        Assert.assertNotNull(user.getLastName());
+        Assert.assertNotNull(user.getLastNameList());
+
+        User result = redisClient.get("user:info:caching:evict:3-4-7:111", User.class);
+        Assert.assertNotNull(result);
+        Assert.assertNotNull(result.getLastName());
+        Assert.assertNotNull(result.getLastNameList());
+
+        sleep(5);
+        user = testService.testNullArrayAndNullList(userId);
+        Assert.assertNotNull(user.getLastName());
+        Assert.assertNotNull(user.getLastNameList());
+    }
+
 
     @BeforeClass
     public static void beforeClass() {

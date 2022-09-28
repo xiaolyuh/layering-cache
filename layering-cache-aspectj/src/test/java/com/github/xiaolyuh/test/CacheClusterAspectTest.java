@@ -8,6 +8,11 @@ import com.github.xiaolyuh.domain.User;
 import com.github.xiaolyuh.manager.CacheManager;
 import com.github.xiaolyuh.manager.LayeringCacheManager;
 import com.github.xiaolyuh.redis.clinet.RedisClient;
+import com.github.xiaolyuh.redis.serializer.FastJsonRedisSerializer;
+import com.github.xiaolyuh.redis.serializer.JacksonRedisSerializer;
+import com.github.xiaolyuh.redis.serializer.JdkRedisSerializer;
+import com.github.xiaolyuh.redis.serializer.KryoRedisSerializer;
+import com.github.xiaolyuh.redis.serializer.ProtostuffRedisSerializer;
 import com.github.xiaolyuh.support.CacheMode;
 import com.github.xiaolyuh.util.GlobalConfig;
 import org.junit.Assert;
@@ -20,11 +25,13 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 // SpringJUnit4ClassRunner再Junit环境下提供Spring TestContext Framework的功能。
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -824,6 +831,138 @@ public class CacheClusterAspectTest {
                     result = ((LayeringCache) cache).getSecondCache().get(key, User.class);
                     Assert.assertNotNull(result);
                 });
+    }
+
+    /**
+     * 测试刷新二级缓存，同步更新一级缓存
+     */
+    @Test
+    public void testSerializer() {
+        User user = new User();
+        user.setLastNameList(new ArrayList<>());
+        user.setLastName(new String[]{});
+
+        KryoRedisSerializer kryoRedisSerializer = new KryoRedisSerializer();
+        FastJsonRedisSerializer fastJsonRedisSerializer = new FastJsonRedisSerializer();
+        JacksonRedisSerializer jacksonRedisSerializer = new JacksonRedisSerializer();
+        JdkRedisSerializer jdkRedisSerializer = new JdkRedisSerializer();
+        ProtostuffRedisSerializer protostuffRedisSerializer = new ProtostuffRedisSerializer();
+
+
+        int count = 1_000;
+        long start = System.currentTimeMillis();
+        for (int i = 0; i < count; i++) {
+            redisClient.set("Serializer:KryoRedisSerializer", user, 10, TimeUnit.MINUTES, kryoRedisSerializer);
+        }
+        long kryoSet = System.currentTimeMillis() - start;
+
+        start = System.currentTimeMillis();
+        for (int i = 0; i < count; i++) {
+            redisClient.set("Serializer:fastJsonRedisSerializer", user, 10, TimeUnit.MINUTES, fastJsonRedisSerializer);
+        }
+        long fastJsonSet = System.currentTimeMillis() - start;
+
+        start = System.currentTimeMillis();
+        for (int i = 0; i < count; i++) {
+            redisClient.set("Serializer:jacksonRedisSerializer", user, 10, TimeUnit.MINUTES, jacksonRedisSerializer);
+        }
+        long jacksonSet = System.currentTimeMillis() - start;
+        start = System.currentTimeMillis();
+        for (int i = 0; i < count; i++) {
+            redisClient.set("Serializer:jdkRedisSerializer", user, 10, TimeUnit.MINUTES, jdkRedisSerializer);
+        }
+        long jdkSet = System.currentTimeMillis() - start;
+
+        start = System.currentTimeMillis();
+        for (int i = 0; i < count; i++) {
+            redisClient.set("Serializer:protostuffRedisSerializer", user, 10, TimeUnit.MINUTES, protostuffRedisSerializer);
+        }
+        long protostufSet = System.currentTimeMillis() - start;
+
+
+        start = System.currentTimeMillis();
+        for (int i = 0; i < count; i++) {
+            user = redisClient.get("Serializer:KryoRedisSerializer", User.class, kryoRedisSerializer);
+        }
+        Assert.assertNotNull(user.getLastName());
+        Assert.assertNotNull(user.getLastNameList());
+
+        long kryoGet = System.currentTimeMillis() - start;
+        start = System.currentTimeMillis();
+        for (int i = 0; i < count; i++) {
+            user = redisClient.get("Serializer:fastJsonRedisSerializer", User.class, fastJsonRedisSerializer);
+        }
+        Assert.assertNotNull(user.getLastName());
+        Assert.assertNotNull(user.getLastNameList());
+        long fastJsonGet = System.currentTimeMillis() - start;
+
+        start = System.currentTimeMillis();
+        for (int i = 0; i < count; i++) {
+            user = redisClient.get("Serializer:jacksonRedisSerializer", User.class, jacksonRedisSerializer);
+        }
+        Assert.assertNotNull(user.getLastName());
+        Assert.assertNotNull(user.getLastNameList());
+        long jacksonGet = System.currentTimeMillis() - start;
+
+        start = System.currentTimeMillis();
+        for (int i = 0; i < count; i++) {
+            user = redisClient.get("Serializer:jdkRedisSerializer", User.class, jdkRedisSerializer);
+        }
+        Assert.assertNotNull(user.getLastName());
+        Assert.assertNotNull(user.getLastNameList());
+        long jdkGet = System.currentTimeMillis() - start;
+
+        start = System.currentTimeMillis();
+        for (int i = 0; i < count; i++) {
+            user = redisClient.get("Serializer:protostuffRedisSerializer", User.class, protostuffRedisSerializer);
+        }
+        Assert.assertNotNull(user.getLastName());
+        Assert.assertNotNull(user.getLastNameList());
+        long protostufGet = System.currentTimeMillis() - start;
+
+
+        System.out.println("KryoRedisSerializer:" + kryoRedisSerializer.serialize(user).length + " b");
+        System.out.println("fastJsonRedisSerializer:" + fastJsonRedisSerializer.serialize(user).length + " b");
+        System.out.println("jacksonRedisSerializer:" + jacksonRedisSerializer.serialize(user).length + " b");
+        System.out.println("jdkRedisSerializer:" + jdkRedisSerializer.serialize(user).length + " b");
+        System.out.println("protostuffRedisSerializer:" + protostuffRedisSerializer.serialize(user).length + " b");
+        System.out.println();
+
+        System.out.println("KryoRedisSerializer serialize:" + kryoSet + " ms");
+        System.out.println("fastJsonRedisSerializer serialize:" + fastJsonSet + " ms");
+        System.out.println("jacksonRedisSerializer serialize:" + jacksonSet + " ms");
+        System.out.println("jdkRedisSerializer serialize:" + jdkSet + " ms");
+        System.out.println("protostuffRedisSerializer serialize:" + protostufSet + " ms");
+        System.out.println();
+
+        System.out.println("KryoRedisSerializer deserialize:" + kryoGet + " ms");
+        System.out.println("fastJsonRedisSerializer deserialize:" + fastJsonGet + " ms");
+        System.out.println("jacksonRedisSerializer deserialize:" + jacksonGet + " ms");
+        System.out.println("jdkRedisSerializer deserialize:" + jdkGet + " ms");
+        System.out.println("protostuffRedisSerializer deserialize:" + protostufGet + " ms");
+    }
+
+    @Test
+    public void testNullArrayAndNullList() {
+
+        User user = new User();
+        user.setLastNameList(new ArrayList<>());
+        user.setLastName(new String[]{});
+
+        long userId = 111;
+        user = testService.testNullArrayAndNullList(userId);
+        Assert.assertNotNull(user.getLastName());
+        Assert.assertNotNull(user.getLastNameList());
+
+        User result = redisClient.get("user:info:caching:evict:3-4-7:111", User.class);
+        Assert.assertNotNull(result);
+        Assert.assertNotNull(result.getLastName());
+        Assert.assertNotNull(result.getLastNameList());
+
+        sleep(5);
+        user = testService.testNullArrayAndNullList(userId);
+        Assert.assertNotNull(user.getLastName());
+        Assert.assertNotNull(user.getLastNameList());
     }
 
     private void sleep(int time) {

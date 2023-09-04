@@ -1,6 +1,5 @@
 package com.github.xiaolyuh.redis.clinet;
 
-import com.alibaba.fastjson.JSON;
 import com.github.xiaolyuh.listener.RedisMessageListener;
 import com.github.xiaolyuh.redis.serializer.JdkRedisSerializer;
 import com.github.xiaolyuh.redis.serializer.RedisSerializer;
@@ -73,7 +72,7 @@ public class SentinelRedisClient implements RedisClient {
         }
         RedisURI redisURI = builder.build();
 
-        logger.info("layering-cache redis配置 {}", JSON.toJSONString(properties));
+        logger.info("layering-cache redis配置 : {}", properties);
         io.lettuce.core.RedisClient client = io.lettuce.core.RedisClient.create(redisURI);
         client.setOptions(ClientOptions.builder()
                 .autoReconnect(true)

@@ -40,6 +40,11 @@ public class RedisCacheKey {
     private final RedisSerializer serializer;
 
     /**
+     * 缓存预加载时间
+     */
+    private  long preloadTime;
+
+    /**
      * @param keyElement 缓存key
      * @param serializer RedisSerializer
      */
@@ -94,7 +99,7 @@ public class RedisCacheKey {
      * @return byte[]
      */
     public byte[] getPrefix() {
-        return prefixSerializer1.serialize((StringUtils.isEmpty(cacheName) ? cacheName.concat(":") : cacheName.concat(":")));
+        return prefixSerializer1.serialize((cacheName.concat(":")));
     }
 
     /**
@@ -105,6 +110,17 @@ public class RedisCacheKey {
      */
     public RedisCacheKey cacheName(String cacheName) {
         this.cacheName = cacheName;
+        return this;
+    }
+
+    /**
+     * 设置预加载时间
+     *
+     * @param preloadTime preloadTime
+     * @return RedisCacheKey
+     */
+    public RedisCacheKey preloadTime(long preloadTime) {
+        this.preloadTime = preloadTime;
         return this;
     }
 
@@ -121,5 +137,9 @@ public class RedisCacheKey {
 
     public Object getKeyElement() {
         return keyElement;
+    }
+
+    public long getPreloadTime() {
+        return preloadTime;
     }
 }

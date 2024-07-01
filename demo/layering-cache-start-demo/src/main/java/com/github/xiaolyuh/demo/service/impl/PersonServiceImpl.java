@@ -1,5 +1,6 @@
 package com.github.xiaolyuh.demo.service.impl;
 
+import com.github.xiaolyuh.annotation.BatchCacheable;
 import com.github.xiaolyuh.annotation.CacheEvict;
 import com.github.xiaolyuh.annotation.CachePut;
 import com.github.xiaolyuh.annotation.Cacheable;
@@ -15,6 +16,9 @@ import com.github.xiaolyuh.redis.serializer.JdkRedisSerializer;
 import com.github.xiaolyuh.redis.serializer.KryoRedisSerializer;
 import com.github.xiaolyuh.redis.serializer.ProtostuffRedisSerializer;
 import com.sun.management.OperatingSystemMXBean;
+import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -64,7 +68,22 @@ public class PersonServiceImpl implements PersonService {
             e.printStackTrace();
         }
 
-        return p;
+        return person;
+    }
+
+    @Override
+    @BatchCacheable(value = "cache-prefix:people", keys = "#personList.![id]", depict = "用户信息缓存",
+        firstCache = @FirstCache(expireTime = 10, timeUnit = TimeUnit.SECONDS),
+        secondaryCache = @SecondaryCache(expireTime = 3, preloadTime = 3,forceRefresh = true,timeUnit = TimeUnit.MINUTES))
+    public List<Person> batch(List<Person> personList) {
+        Person p = new Person(2L, "name2", 12, "address2");
+        Person p1 = new Person(1000L, "name1000", 12, "address2");
+        Person p2 = new Person(1001L, "name1001", 12, "address2");
+        List<Person> persons = Arrays.stream(new Person[]{p, p1, p2}).collect(Collectors.toList());
+        for (Person person : persons) {
+            logger.info("为id、key为:" + person.getId() + "数据做了缓存");
+        }
+        return persons;
     }
 
 

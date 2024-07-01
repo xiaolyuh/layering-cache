@@ -48,6 +48,10 @@ public class CacheOperationExpressionEvaluator extends CachedExpressionEvaluator
 
     private final Map<ExpressionKey, Expression> unlessCache = new ConcurrentHashMap<ExpressionKey, Expression>(64);
 
+    private final Map<ExpressionKey, Expression> returnKeyCache = new ConcurrentHashMap<ExpressionKey, Expression>(64);
+
+
+
     private final Map<AnnotatedElementKey, Method> targetMethodCache =
             new ConcurrentHashMap<AnnotatedElementKey, Method>(64);
 
@@ -98,6 +102,10 @@ public class CacheOperationExpressionEvaluator extends CachedExpressionEvaluator
         return getExpression(this.keyCache, methodKey, expression).getValue(evalContext);
     }
 
+    public Object keys(String unlessExpression, AnnotatedElementKey methodKey, EvaluationContext evalContext) {
+        return getExpression(this.returnKeyCache, methodKey, unlessExpression).getValue(evalContext);
+    }
+
     public Object cacheName(String expression, AnnotatedElementKey methodKey, EvaluationContext evalContext) {
 
         return getExpression(this.cacheNameCache, methodKey, expression).getValue(evalContext);
@@ -110,6 +118,7 @@ public class CacheOperationExpressionEvaluator extends CachedExpressionEvaluator
     public boolean unless(String unlessExpression, AnnotatedElementKey methodKey, EvaluationContext evalContext) {
         return getExpression(this.unlessCache, methodKey, unlessExpression).getValue(evalContext, boolean.class);
     }
+
 
     /**
      * Clear all caches.

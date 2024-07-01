@@ -62,11 +62,6 @@
             <version>3.6.0</version>
         </dependency>
 
-        <dependency>
-            <groupId>com.squareup.okhttp3</groupId>
-            <artifactId>okhttp</artifactId>
-            <version>3.6.0</version>
-        </dependency>
 
         <dependency>
             <groupId>com.esotericsoftware</groupId>
@@ -84,7 +79,7 @@
         <dependency>
             <groupId>com.github.xiaolyuh</groupId>
             <artifactId>layering-cache-starter</artifactId>
-            <version>3.4.8</version>
+            <version>3.4.8-SNAPSHOT</version>
         </dependency>
     </dependencies>
 

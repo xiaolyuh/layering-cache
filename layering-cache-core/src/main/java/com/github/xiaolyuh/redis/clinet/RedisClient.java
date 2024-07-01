@@ -4,6 +4,7 @@ import com.github.xiaolyuh.listener.RedisMessageListener;
 import com.github.xiaolyuh.redis.serializer.RedisSerializer;
 import com.github.xiaolyuh.util.StringUtils;
 
+import io.lettuce.core.KeyValue;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
@@ -57,6 +58,27 @@ public interface RedisClient {
     <T> T get(String key, Class<T> resultType, RedisSerializer valueRedisSerializer);
 
     /**
+     * 通过key获取储存在redis中的value,自动转对象
+     *
+     * @param keys        keys
+     * @param resultType 返回值类型对应的Class对象
+     * @param <T>        返回值类型
+     * @return List<KeyValue<String,Object>>  Key - Value
+     */
+     <T> List<KeyValue<String,Object>> getAll(List<String> keys, Class<T> resultType);
+
+    /**
+     * 通过key获取储存在redis中的value,自动转对象
+     *
+     * @param keys                  key
+     * @param resultType           返回值类型对应的Class对象
+     * @param valueRedisSerializer 指定序列化器
+     * @param <T>                  返回值类型
+     * @return List<KeyValue<String,Object>>  Key - Value
+     */
+     <T> List<KeyValue<String,Object>> getAll(List<String> keys, Class<T> resultType,RedisSerializer valueRedisSerializer);
+
+    /**
      * <p>
      * 向redis存入key和value,并释放连接资源
      * </p>
@@ -85,6 +107,18 @@ public interface RedisClient {
      * @return 成功 返回OK 失败返回 0
      */
     String set(String key, Object value, long time, TimeUnit unit);
+
+
+    /**
+     *
+     * 批量向redis存入key和value,如果key已经存在 则覆盖
+     *
+     * @param keyValues  {@link KeyValue}
+     * @param time  时间
+     * @param unit  时间单位
+     * @return 成功 返回OK 失败返回 0
+     */
+    List<String> batchSet(List<KeyValue<String,Object>> keyValues, long time, TimeUnit unit);
 
     /**
      * <p>
@@ -160,6 +194,20 @@ public interface RedisClient {
 
     /**
      * <p>
+     *
+     * 批量给 keys 设置生存时间，当 keys 过期时(生存时间为 0 )，它会被自动删除。
+     * </p>
+     *
+     * @param keys      keys
+     * @param ttl  过期时间
+     * @param timeUnit 时间单位
+     * @return 成功返回1 如果存在 和 发生异常 返回 0
+     */
+    List<Boolean> batchExpire(List<String> keys, long ttl, TimeUnit timeUnit);
+
+
+    /**
+     * <p>
      * 以秒为单位，返回给定 key 的剩余生存时间
      * </p>
      *
@@ -168,6 +216,17 @@ public interface RedisClient {
      * 的剩余生存时间。 发生异常 返回 0
      */
     Long getExpire(String key);
+
+    /**
+     * <p>
+     * 以秒为单位，返回给定 keys 的剩余生存时间
+     * </p>
+     *
+     * @param keys keys
+     * @return 批量返回对应key的剩余生存时间。当 key 不存在时或没有设置剩余生存时间时，返回 -1 。否则，以秒为单位，返回 key
+     * 的剩余生存时间。 发生异常 返回 0
+     */
+    List<Long> getExpireBatch(List<String> keys);
 
     /**
      * <p>

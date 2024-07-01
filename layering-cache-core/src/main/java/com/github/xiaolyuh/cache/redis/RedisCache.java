@@ -8,7 +8,17 @@ import com.github.xiaolyuh.support.AwaitThreadContainer;
 import com.github.xiaolyuh.support.CacheMode;
 import com.github.xiaolyuh.support.LayeringCacheRedisLock;
 import com.github.xiaolyuh.support.NullValue;
+import com.github.xiaolyuh.util.RandomUtils;
 import com.github.xiaolyuh.util.ThreadTaskUtils;
+import io.lettuce.core.KeyValue;
+import io.lettuce.core.Value;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.util.Assert;
@@ -159,6 +169,82 @@ public class RedisCache extends AbstractValueAdaptingCache {
     }
 
     @Override
+    @SuppressWarnings("unchecked")
+    public <K,V> Map<K, V> getAllPresent(List<String> keys, Class<V> resultType) {
+        if (isStats()) {
+            getCacheStats().addCacheRequestCount(keys.size());
+        }
+
+        List<String> redisKeys = keys.stream().map(this::getRedisCacheKey).map(RedisCacheKey::getKey).collect(Collectors.toList());
+        if (logger.isDebugEnabled()) {
+            logger.debug("redis缓存 keys= {} 查询redis缓存", JSON.toJSONString(redisKeys));
+        }
+        List<KeyValue<String, Object>> all = redisClient.getAll(redisKeys, resultType);
+        return (Map<K, V> )all.stream().filter(Value::hasValue)
+            .collect(Collectors.toMap(KeyValue::getKey, Value::getValue));
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public <K,V> Map<K, V> getAll(List<String> keys, Class<V> resultType, Function< String[], Object> valueLoader) {
+        if (isStats()) {
+            getCacheStats().addCacheRequestCount(keys.size());
+        }
+        if (logger.isDebugEnabled()) {
+            logger.debug("redis缓存 keys= {} 查询redis缓存如果没有命中，从数据库获取数据", JSON.toJSONString(keys));
+        }
+
+
+        List<RedisCacheKey> redisCacheKeys = keys.stream().map(this::getRedisCacheKey).collect(Collectors.toList());
+
+        //redisKey ->  RedisCacheKey
+        Map<String, RedisCacheKey> mapping = redisCacheKeys.stream().collect(Collectors
+            .toMap(RedisCacheKey::getKey, Function.identity(), (oldValue, newValue) -> newValue));
+
+        List<String> redisKeys = redisCacheKeys.stream().map(RedisCacheKey::getKey).collect(Collectors.toList());
+        // 先获取Redis缓存
+        Map<String, Object> cacheValues = new HashMap<>(keys.size());
+        // 找出缓存中没有的键
+        List<RedisCacheKey> missingCacheKeys = new ArrayList<>();
+        List<RedisCacheKey> refreshCacheKeys = new ArrayList<>();
+        List<KeyValue<String, Object>> all = redisClient.getAll(redisKeys, resultType);
+
+
+        for (KeyValue<String, Object> keyValue : all) {
+            String key = keyValue.getKey();
+            if(!keyValue.hasValue() && !redisClient.hasKey(key) ){
+                missingCacheKeys.add(mapping.get(key));
+                continue;
+            }
+            cacheValues.put((String) mapping.get(key).getKeyElement(),keyValue.hasValue() ? keyValue.getValue() : null);
+            //待刷新缓存
+            refreshCacheKeys.add(mapping.get(key));
+        }
+
+        //刷新缓存
+        batchRefreshCache(refreshCacheKeys,resultType,valueLoader,cacheValues);
+
+        // 加载 获取这些没有命中缓存的值
+        if (!missingCacheKeys.isEmpty()) {
+            if (logger.isDebugEnabled()) {
+                logger.debug("redis缓存没有命中keys= {} ，从数据库获取数据", JSON.toJSONString(missingCacheKeys));
+            }
+
+            List<Object> loadValues = batchLoadAndPutValues(valueLoader, missingCacheKeys,true);
+            for (int i = 0; i < missingCacheKeys.size(); i++) {
+                if (loadValues.get(i) != null) {
+                    cacheValues.put((String) missingCacheKeys.get(i).getKeyElement(), loadValues.get(i));
+                }else if(isAllowNullValues()){
+                    cacheValues.put((String) missingCacheKeys.get(i).getKeyElement(), null);
+                }
+            }
+        }
+
+        return (Map<K, V>)cacheValues;
+    }
+
+
+    @Override
     public void put(String key, Object value) {
         RedisCacheKey redisCacheKey = getRedisCacheKey(key);
         if (logger.isDebugEnabled()) {
@@ -277,6 +363,30 @@ public class RedisCache extends AbstractValueAdaptingCache {
         }
     }
 
+
+    /**
+     * 批量加载并将数据放到redis缓存
+     */
+    @SuppressWarnings("unchecked")
+    private List<Object> batchLoadAndPutValues(Function<String[], Object> valueLoader, List<RedisCacheKey> cacheKeys, boolean isLoad) {
+        long start = System.currentTimeMillis();
+        if (isLoad && isStats()) {
+            getCacheStats().addCachedMethodRequestCount(1);
+        }
+        String[] keys = cacheKeys.stream().map(cacheKey -> (String)cacheKey.getKeyElement()).toArray(String[]::new);
+        List<Object> loadValues = (List<Object>) valueLoader.apply(keys);
+
+        if (logger.isDebugEnabled()) {
+            logger.debug("redis缓存 cacheName={}  cacheKeys={} 从库加载缓存 {}",getName(), JSON.toJSONString(cacheKeys), JSON.toJSONString(loadValues));
+        }
+
+        if (isLoad && isStats()) {
+            getCacheStats().addCachedMethodRequestTime(System.currentTimeMillis() - start);
+        }
+        putValues(cacheKeys,loadValues);
+        return loadValues;
+    }
+
     private Object putValue(RedisCacheKey key, Object value) {
         Object result = toStoreValue(value);
         // redis 缓存不允许直接存NULL，如果结果返回NULL需要删除缓存
@@ -299,6 +409,37 @@ public class RedisCache extends AbstractValueAdaptingCache {
         // 将数据放到缓存
         redisClient.set(key.getKey(), result, expirationTime, TimeUnit.MILLISECONDS);
         return result;
+    }
+
+    private List<Object> putValues(List<RedisCacheKey> keys, List<Object> values) {
+
+        List<KeyValue<String, Object>> keyValues = new ArrayList<>();
+        List<KeyValue<String, Object>> nullKeyValues = new ArrayList<>();
+
+        for (int i = 0; i < keys.size(); i++) {
+            RedisCacheKey key = keys.get(i);
+            Object result = toStoreValue(values.get(i));
+            if (result == null) {
+                continue;
+            }
+            // 不允许缓存NULL值，删除缓存
+            if (!isAllowNullValues() && result instanceof NullValue) {
+                redisClient.delete(key.getKey());
+                continue;
+            }
+
+            // 允许缓存NULL值
+            if (isAllowNullValues() && result instanceof NullValue) {
+                nullKeyValues.add(KeyValue.just(key.getKey(),NullValue.INSTANCE));
+                continue;
+            }
+            keyValues.add(KeyValue.just(key.getKey(), result));
+        }
+
+        // 将数据放到缓存
+        redisClient.batchSet(keyValues, expiration, TimeUnit.MILLISECONDS);
+        redisClient.batchSet(nullKeyValues, expiration / getMagnification(), TimeUnit.MILLISECONDS);
+        return values;
     }
 
     /**
@@ -328,6 +469,44 @@ public class RedisCache extends AbstractValueAdaptingCache {
     }
 
     /**
+     * 批量刷新缓存数据
+     */
+    private <T> void batchRefreshCache(List<RedisCacheKey> redisCacheKeys, Class<T> resultType, Function< String[], Object> valueLoader, Map<String, Object> values) {
+        if(redisCacheKeys.isEmpty()){
+            return;
+        }
+
+        //批量获取过期时间，判断是否需要刷新
+        List<Long>  expires = getExpires(redisCacheKeys);
+        List<RedisCacheKey> refreshCacheKeys = new ArrayList<>();
+        for (int i = 0; i < redisCacheKeys.size(); i++) {
+            RedisCacheKey cacheKey = redisCacheKeys.get(i);
+            boolean flag = isAllowNullValues() && (values.get((String) cacheKey.getKeyElement()) == null);
+            cacheKey.preloadTime(RandomUtils.getRandomPreloadTime(flag ? (preloadTime/ magnification) : (preloadTime)));
+            boolean isRefresh = isRefresh(cacheKey.getPreloadTime(),expires.get(i));
+            if(isRefresh){
+                refreshCacheKeys.add(cacheKey);
+            }
+        }
+
+
+        if (!getForceRefresh()) {
+            if (logger.isDebugEnabled()) {
+                logger.debug("redis缓存 keys={} 软刷新缓存模式", JSON.toJSONString(refreshCacheKeys.stream().map(RedisCacheKey::getKey).collect(Collectors.toList())));
+            }
+            batchSoftRefresh(refreshCacheKeys);
+        } else {
+            if (logger.isDebugEnabled()) {
+                logger.debug("redis缓存 keys={} 强刷新缓存模式", JSON.toJSONString(refreshCacheKeys.stream().map(RedisCacheKey::getKey).collect(Collectors.toList())));
+            }
+            batchForceRefresh(redisCacheKeys, resultType, valueLoader);
+        }
+}
+
+
+
+
+    /**
      * 软刷新，直接修改缓存时间
      *
      * @param redisCacheKey {@link RedisCacheKey}
@@ -343,6 +522,19 @@ public class RedisCache extends AbstractValueAdaptingCache {
             logger.error(e.getMessage(), e);
         } finally {
             redisLock.unlock();
+        }
+    }
+
+    /**
+     *     批量软刷新
+     * @param redisCacheKeys redisCacheKey列表 {@link RedisCacheKey}
+     */
+    private void batchSoftRefresh(List<RedisCacheKey> redisCacheKeys) {
+        try {
+            List<String> keys = redisCacheKeys.stream().map(RedisCacheKey::getKey).collect(Collectors.toList());
+            redisClient.batchExpire(keys,this.expiration,TimeUnit.MILLISECONDS);
+        } catch (Exception e) {
+            logger.error(e.getMessage(), e);
         }
     }
 
@@ -382,6 +574,73 @@ public class RedisCache extends AbstractValueAdaptingCache {
     }
 
     /**
+     * 批量方法的硬刷新（执行被缓存的方法）
+     *
+     * @param redisCacheKeys {@link RedisCacheKey}
+     * @param valueLoader   数据加载器
+     */
+    private <T> void batchForceRefresh(List<RedisCacheKey> redisCacheKeys, Class<T> resultType, Function< String[], Object> valueLoader) {
+        if(redisCacheKeys.isEmpty()){
+            return;
+        }
+        // 尽量少的去开启线程，因为线程池是有限的
+        ThreadTaskUtils.refreshCacheRun(() -> {
+            // 加一个分布式锁，只放一个请求去刷新缓存
+            LayeringCacheRedisLock redisLock = new LayeringCacheRedisLock(redisClient, Arrays.toString(redisCacheKeys.get(0).getPrefix()) + "_batch_lock");
+            try {
+                if (redisLock.lock()) {
+                    // 获取锁之后再判断一下过期时间，看是否需要加载数据
+                    List<Long>  expires = getExpires(redisCacheKeys);
+                    List<RedisCacheKey> refreshCacheKeys = new ArrayList<>();
+                    for (int i = 0; i < redisCacheKeys.size(); i++) {
+                        RedisCacheKey cacheKey = redisCacheKeys.get(i);
+                        boolean isRefresh = isRefresh(cacheKey.getPreloadTime(),expires.get(i));
+                        if(isRefresh){
+                            refreshCacheKeys.add(cacheKey);
+                        }
+                    }
+                    if(refreshCacheKeys.isEmpty()){
+                        return;
+                    }
+
+                    List<String> keys = refreshCacheKeys.stream().map(RedisCacheKey::getKey).collect(Collectors.toList());
+                    List<KeyValue<String, Object>> oldValues = redisClient.getAll(keys, resultType);
+                    List<Object> values = batchLoadAndPutValues(valueLoader, refreshCacheKeys, false);
+
+                    for (int i = 0; i < oldValues.size(); i++) {
+                        KeyValue<String, Object> oldValue = oldValues.get(i);
+                        Object oldDate =  oldValue.hasValue() ? oldValue.getValue() : null ;
+                        Object newDate =  values.get(i);
+                        // 比较新老数据是否相等，如果不相等就删除一级缓存
+                        if (!Objects.equals(oldDate, newDate) && !JSON.toJSONString(oldDate).equals(JSON.toJSONString(newDate))) {
+                            if(logger.isDebugEnabled()){
+                                logger.debug("二级缓存数据发生变更，同步刷新一级缓存,oldDate={},newDate={}",JSON.toJSONString(oldDate),JSON.toJSONString(newDate));
+                            }
+
+                            deleteClusterFirstCacheByKey((String) refreshCacheKeys.get(i).getKeyElement(), redisClient);
+                        }
+                    }
+                }
+            } catch (Exception e) {
+                logger.error(e.getMessage(), e);
+            } finally {
+                redisLock.unlock();
+            }
+        });
+    }
+
+    /**
+     *   批量获取剩余生存时间
+     * @param redisCacheKeys
+     * @return
+     */
+    private List<Long> getExpires(List<RedisCacheKey> redisCacheKeys) {
+        List<String> keys = redisCacheKeys.stream().map(RedisCacheKey::getKey).collect(Collectors.toList());
+        return redisClient.getExpireBatch(keys);
+    }
+
+
+    /**
      * 判断是否需要刷新缓存
      *
      * @param redisCacheKey 缓存key
@@ -397,6 +656,22 @@ public class RedisCache extends AbstractValueAdaptingCache {
         }
         // 当前缓存时间小于刷新时间就需要刷新缓存
         return ttl > 0 && TimeUnit.SECONDS.toMillis(ttl) <= preloadTime;
+    }
+
+
+    /**
+     *  判断是否需要刷新缓存
+     * @param preloadTime    预加载时间（经过计算后的时间）
+     * @param ttl  过期时间
+     * @return
+     */
+    private boolean isRefresh( long preloadTime, Long ttl) {
+        // -2表示key不存在
+        if (ttl == null || ttl == -2) {
+            return true;
+        }
+        // 当前缓存时间小于刷新时间就需要刷新缓存
+        return ttl > 3 && TimeUnit.SECONDS.toMillis(ttl) <= preloadTime;
     }
 
     /**

@@ -19,7 +19,7 @@ import org.springframework.context.annotation.PropertySource;
 @PropertySource({"classpath:application.properties"})
 public class RedisClusterConfig {
 
-    @Value("${spring.redis.cluster:127.0.0.1:7000,127.0.0.1:7001,127.0.0.1:7002,127.0.0.1:7003,127.0.0.1:7004,127.0.0.1:7005}")
+    @Value("${spring.redis.cluster:127.0.0.1:9000,127.0.0.1:9001,127.0.0.1:9002,127.0.0.1:9003,127.0.0.1:9004,127.0.0.1:9005}")
     private String cluster;
 
     @Value("${spring.redis.password:}")

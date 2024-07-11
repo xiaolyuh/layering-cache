@@ -3,7 +3,6 @@ package com.github.xiaolyuh.manager;
 import com.github.xiaolyuh.cache.Cache;
 import com.github.xiaolyuh.listener.RedisMessageListener;
 import com.github.xiaolyuh.listener.RedisMessagePullTask;
-import com.github.xiaolyuh.listener.RedisPubSubThreadTaskUtils;
 import com.github.xiaolyuh.redis.clinet.RedisClient;
 import com.github.xiaolyuh.setting.LayeringCacheSetting;
 import com.github.xiaolyuh.stats.StatsService;
@@ -178,7 +177,6 @@ public abstract class AbstractCacheManager implements CacheManager, Initializing
 
     @Override
     public void destroy() throws Exception {
-        RedisPubSubThreadTaskUtils.close();
         BeanFactory.getBean(StatsService.class).shutdownExecutor();
     }
 

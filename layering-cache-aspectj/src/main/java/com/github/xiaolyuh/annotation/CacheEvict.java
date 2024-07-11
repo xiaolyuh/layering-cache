@@ -1,14 +1,13 @@
 package com.github.xiaolyuh.annotation;
 
 import com.github.xiaolyuh.support.CacheMode;
-import org.springframework.core.annotation.AliasFor;
-
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Inherited;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
+import org.springframework.core.annotation.AliasFor;
 
 /**
  * 删除缓存
@@ -69,6 +68,11 @@ public @interface CacheEvict {
      * @return boolean
      */
     boolean allEntries() default false;
-
-
+    
+    /**
+     * 是否异步删除缓存中所有数据
+     *
+     * @return boolean
+     */
+    boolean async() default false;
 }

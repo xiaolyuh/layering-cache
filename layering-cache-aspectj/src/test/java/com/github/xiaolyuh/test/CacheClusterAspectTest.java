@@ -479,6 +479,45 @@ public class CacheClusterAspectTest {
     }
 
     @Test
+    public void testEvictAllUserAsyncTrue() {
+        testService.putUserById(119);
+        testService.putUserById(120);
+        testService.putUserById(121);
+        sleep(5);
+        testService.evictAllUser();
+        sleep(3);
+        Object result1 = redisClient.get("user:info:119", User.class);
+        Object result2 = redisClient.get("user:info:121", User.class);
+        Assert.assertNull(result1);
+        Assert.assertNull(result2);
+    }
+
+    @Test
+    public void testEvictAllUserAsyncTrueNoCacheMannger() {
+        testService.putUserById(119_119);
+        testService.putUserById(119_120);
+        testService.putUserById(119_121);
+        sleep(2);
+        ((LayeringCacheManager) cacheManager).getCacheContainer().clear();
+        Assert.assertTrue(((LayeringCacheManager) cacheManager).getCacheContainer().size() == 0);
+        testService.evictUser(119_119);
+        sleep(2);
+        Object result1 = redisClient.get("user:info:119119", User.class);
+        Object result2 = redisClient.get("user:info:119121", User.class);
+        Assert.assertNull(result1);
+        Assert.assertNotNull(result2);
+
+        ((LayeringCacheManager) cacheManager).getCacheContainer().clear();
+        Assert.assertTrue(((LayeringCacheManager) cacheManager).getCacheContainer().size() == 0);
+        testService.evictAllUser();
+        sleep(2);
+        result2 = redisClient.get("user:info:119121", User.class);
+        Object result3 = redisClient.get("user:info:119122", User.class);
+        Assert.assertNull(result2);
+        Assert.assertNull(result3);
+    }
+
+    @Test
     public void testEvictAllUser() {
         testService.putUserById(119);
         testService.putUserById(120);
@@ -516,6 +555,8 @@ public class CacheClusterAspectTest {
         Assert.assertNull(result2);
         Assert.assertNull(result3);
     }
+
+
 
     @Test
     public void getUserById118DisableFirstCache() {

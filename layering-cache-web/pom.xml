@@ -92,7 +92,7 @@
         <dependency>
             <groupId>com.github.xiaolyuh</groupId>
             <artifactId>layering-cache-core</artifactId>
-            <version>3.4.7</version>
+            <version>3.4.8</version>
         </dependency>
     </dependencies>
 

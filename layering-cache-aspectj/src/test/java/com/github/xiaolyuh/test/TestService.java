@@ -367,6 +367,10 @@ public class TestService {
     public void evictAllUser() {
     }
 
+    @CacheEvict(value = "user:info", allEntries = true, async = true)
+    public void evictAllUserAsyncTrue() {
+    }
+
 
     @Cacheable(value = "user:info:118:3-0-2", key = "#userId", cacheMode = CacheMode.SECOND,
             secondaryCache = @SecondaryCache(expireTime = 10, preloadTime = 3,

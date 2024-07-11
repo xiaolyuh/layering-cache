@@ -16,6 +16,7 @@ import com.github.xiaolyuh.setting.SecondaryCacheSetting;
 import com.github.xiaolyuh.support.CacheMode;
 import com.github.xiaolyuh.support.KeyGenerator;
 import com.github.xiaolyuh.support.SimpleKeyGenerator;
+import com.github.xiaolyuh.util.ThreadTaskUtils;
 import com.github.xiaolyuh.util.ToStringUtils;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
@@ -251,18 +252,31 @@ public class LayeringAspect {
                 Collection<Cache> caches = cacheManager.getCache(cacheName);
                 if (CollectionUtils.isEmpty(caches)) {
                     // 如果没有找到Cache就新建一个默认的
-                    Cache cache = cacheManager.getCache(cacheName,
-                            new LayeringCacheSetting(new FirstCacheSetting(), new SecondaryCacheSetting(), "默认缓存配置（清除时生成）", cacheEvict.cacheMode()));
-                    cache.clear();
+                    Cache cache = cacheManager.getCache(cacheName, new LayeringCacheSetting(new FirstCacheSetting(), new SecondaryCacheSetting(), "默认缓存配置（清除时生成）", cacheEvict.cacheMode()));
+                    if (cacheEvict.async()) {
+                        ThreadTaskUtils.deleteCacheRun(cache::clear);
+                    } else {
+                        cache.clear();
+                    }
                 } else {
                     for (Cache cache : caches) {
-                        cache.clear();
+                        // 是否执行异步删除
+                        if (cacheEvict.async()) {
+                            ThreadTaskUtils.deleteCacheRun(cache::clear);
+                        } else {
+                            cache.clear();
+                        }
                     }
                 }
             }
         } else {
             // 删除指定key
-            delete(cacheNames, cacheEvict.key(), method, args, target);
+            // 是否执行异步删除
+            if (cacheEvict.async()) {
+                ThreadTaskUtils.deleteCacheRun(() -> delete(cacheNames, cacheEvict.key(), method, args, target));
+            } else {
+                delete(cacheNames, cacheEvict.key(), method, args, target);
+            }
         }
     }
 

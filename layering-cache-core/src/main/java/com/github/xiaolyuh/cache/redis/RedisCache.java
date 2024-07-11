@@ -355,7 +355,7 @@ public class RedisCache extends AbstractValueAdaptingCache {
      */
     private <T> void forceRefresh(RedisCacheKey redisCacheKey, Class<T> resultType, Callable<T> valueLoader, long preloadTime) {
         // 尽量少的去开启线程，因为线程池是有限的
-        ThreadTaskUtils.run(() -> {
+        ThreadTaskUtils.refreshCacheRun(() -> {
             // 加一个分布式锁，只放一个请求去刷新缓存
             LayeringCacheRedisLock redisLock = new LayeringCacheRedisLock(redisClient, redisCacheKey.getKey() + "_lock");
             try {

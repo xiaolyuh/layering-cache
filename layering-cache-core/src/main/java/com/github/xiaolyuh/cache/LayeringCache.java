@@ -143,7 +143,7 @@ public class LayeringCache extends AbstractValueAdaptingCache {
         // 开启二级缓存
         secondCache.put(key, value);
         // 删除一级缓存
-        deleteFirstCacheByKey(key, redisClient);
+        deleteClusterFirstCacheByKey(key, redisClient);
     }
 
     @Override
@@ -156,36 +156,32 @@ public class LayeringCache extends AbstractValueAdaptingCache {
         // 开启二级缓存
         T result = secondCache.putIfAbsent(key, value, resultType);
         // 删除一级缓存
-        deleteFirstCacheByKey(key, redisClient);
+        deleteClusterFirstCacheByKey(key, redisClient);
         return result;
     }
 
     @Override
     public void evict(String key) {
-        // 只开启一级缓存
-        if (CacheMode.FIRST.equals(cacheMode)) {
-            firstCache.evict(key);
-            return;
+        if (!CacheMode.FIRST.equals(cacheMode)) {
+            // 开启二级缓存、删除的时候要先删除二级缓存再删除一级缓存，否则有并发问题
+            secondCache.evict(key);
         }
-
-        // 开启二级缓存、删除的时候要先删除二级缓存再删除一级缓存，否则有并发问题
-        secondCache.evict(key);
-
-        // 删除一级缓存
-        deleteFirstCacheByKey(key, redisClient);
+        if (!CacheMode.SECOND.equals(cacheMode)) {
+            // 删除一级缓存
+            deleteClusterFirstCacheByKey(key, redisClient);
+        }
     }
 
     @Override
     public void clear() {
-        // 只开启一级缓存
-        if (CacheMode.FIRST.equals(cacheMode)) {
-            firstCache.clear();
-            return;
+        if (!CacheMode.FIRST.equals(cacheMode)) {
+            // 开启二级缓存、删除的时候要先删除二级缓存再删除一级缓存，否则有并发问题
+            secondCache.clear();
         }
-
-        // 开启二级缓存、删除的时候要先删除二级缓存再删除一级缓存，否则有并发问题
-        secondCache.clear();
-        clearFirstCache(redisClient);
+        if (!CacheMode.SECOND.equals(cacheMode)) {
+            // 删除一级缓存
+            clearClusterFirstCache(redisClient);
+        }
     }
 
 

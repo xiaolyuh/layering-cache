@@ -152,28 +152,30 @@ public abstract class AbstractValueAdaptingCache implements Cache {
         this.cacheStats = cacheStats;
     }
 
-    public void deleteFirstCacheByKey(String key, RedisClient redisClient) {
-        // 删除一级缓存
-        if (CacheMode.ALL.equals(cacheMode)) {
-            // 删除一级缓存需要用到redis的Pub/Sub（订阅/发布）模式，否则集群中其他服服务器节点的一级缓存数据无法删除
-            RedisPubSubMessage message = new RedisPubSubMessage();
-            message.setCacheName(getName());
-            message.setKey(key);
-            message.setMessageType(RedisPubSubMessageType.EVICT);
-            // 发布消息
-            RedisPublisher.publisher(redisClient, message);
+    public void deleteClusterFirstCacheByKey(String key, RedisClient redisClient) {
+        if (CacheMode.SECOND.equals(cacheMode)) {
+            return;
         }
+        // 删除一级缓存
+        // 删除一级缓存需要用到redis的Pub/Sub（订阅/发布）模式，否则集群中其他服服务器节点的一级缓存数据无法删除
+        RedisPubSubMessage message = new RedisPubSubMessage();
+        message.setCacheName(getName());
+        message.setKey(key);
+        message.setMessageType(RedisPubSubMessageType.EVICT);
+        // 发布消息
+        RedisPublisher.publisher(redisClient, message);
     }
 
-    public void clearFirstCache(RedisClient redisClient) {
-        // 清除一级缓存
-        if (CacheMode.ALL.equals(cacheMode)) {
-            // 清除一级缓存需要用到redis的订阅/发布模式，否则集群中其他服服务器节点的一级缓存数据无法删除
-            RedisPubSubMessage message = new RedisPubSubMessage();
-            message.setCacheName(getName());
-            message.setMessageType(RedisPubSubMessageType.CLEAR);
-            // 发布消息
-            RedisPublisher.publisher(redisClient, message);
+    public void clearClusterFirstCache(RedisClient redisClient) {
+        if (CacheMode.SECOND.equals(cacheMode)) {
+            return;
         }
+        // 清除一级缓存
+        // 清除一级缓存需要用到redis的订阅/发布模式，否则集群中其他服服务器节点的一级缓存数据无法删除
+        RedisPubSubMessage message = new RedisPubSubMessage();
+        message.setCacheName(getName());
+        message.setMessageType(RedisPubSubMessageType.CLEAR);
+        // 发布消息
+        RedisPublisher.publisher(redisClient, message);
     }
 }

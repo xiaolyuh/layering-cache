@@ -65,8 +65,8 @@ public class RedisMessageService {
         if (maxOffset < 0) {
             return;
         }
-        // 更新本地消息偏移量
-        long oldOffset = OFFSET.getAndSet(maxOffset > 0 ? maxOffset : 0);
+
+        long oldOffset = OFFSET.get();
         if (oldOffset >= maxOffset) {
             return;
         }
@@ -74,6 +74,15 @@ public class RedisMessageService {
         if (CollectionUtils.isEmpty(messages)) {
             return;
         }
+
+        //先临时修复，高并发下大量消息会导致始终无法更新本地消息偏移量，直到最后一条消息
+        //获取消息后再次判断下偏移量
+        long maxOffsetPost = redisClient.llen(GlobalConfig.getMessageRedisKey()) - 1;
+        if(maxOffsetPost > maxOffset){
+            return;
+        }
+        // 更新本地消息偏移量
+        OFFSET.set(maxOffset);
 
         // 更新最后一次处理拉消息的时间搓
         RedisMessageService.updateLastPullTime();

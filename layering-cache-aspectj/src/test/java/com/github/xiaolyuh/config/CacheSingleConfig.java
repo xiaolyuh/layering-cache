@@ -4,6 +4,7 @@ import com.github.xiaolyuh.aspect.LayeringAspect;
 import com.github.xiaolyuh.manager.CacheManager;
 import com.github.xiaolyuh.manager.LayeringCacheManager;
 import com.github.xiaolyuh.redis.clinet.RedisClient;
+import com.github.xiaolyuh.test.BatchTestService;
 import com.github.xiaolyuh.test.TestService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -31,5 +32,10 @@ public class CacheSingleConfig {
     @Bean
     public TestService testService() {
         return new TestService();
+    }
+
+    @Bean
+    public BatchTestService testBatchTestService() {
+        return new BatchTestService();
     }
 }

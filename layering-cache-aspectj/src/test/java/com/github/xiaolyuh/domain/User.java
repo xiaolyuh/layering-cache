@@ -27,6 +27,17 @@ public class User implements Serializable {
         this.birthday = new Date();
     }
 
+    public User(long userId,int age) {
+        this();
+        this.userId = userId;
+        this.age = age;
+    }
+
+    public User(long userId ) {
+        this();
+        this.userId = userId;
+    }
+
     private long userId;
 
     private String name;

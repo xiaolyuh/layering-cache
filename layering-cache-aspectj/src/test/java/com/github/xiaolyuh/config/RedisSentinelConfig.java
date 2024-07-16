@@ -22,7 +22,7 @@ public class RedisSentinelConfig {
     @Value("${layering-cache.redis.nodes:127.0.0.1:26379,127.0.0.1:26380,127.0.0.1:26381}")
     private String nodes;
 
-    @Value("${spring.redis.password:}")
+    @Value("${spring.redis.password:123}")
     private String password;
 
     @Bean

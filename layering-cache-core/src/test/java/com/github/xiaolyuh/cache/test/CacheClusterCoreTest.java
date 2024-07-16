@@ -19,6 +19,7 @@ import com.github.xiaolyuh.support.CacheMode;
 import com.github.xiaolyuh.support.ExpireMode;
 import com.github.xiaolyuh.support.LayeringCacheRedisLock;
 import com.github.xiaolyuh.util.GlobalConfig;
+import java.util.concurrent.CountDownLatch;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -474,6 +475,43 @@ public class CacheClusterCoreTest {
         Assert.assertNull(str2);
     }
 
+
+    /**
+     * 测试并发删除一级缓存
+     */
+    @Test
+    public void testConcurrentPullDeleteFirstCache() throws InterruptedException {
+        int concurrentNum = 1000;
+        // 测试 缓存过期时间
+        String cacheName = "cache:name:concurrentNumKey:3-4-8:";
+        LayeringCache cache = (LayeringCache) cacheManager.getCache(cacheName, layeringCacheSetting6);
+        for (int i = 0; i < concurrentNum; i++) {
+            cache.get(i + "", String.class, () -> initCache(String.class));
+        }
+        RedisClient redisClient = ((AbstractCacheManager) cacheManager).getRedisClient();
+        CountDownLatch downLatch = new CountDownLatch(concurrentNum);
+        for (int i = 0; i < concurrentNum; i++) {
+            String cacheKey = i + "";
+            new Thread(() -> {
+                try {
+                    cache.deleteClusterFirstCacheByKey(cacheKey, redisClient);
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                } finally {
+                    downLatch.countDown();
+                }
+            }).start();
+        }
+        downLatch.await(10, TimeUnit.MINUTES);
+        Thread.sleep(10000);
+        // 此时进行断言检查
+        for (int i = 0; i < concurrentNum; i++) {
+            String cacheKey = i + "";
+            String str = cache.getFirstCache().get(cacheKey, String.class);
+            Assert.assertNull("缓存 " + cacheName + " 的 key " + cacheKey + " 应该被成功删除", str);
+        }
+    }
+
     private void pushDeleteMessage(String cacheName, String cacheKey) {
         RedisPubSubMessage message = new RedisPubSubMessage();
         message.setCacheName(cacheName);
@@ -730,7 +768,7 @@ public class CacheClusterCoreTest {
 
         sleep(5);
         Long llen2 = ((AbstractCacheManager) cacheManager).getRedisClient().llen(GlobalConfig.getMessageRedisKey());
-        Assert.assertEquals(llen1, llen2);
+        Assert.assertTrue("禁用二级缓存依然需要发送删除一级缓存的消息",llen2 > llen1);
 
         // 二级缓存不为空
         Object result = cache1.getSecondCache().get(cacheKey1, String.class);
@@ -762,7 +800,7 @@ public class CacheClusterCoreTest {
 
         sleep(5);
         Long llen2 = ((AbstractCacheManager) cacheManager).getRedisClient().llen(GlobalConfig.getMessageRedisKey());
-        Assert.assertEquals(llen1, llen2);
+        Assert.assertTrue("禁用二级缓存依然需要发送删除一级缓存的消息",llen2 > llen1);
 
         // 二级缓存不为空
         Object result = cache1.getSecondCache().get(cacheKey1, String.class);

@@ -9,13 +9,14 @@ import com.github.xiaolyuh.support.LayeringCacheRedisLock;
 import com.github.xiaolyuh.util.BeanFactory;
 import com.github.xiaolyuh.util.GlobalConfig;
 import com.github.xiaolyuh.util.StringUtils;
+import io.lettuce.core.ScriptOutputType;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.concurrent.atomic.AtomicLong;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.util.CollectionUtils;
-
-import java.util.Collection;
-import java.util.List;
-import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * 拉消息模式
@@ -50,6 +51,19 @@ public class RedisMessageService {
      */
     private AbstractCacheManager cacheManager;
 
+    public static final String LUA_SCRIPT =
+            "local messageKey = KEYS[1] " +
+                    "local oldOffset = tonumber(ARGV[1]) " +
+                    "local maxOffset = redis.call('llen', messageKey) - 1 " +
+                    "if maxOffset < 0 then " +
+                    "    return { maxOffset, {} } " +
+                    "end " +
+                    "if oldOffset >= maxOffset then " +
+                    "    return { maxOffset, {} } " +
+                    "end " +
+                    "local messages = redis.call('lrange', messageKey, 0, maxOffset - oldOffset - 1) " +
+                    "return { maxOffset, messages }";
+
     public RedisMessageService init(AbstractCacheManager cacheManager) {
         this.cacheManager = cacheManager;
         return this;
@@ -60,25 +74,31 @@ public class RedisMessageService {
      */
     public void pullMessage() {
         RedisClient redisClient = cacheManager.getRedisClient();
-        long maxOffset = redisClient.llen(GlobalConfig.getMessageRedisKey()) - 1;
-        // 没有消息
-        if (maxOffset < 0) {
-            return;
-        }
-        // 更新本地消息偏移量
-        long oldOffset = OFFSET.getAndSet(maxOffset > 0 ? maxOffset : 0);
-        if (oldOffset >= maxOffset) {
-            return;
-        }
-        List<String> messages = redisClient.lrange(GlobalConfig.getMessageRedisKey(), 0, maxOffset - oldOffset - 1, GlobalConfig.GLOBAL_REDIS_SERIALIZER);
-        if (CollectionUtils.isEmpty(messages)) {
-            return;
+        String messageRedisKey = GlobalConfig.getMessageRedisKey();
+        List<byte[]> messages = null;
+        synchronized (messageRedisKey) {
+            long oldOffset = OFFSET.get();
+            List<String> keys = Collections.singletonList(messageRedisKey);
+            List<String> args = Collections.singletonList(String.valueOf(oldOffset));
+            // issues/85 解决llen和lrange的原子性
+            List<Object> result = (List<Object>) redisClient.eval(LUA_SCRIPT, ScriptOutputType.MULTI, keys, args);
+            if (CollectionUtils.isEmpty(result) || result.size() < 2) {
+                throw new RuntimeException("拉取清除一级缓存的消息失败，Lua表达式执行错误");
+            }
+            long maxOffset = (Long) result.get(0);
+            messages = (List<byte[]>) result.get(1);
+            // 没有消息
+            if (maxOffset < 0 || CollectionUtils.isEmpty(messages)) {
+                return;
+            }
+            // 更新本地消息偏移量
+            OFFSET.set(maxOffset > 0 ? maxOffset : 0);
+            RedisMessageService.updateLastPullTime();
         }
 
-        // 更新最后一次处理拉消息的时间搓
-        RedisMessageService.updateLastPullTime();
-
-        for (String message : messages) {
+        for (byte[] messageByteArray : messages) {
+            // 将字节数组转换为字符串
+            String message = GlobalConfig.GLOBAL_REDIS_SERIALIZER.deserialize(messageByteArray, String.class);
             if (logger.isDebugEnabled()) {
                 logger.debug("redis 通过PULL方式处理本地缓，消息内容：{}", message);
             }
@@ -97,7 +117,6 @@ public class RedisMessageService {
 
                     // 删除一级缓存数据
                     removeFirstCache(redisPubSubMessage, (LayeringCache) cache);
-
                 }
             }
         }

@@ -28,7 +28,7 @@ public class RedisSingleConfig {
     @Value("${layering-cache.redis.password:}")
     private String password;
 
-    @Value("${layering-cache.redis.port:6378}")
+    @Value("${layering-cache.redis.port:6379}")
     private int port;
 
     @Bean

@@ -19,6 +19,13 @@ import com.github.xiaolyuh.support.CacheMode;
 import com.github.xiaolyuh.support.ExpireMode;
 import com.github.xiaolyuh.support.LayeringCacheRedisLock;
 import com.github.xiaolyuh.util.GlobalConfig;
+import io.lettuce.core.ScriptOutputType;
+import io.lettuce.core.api.sync.RedisCommands;
+import java.util.Collection;
+import java.util.Set;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -28,10 +35,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-
-import java.util.Collection;
-import java.util.Set;
-import java.util.concurrent.TimeUnit;
 
 // SpringJUnit4ClassRunner再Junit环境下提供Spring TestContext Framework的功能。
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -825,6 +828,44 @@ public class CacheSingleCoreTest {
         hasKey = redisClient.hasKey("test:123_lock");
         Assert.assertTrue(!hasKey);
     }
+
+
+    /**
+     * 测试锁
+     */
+    @Test
+    public void testConcurrentDeleteFirstCache() throws InterruptedException {
+        int concurrentNum = 1000;
+        // 测试 缓存过期时间
+        String cacheName = "cache:name:concurrentNumKey:3-4-8:";
+        LayeringCache cache = (LayeringCache) cacheManager.getCache(cacheName, layeringCacheSetting6);
+        for (int i = 0; i < concurrentNum; i++) {
+            cache.get(i + "", String.class, () -> initCache(String.class));
+        }
+        RedisClient redisClient = ((AbstractCacheManager) cacheManager).getRedisClient();
+        CountDownLatch downLatch = new CountDownLatch(concurrentNum);
+        for (int i = 0; i < concurrentNum; i++) {
+            String cacheKey = i + "";
+            new Thread(() -> {
+                try {
+                    cache.deleteClusterFirstCacheByKey(cacheKey, redisClient);
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                } finally {
+                    downLatch.countDown();
+                }
+            }).start();
+        }
+        downLatch.await(10, TimeUnit.MINUTES);
+        Thread.sleep(10000);
+        // 此时进行断言检查
+        for (int i = 0; i < concurrentNum; i++) {
+            String cacheKey = i + "";
+            String str = cache.getFirstCache().get(cacheKey, String.class);
+            Assert.assertNull("缓存 " + cacheName + " 的 key " + cacheKey + " 应该被成功删除", str);
+        }
+    }
+
 
     private <T> T initCache(Class<T> t) {
         logger.debug("加载缓存");

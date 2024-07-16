@@ -39,7 +39,6 @@ public class RedisMessageListener implements RedisPubSubListener<String, String>
 
             redisMessageService.pullMessage();
         } catch (Exception e) {
-            e.printStackTrace();
             log.error("layering-cache 清楚一级缓存异常：{}", e.getMessage(), e);
         }
     }

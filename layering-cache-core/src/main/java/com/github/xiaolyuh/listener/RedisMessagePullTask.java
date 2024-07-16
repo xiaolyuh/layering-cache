@@ -53,7 +53,6 @@ public class RedisMessagePullTask {
             try {
                 redisMessageService.pullMessage();
             } catch (Exception e) {
-                e.printStackTrace();
                 log.error("layering-cache PULL 方式清楚一级缓存异常：{}", e.getMessage(), e);
             }
             //  初始时间间隔是7秒

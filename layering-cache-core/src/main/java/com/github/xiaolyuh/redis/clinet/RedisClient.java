@@ -3,7 +3,7 @@ package com.github.xiaolyuh.redis.clinet;
 import com.github.xiaolyuh.listener.RedisMessageListener;
 import com.github.xiaolyuh.redis.serializer.RedisSerializer;
 import com.github.xiaolyuh.util.StringUtils;
-
+import io.lettuce.core.ScriptOutputType;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
@@ -226,6 +226,19 @@ public interface RedisClient {
      * @return 返回结果
      */
     Object eval(String script, List<String> keys, List<String> args);
+
+
+    /**
+     * 执行Lua脚本
+     *
+     * @param script     Lua 脚本
+     * @param returnType Lua 脚本返回值类型
+     * @param keys       参数
+     * @param args       参数值
+     * @return 返回结果
+     */
+    Object eval(String script, ScriptOutputType returnType, List<String> keys, List<String> args);
+
 
     /**
      * 发送消息

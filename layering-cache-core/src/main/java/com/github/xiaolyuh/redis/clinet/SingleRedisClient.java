@@ -309,6 +309,23 @@ public class SingleRedisClient implements RedisClient {
         }
     }
 
+
+    @Override
+    public Object eval(String script, ScriptOutputType returnType, List<String> keys, List<String> args) {
+
+        try {
+            RedisCommands<byte[], byte[]> sync = connection.sync();
+
+            List<byte[]> bkeys = keys.stream().map(key -> getKeySerializer().serialize(key)).collect(Collectors.toList());
+            List<byte[]> bargs = args.stream().map(arg -> getKeySerializer().serialize(arg)).collect(Collectors.toList());
+            return sync.eval(script, returnType, bkeys.toArray(new byte[0][0]), bargs.toArray(new byte[0][0]));
+        } catch (SerializationException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new RedisClientException(e.getMessage(), e);
+        }
+    }
+
     @Override
     public Long publish(String channel, String message) {
         try {

@@ -90,7 +90,7 @@ public class CaffeineCache extends AbstractValueAdaptingCache {
 
     @Override
     @SuppressWarnings("all")
-    public <K,V> Map<K, V> getAllPresent(List<String> keys, Class<V> resultType) {
+    public <K,V> Map<K, V> getAll(List<String> keys, Class<V> resultType) {
         if (logger.isDebugEnabled()) {
             logger.debug("caffeine缓存 keys={}:{} 获取缓存", getName(), JSON.toJSONString(keys));
         }
@@ -204,6 +204,14 @@ public class CaffeineCache extends AbstractValueAdaptingCache {
             logger.debug("caffeine缓存 key={}:{} 清除缓存", getName(), key);
         }
         this.cache.invalidate(key);
+    }
+
+    @Override
+    public void evictAll(List<String> keys) {
+        if (logger.isDebugEnabled()) {
+            logger.debug("caffeine缓存  cacheName={}, keys={} 批量清除缓存", getName(), JSON.toJSONString(keys));
+        }
+        this.cache.invalidateAll(keys);
     }
 
     @Override

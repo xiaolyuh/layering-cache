@@ -6,7 +6,6 @@ import com.github.xiaolyuh.stats.CacheStats;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Callable;
-import java.util.function.BiFunction;
 import java.util.function.Function;
 
 /**
@@ -58,7 +57,7 @@ public interface Cache {
      * @param resultType 返回值类型
      * @return 缓存key对应的值
      */
-    <K,V> Map<K, V> getAllPresent(List<String> keys, Class<V> resultType);
+    <K,V> Map<K, V> getAll(List<String> keys, Class<V> resultType);
 
     /**
      * 根据KEY返回缓存中对应的值，并将其返回类型转换成对应类型，如果对应key不存在则调用valueLoader加载数据
@@ -112,6 +111,13 @@ public interface Cache {
      * @param key 缓存key
      */
     void evict(String key);
+
+    /**
+     * 在缓存中删除对应的keys
+     *
+     * @param keys 缓存keys
+     */
+    void evictAll(List<String> keys);
 
     /**
      * 清楚缓存

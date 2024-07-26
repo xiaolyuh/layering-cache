@@ -25,6 +25,7 @@ import org.junit.runner.RunWith;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.expression.spel.SpelEvaluationException;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
@@ -1056,7 +1057,7 @@ public class CacheSingleAspectTest {
 
         for (Cache cache : caches) {
 
-            Map<Object, User> allPresent = cache.getAllPresent(Arrays.asList("0", "1", "2", "3"), User.class);
+            Map<Object, User> allPresent = cache.getAll(Arrays.asList("0", "1", "2", "3"), User.class);
             Assert.assertEquals(2,allPresent.size());
 
             User result = cache.get("0", User.class);
@@ -1079,10 +1080,13 @@ public class CacheSingleAspectTest {
         }
     }
 
-    @Test(expected = IllegalArgumentException.class)
+
+
+    @Test
     public void testGetBatchNullInput() {
         List<User> users = new ArrayList<>();
-        batchTestService.getUserByIds(users);
+        List<User> userByIds = batchTestService.getUserByIds(users);
+        Assert.assertTrue(userByIds.isEmpty());
     }
 
     @Test
@@ -1105,7 +1109,7 @@ public class CacheSingleAspectTest {
         Assert.assertEquals(0, userByIds.size());
         for (Cache cache : caches) {
 
-            Map<Object, User> allPresent = cache.getAllPresent(Arrays.asList("0", "1", "2", "3"), User.class);
+            Map<Object, User> allPresent = cache.getAll(Arrays.asList("0", "1", "2", "3"), User.class);
             Assert.assertEquals(0,allPresent.size());
 
         }
@@ -1123,7 +1127,7 @@ public class CacheSingleAspectTest {
 
         Assert.assertEquals(2, userByIds.size());
         for (Cache cache : caches) {
-            Map<Object, User> allPresent = cache.getAllPresent(Arrays.asList("0", "1", "2", "3"), User.class);
+            Map<Object, User> allPresent = cache.getAll(Arrays.asList("0", "1", "2", "3"), User.class);
             Assert.assertEquals(2,allPresent.size());
 
             String key = "0";
@@ -1150,7 +1154,7 @@ public class CacheSingleAspectTest {
 
         Assert.assertEquals(2, userByIds.size());
         for (Cache cache : caches) {
-            Map<Object, User> allPresent = cache.getAllPresent(Arrays.asList("0", "1", "2", "3"), User.class);
+            Map<Object, User> allPresent = cache.getAll(Arrays.asList("0", "1", "2", "3"), User.class);
             Assert.assertEquals(2,allPresent.size());
 
             String key = "0";

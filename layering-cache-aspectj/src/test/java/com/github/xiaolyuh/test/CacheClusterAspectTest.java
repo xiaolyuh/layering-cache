@@ -1034,7 +1034,7 @@ public class CacheClusterAspectTest {
 
         for (Cache cache : caches) {
 
-            Map<Object, User> allPresent = cache.getAllPresent(Arrays.asList("0", "1", "2", "3"), User.class);
+            Map<Object, User> allPresent = cache.getAll(Arrays.asList("0", "1", "2", "3"), User.class);
             Assert.assertEquals(2,allPresent.size());
 
             User result = cache.get("0", User.class);
@@ -1057,10 +1057,11 @@ public class CacheClusterAspectTest {
         }
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void testGetBatchNullInput() {
         List<User> users = new ArrayList<>();
-        batchTestService.getUserByIds(users);
+        List<User> userByIds = batchTestService.getUserByIds(users);
+        Assert.assertTrue(userByIds.isEmpty());
     }
 
     @Test
@@ -1083,7 +1084,7 @@ public class CacheClusterAspectTest {
         Assert.assertEquals(0, userByIds.size());
         for (Cache cache : caches) {
 
-            Map<Object, User> allPresent = cache.getAllPresent(Arrays.asList("0", "1", "2", "3"), User.class);
+            Map<Object, User> allPresent = cache.getAll(Arrays.asList("0", "1", "2", "3"), User.class);
             Assert.assertEquals(0,allPresent.size());
 
         }
@@ -1101,7 +1102,7 @@ public class CacheClusterAspectTest {
 
         Assert.assertEquals(2, userByIds.size());
         for (Cache cache : caches) {
-            Map<Object, User> allPresent = cache.getAllPresent(Arrays.asList("0", "1", "2", "3"), User.class);
+            Map<Object, User> allPresent = cache.getAll(Arrays.asList("0", "1", "2", "3"), User.class);
             Assert.assertEquals(2,allPresent.size());
 
             String key = "0";
@@ -1128,7 +1129,7 @@ public class CacheClusterAspectTest {
 
         Assert.assertEquals(2, userByIds.size());
         for (Cache cache : caches) {
-            Map<Object, User> allPresent = cache.getAllPresent(Arrays.asList("0", "1", "2", "3"), User.class);
+            Map<Object, User> allPresent = cache.getAll(Arrays.asList("0", "1", "2", "3"), User.class);
             Assert.assertEquals(2,allPresent.size());
 
             String key = "0";

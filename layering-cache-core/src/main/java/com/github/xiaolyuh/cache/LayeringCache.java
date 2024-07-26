@@ -9,7 +9,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Objects;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
@@ -141,11 +140,11 @@ public class LayeringCache extends AbstractValueAdaptingCache {
 
     @Override
     @SuppressWarnings("all")
-    public  <K,V> Map<K, V> getAllPresent(List<String> keys, Class<V> resultType) {
+    public  <K,V> Map<K, V> getAll(List<String> keys, Class<V> resultType) {
         Map<K, V> values = new HashMap<>(keys.size());
         // 开启一级缓存
         if (!CacheMode.SECOND.equals(cacheMode)) {
-             values.putAll(firstCache.getAllPresent(keys, resultType));
+             values.putAll(firstCache.getAll(keys, resultType));
             if (logger.isDebugEnabled()) {
                 logger.debug("查询一级缓存。 cacheName={} keys={},返回值是:{}", getName(), JSON.toJSONString(keys), JSON.toJSONString(values));
             }
@@ -163,7 +162,7 @@ public class LayeringCache extends AbstractValueAdaptingCache {
                 .collect(Collectors.toList());
         }
 
-        values.putAll(secondCache.getAllPresent(missingKeys, resultType));
+        values.putAll(secondCache.getAll(missingKeys, resultType));
         // 开启一级缓存
         if (!CacheMode.SECOND.equals(cacheMode)) {
             for (String key : keys) {
@@ -192,7 +191,7 @@ public class LayeringCache extends AbstractValueAdaptingCache {
         List<String> missingKeys = keys;
 
         if (!CacheMode.SECOND.equals(cacheMode)) {
-            values.putAll(firstCache.getAllPresent(keys, resultType));
+            values.putAll(firstCache.getAll(keys, resultType));
             missingKeys = keys.stream()
                 .filter(key -> !values.containsKey(key))
                 .collect(Collectors.toList());
@@ -261,6 +260,20 @@ public class LayeringCache extends AbstractValueAdaptingCache {
         if (!CacheMode.SECOND.equals(cacheMode)) {
             // 删除一级缓存
             deleteClusterFirstCacheByKey(key, redisClient);
+        }
+    }
+
+    @Override
+    public void evictAll(List<String> keys) {
+        if (!CacheMode.FIRST.equals(cacheMode)) {
+            // 开启二级缓存、删除的时候要先删除二级缓存再删除一级缓存，否则有并发问题
+            secondCache.evictAll(keys);
+        }
+        if (!CacheMode.SECOND.equals(cacheMode)) {
+            // 删除一级缓存
+            for (String key : keys) {
+                deleteClusterFirstCacheByKey(key, redisClient);
+            }
         }
     }
 

@@ -124,19 +124,16 @@ public class LayeringAspect {
         assert batchCacheable != null;
         //检查注解的方法返回值是否为List
         Assert.isTrue(List.class.isAssignableFrom(method.getReturnType()),BATCH_CACHEABLE_RETURN_ERROR_MESSAGE);
-
+        //获取缓存key
+        List<String> keys =generateKeys(batchCacheable.keys(), method, joinPoint.getArgs(), joinPoint.getTarget());
         try {
-            //获取缓存key
-            List<String> keys =generateKeys(batchCacheable.keys(), method, joinPoint.getArgs(), joinPoint.getTarget());
-            Assert.isTrue(!keys.isEmpty() , String.format(CACHE_KEY_ERROR_MESSAGE, batchCacheable.keys()));
             // 执行查询缓存方法
             return executeBatchCacheable(getBatchCacheFunctionInvoker(joinPoint,method,batchCacheable,keys), batchCacheable,keys ,method, joinPoint.getArgs(), joinPoint.getTarget());
         } catch (SerializationException e) {
-//            // 如果是序列化异常需要先删除原有缓存,在执行缓存方法
-//            String[] cacheNames = cacheable.cacheNames();
-//            delete(cacheNames, cacheable.key(), method, joinPoint.getArgs(), joinPoint.getTarget());
-//            return executeCacheable(getCacheOperationInvoker(joinPoint), cacheable, method, joinPoint.getArgs(), joinPoint.getTarget());
-            throw e;
+            // 如果是序列化异常,则是换了序列化器的情况，需要先删除原有缓存,在执行缓存方法
+            String[] cacheNames = batchCacheable.cacheNames();
+            deleteBatch(cacheNames, batchCacheable.keys(), method, joinPoint.getArgs(), joinPoint.getTarget());
+            return executeBatchCacheable(getBatchCacheFunctionInvoker(joinPoint,method,batchCacheable,keys), batchCacheable,keys ,method, joinPoint.getArgs(), joinPoint.getTarget());
         }
     }
 
@@ -397,6 +394,33 @@ public class LayeringAspect {
             } else {
                 for (Cache cache : caches) {
                     cache.evict(ToStringUtils.toString(key));
+                }
+            }
+        }
+    }
+
+    /**
+     * 删除执行批量缓存名称上的指定keys
+     *
+     * @param cacheNames 缓存名称
+     * @param keysSpEL    key的SpEL表达式
+     * @param method     {@link Method}
+     * @param args       参数列表
+     * @param target     目标类
+     */
+    private void deleteBatch(String[] cacheNames, String keysSpEL, Method method, Object[] args, Object target) {
+        List<String> keys = generateKeys(keysSpEL, method, args, target);
+
+        for (String cacheName : cacheNames) {
+            Collection<Cache> caches = cacheManager.getCache(cacheName);
+            if (CollectionUtils.isEmpty(caches)) {
+                // 如果没有找到Cache就新建一个默认的
+                Cache cache = cacheManager.getCache(cacheName,
+                    new LayeringCacheSetting(new FirstCacheSetting(), new SecondaryCacheSetting(), "默认缓存配置（删除时生成）", CacheMode.ALL));
+                cache.evictAll(keys);
+            } else {
+                for (Cache cache : caches) {
+                    cache.evictAll(keys);
                 }
             }
         }

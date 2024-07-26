@@ -170,7 +170,7 @@ public class RedisCache extends AbstractValueAdaptingCache {
 
     @Override
     @SuppressWarnings("unchecked")
-    public <K,V> Map<K, V> getAllPresent(List<String> keys, Class<V> resultType) {
+    public <K,V> Map<K, V> getAll(List<String> keys, Class<V> resultType) {
         if (isStats()) {
             getCacheStats().addCacheRequestCount(keys.size());
         }
@@ -271,6 +271,13 @@ public class RedisCache extends AbstractValueAdaptingCache {
         RedisCacheKey redisCacheKey = getRedisCacheKey(key);
         logger.info("清除redis缓存 key= {} ", redisCacheKey.getKey());
         redisClient.delete(redisCacheKey.getKey());
+    }
+
+    @Override
+    public void evictAll(List<String> keys) {
+        Set<String> redisKeys = keys.stream().map(this::getRedisCacheKey).map(RedisCacheKey::getKey).collect(Collectors.toSet());
+        logger.info("批量清除redis缓存 keys= {} ", JSON.toJSONString(redisKeys));
+        redisClient.delete(redisKeys);
     }
 
     @Override

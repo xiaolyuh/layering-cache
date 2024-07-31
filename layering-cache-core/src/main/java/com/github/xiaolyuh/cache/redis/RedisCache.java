@@ -9,15 +9,14 @@ import com.github.xiaolyuh.support.CacheMode;
 import com.github.xiaolyuh.support.LayeringCacheRedisLock;
 import com.github.xiaolyuh.support.NullValue;
 import com.github.xiaolyuh.util.ThreadTaskUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.util.Assert;
-import org.springframework.util.CollectionUtils;
-
 import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.util.Assert;
+import org.springframework.util.CollectionUtils;
 
 /**
  * 基于Redis实现的二级缓存
@@ -82,7 +81,7 @@ public class RedisCache extends AbstractValueAdaptingCache {
      * @param redisClient           redis客户端 redis 客户端
      * @param secondaryCacheSetting 二级缓存配置{@link SecondaryCacheSetting}
      * @param stats                 是否开启统计模式
-     * @param stats                 是否开启统计模式
+     * @param cacheMode             缓存模式
      */
     public RedisCache(String name, RedisClient redisClient, SecondaryCacheSetting secondaryCacheSetting, boolean stats, CacheMode cacheMode) {
 
@@ -102,6 +101,7 @@ public class RedisCache extends AbstractValueAdaptingCache {
      * @param allowNullValues 是否允许存NULL值，模式允许
      * @param magnification   非空值和null值之间的时间倍率
      * @param stats           是否开启统计模式
+     * @param cacheMode       缓存模式
      */
     public RedisCache(String name, RedisClient redisClient, long expiration, long preloadTime,
                       boolean forceRefresh, boolean usePrefix, boolean allowNullValues, int magnification, boolean stats, CacheMode cacheMode) {

@@ -67,7 +67,7 @@ public @interface Cacheable {
 
     /**
      * 生成缓存的条件，默认空全部缓存。支持SpEL表达式
-     * @return
+     * @return 条件表达式
      */
     String condition() default "";
 

@@ -76,7 +76,7 @@ public class RedisMessageService {
         RedisClient redisClient = cacheManager.getRedisClient();
         String messageRedisKey = GlobalConfig.getMessageRedisKey();
         List<byte[]> messages = null;
-        synchronized (messageRedisKey) {
+        synchronized (this) {
             long oldOffset = OFFSET.get();
             List<String> keys = Collections.singletonList(messageRedisKey);
             List<String> args = Collections.singletonList(String.valueOf(oldOffset));

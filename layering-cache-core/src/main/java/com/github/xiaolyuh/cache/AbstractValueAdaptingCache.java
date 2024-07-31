@@ -24,9 +24,8 @@ import com.github.xiaolyuh.redis.clinet.RedisClient;
 import com.github.xiaolyuh.stats.CacheStats;
 import com.github.xiaolyuh.support.CacheMode;
 import com.github.xiaolyuh.support.NullValue;
-import org.springframework.util.Assert;
-
 import java.util.concurrent.Callable;
+import org.springframework.util.Assert;
 
 
 /**
@@ -61,8 +60,9 @@ public abstract class AbstractValueAdaptingCache implements Cache {
     /**
      * 通过构造方法设置缓存配置
      *
-     * @param stats 是否开启监控统计
-     * @param name  缓存名称
+     * @param stats     是否开启监控统计
+     * @param name      缓存名称
+     * @param cacheMode 缓存模式
      */
     protected AbstractValueAdaptingCache(boolean stats, String name, CacheMode cacheMode) {
         Assert.notNull(name, "缓存名称不能为NULL");

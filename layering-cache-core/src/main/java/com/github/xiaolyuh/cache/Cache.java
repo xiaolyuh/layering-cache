@@ -2,7 +2,6 @@ package com.github.xiaolyuh.cache;
 
 import com.github.xiaolyuh.manager.CacheManager;
 import com.github.xiaolyuh.stats.CacheStats;
-
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Callable;
@@ -53,11 +52,13 @@ public interface Cache {
     /**
      * 根据KEY返回缓存中对应的值，并将其返回类型转换成对应类型。只返回缓存中存在的KEY-VALUE对
      *
-     * @param keys        缓存keys
+     * @param keys       缓存keys
      * @param resultType 返回值类型
+     * @param <K>        键的类型
+     * @param <V>        值的类型
      * @return 缓存key对应的值
      */
-    <K,V> Map<K, V> getAll(List<String> keys, Class<V> resultType);
+    <K, V> Map<K, V> getAll(List<String> keys, Class<V> resultType);
 
     /**
      * 根据KEY返回缓存中对应的值，并将其返回类型转换成对应类型，如果对应key不存在则调用valueLoader加载数据
@@ -65,9 +66,11 @@ public interface Cache {
      * @param keys        缓存keys
      * @param resultType  返回值类型
      * @param valueLoader 加载缓存的回调方法
+     * @param <K>         键的类型
+     * @param <V>         值的类型
      * @return 缓存key对应的值
      */
-    <K,V> Map<K, V> getAll(List<String> keys, Class<V> resultType, Function<String[],Object> valueLoader);
+    <K, V> Map<K, V> getAll(List<String> keys, Class<V> resultType, Function<String[], Object> valueLoader);
 
     /**
      * 将对应key-value放到缓存，如果key原来有值就直接覆盖
@@ -98,7 +101,7 @@ public interface Cache {
      * @param key        缓存key
      * @param value      缓存key对应的值
      * @param resultType 返回值类型
-     * @param <T> T
+     * @param <T>        T
      * @return 因为值本身可能为NULL，或者缓存key本来就没有对应值的时候也为NULL，
      * 所以如果返回NULL就表示已经将key-value键值对放到了缓存中
      * @since 4.1

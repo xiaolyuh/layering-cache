@@ -64,7 +64,7 @@ public interface RedisClient {
      * @param keys        keys
      * @param resultType 返回值类型对应的Class对象
      * @param <T>        返回值类型
-     * @return List<KeyValue<String,Object>>  Key - Value
+     * @return 返回一个包含键值对的列表，其中键是String类型，值是Object类型
      */
      <T> List<KeyValue<String,Object>> getAll(List<String> keys, Class<T> resultType);
 
@@ -75,7 +75,7 @@ public interface RedisClient {
      * @param resultType           返回值类型对应的Class对象
      * @param valueRedisSerializer 指定序列化器
      * @param <T>                  返回值类型
-     * @return List<KeyValue<String,Object>>  Key - Value
+     * @return 返回一个包含键值对的列表，其中键是String类型，值是Object类型
      */
      <T> List<KeyValue<String,Object>> getAll(List<String> keys, Class<T> resultType,RedisSerializer valueRedisSerializer);
 

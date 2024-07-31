@@ -82,5 +82,7 @@ github 地址：https://github.com/xiaolyuh/layering-cache
 
 ![微信](https://img-blog.csdnimg.cn/2020122516245862.png)
 
+# 特别感谢
+感谢何一睿同学贡献的```@BatchCacheable```批量缓存
 
 

@@ -9,6 +9,12 @@ import com.github.xiaolyuh.setting.FirstCacheSetting;
 import com.github.xiaolyuh.support.CacheMode;
 import com.github.xiaolyuh.support.ExpireMode;
 import com.github.xiaolyuh.support.NullValue;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -83,6 +89,81 @@ public class CaffeineCache extends AbstractValueAdaptingCache {
     }
 
     @Override
+    @SuppressWarnings("all")
+    public <K,V> Map<K, V> getAll(List<String> keys, Class<V> resultType) {
+        if (logger.isDebugEnabled()) {
+            logger.debug("caffeine缓存 keys={}:{} 获取缓存", getName(), JSON.toJSONString(keys));
+        }
+
+        if (isStats()) {
+            getCacheStats().addCacheRequestCount(keys.size());
+        }
+
+        if (this.cache instanceof LoadingCache) {
+            Map<K,V> cacheValues =((LoadingCache) this.cache).getAll(keys);
+            return cacheValues;
+        }
+
+        Map<Object, Object> allPresent = cache.getAllPresent(keys);
+        if (logger.isDebugEnabled()) {
+            logger.debug("caffeine缓存 keys={}:{} 获取缓存,结果是：{}", getName(), JSON.toJSONString(keys),JSON.toJSONString(allPresent));
+        }
+        return (Map<K,V>) new HashMap<>(allPresent);
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public <K,V> Map<K, V> getAll(List<String> keys, Class<V> resultType, Function< String[],Object> valueLoader) {
+        if (logger.isDebugEnabled()) {
+            logger.debug("caffeine缓存 keys={}:{} 获取缓存,如果没有命中就走库加载缓存", getName(), JSON.toJSONString(keys));
+        }
+        if (isStats()) {
+            getCacheStats().addCacheRequestCount(keys.size());
+        }
+
+        // 从 Caffeine 缓存中获取值
+        Map<Object, Object> cacheAllPresent = cache.getAllPresent(keys);
+        HashMap<Object, Object> cacheValues = new HashMap<>(cacheAllPresent);
+
+        // 找出缓存中没有的键
+        List<String> missingKeys = keys.stream()
+            .filter(key -> !cacheValues.containsKey(key))
+            .collect(Collectors.toList());
+
+        // 加载 获取这些缺失的值
+        if (!missingKeys.isEmpty()) {
+
+            long start = System.currentTimeMillis();
+            if (isStats()) {
+                getCacheStats().addCachedMethodRequestCount(1);
+            }
+
+            List<Object> loadValues = (List<Object>) valueLoader.apply(missingKeys.toArray(new String[0]));
+
+            if (logger.isDebugEnabled()) {
+                logger.debug("caffeine缓存 cacheName={}  missingKeys{} 从库加载缓存 {}",getName(), JSON.toJSONString(missingKeys), JSON.toJSONString(loadValues));
+            }
+
+            if (isStats()) {
+                getCacheStats().addCachedMethodRequestTime(System.currentTimeMillis() - start);
+            }
+            for (int i = 0; i < missingKeys.size(); i++) {
+                if (loadValues.get(i) != null) {
+                    cacheValues.put(missingKeys.get(i), loadValues.get(i));
+                    cache.put(missingKeys.get(i), loadValues.get(i));
+                }else if(isAllowNullValues()){
+                    //如果允许NULL值，则缓存NullValue
+                    cacheValues.put(missingKeys.get(i), NullValue.INSTANCE);
+                    cache.put(missingKeys.get(i), NullValue.INSTANCE);
+
+                }
+            }
+        }
+
+        return (Map<K, V>)cacheValues;
+    }
+
+    @Override
     public void put(String key, Object value) {
         // 允许存NULL值
         if (isAllowNullValues()) {
@@ -123,6 +204,14 @@ public class CaffeineCache extends AbstractValueAdaptingCache {
             logger.debug("caffeine缓存 key={}:{} 清除缓存", getName(), key);
         }
         this.cache.invalidate(key);
+    }
+
+    @Override
+    public void evictAll(List<String> keys) {
+        if (logger.isDebugEnabled()) {
+            logger.debug("caffeine缓存  cacheName={}, keys={} 批量清除缓存", getName(), JSON.toJSONString(keys));
+        }
+        this.cache.invalidateAll(keys);
     }
 
     @Override

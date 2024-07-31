@@ -9,21 +9,30 @@ import com.github.xiaolyuh.redis.serializer.SerializationException;
 import com.github.xiaolyuh.redis.serializer.StringRedisSerializer;
 import com.github.xiaolyuh.util.NamedThreadFactory;
 import com.github.xiaolyuh.util.StringUtils;
+import io.lettuce.core.KeyValue;
+import io.lettuce.core.RedisFuture;
 import io.lettuce.core.RedisURI;
 import io.lettuce.core.ScanArgs;
 import io.lettuce.core.ScanIterator;
 import io.lettuce.core.ScriptOutputType;
 import io.lettuce.core.SetArgs;
+import io.lettuce.core.api.async.RedisAsyncCommands;
+import io.lettuce.core.api.sync.RedisCommands;
 import io.lettuce.core.cluster.ClusterClientOptions;
 import io.lettuce.core.cluster.ClusterTopologyRefreshOptions;
 import io.lettuce.core.cluster.RedisClusterClient;
 import io.lettuce.core.cluster.api.StatefulRedisClusterConnection;
+import io.lettuce.core.cluster.api.async.RedisAdvancedClusterAsyncCommands;
 import io.lettuce.core.cluster.api.sync.RedisClusterCommands;
 import io.lettuce.core.codec.ByteArrayCodec;
 import io.lettuce.core.dynamic.RedisCommandFactory;
 import io.lettuce.core.internal.HostAndPort;
 import io.lettuce.core.pubsub.StatefulRedisPubSubConnection;
 import io.lettuce.core.pubsub.api.sync.RedisPubSubCommands;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionStage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.util.CollectionUtils;
@@ -143,6 +152,48 @@ public class ClusterRedisClient implements RedisClient {
     }
 
     @Override
+    public <T> List<KeyValue<String,Object>> getAll(List<String> keys, Class<T> resultType) {
+        try {
+            RedisClusterCommands<byte[], byte[]> sync = connection.sync();
+            List<byte[]> serializedKeys = keys.stream()
+                .map(keySerializer::serialize)
+                .collect(Collectors.toList());
+
+            List<KeyValue<byte[], byte[]>> keyValuePairs = sync.mget(serializedKeys.toArray(new byte[0][0]));
+
+            return keyValuePairs.stream()
+                .map(keyValue -> KeyValue.fromNullable(getKeySerializer().deserialize(keyValue.getKey(), String.class),
+                    keyValue.hasValue() ? (Object) getValueSerializer().deserialize(keyValue.getValue(), resultType) : null))
+                .collect(Collectors.toList());
+        } catch (SerializationException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new RedisClientException(e.getMessage(), e);
+        }
+    }
+
+    @Override
+    public <T> List<KeyValue<String,Object>> getAll(List<String> keys, Class<T> resultType, RedisSerializer valueRedisSerializer) {
+        try {
+            RedisClusterCommands<byte[], byte[]> sync = connection.sync();
+            List<byte[]> serializedKeys = keys.stream()
+                .map(keySerializer::serialize)
+                .collect(Collectors.toList());
+
+            List<KeyValue<byte[], byte[]>> keyValuePairs = sync.mget(serializedKeys.toArray(new byte[0][0]));
+
+            return keyValuePairs.stream()
+                .map(keyValue -> KeyValue.fromNullable(getKeySerializer().deserialize(keyValue.getKey(), String.class),
+                    keyValue.hasValue() ? (Object) valueRedisSerializer.deserialize(keyValue.getValue(), resultType) : null))
+                .collect(Collectors.toList());
+        } catch (SerializationException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new RedisClientException(e.getMessage(), e);
+        }
+    }
+
+    @Override
     public String set(String key, Object value) {
         try {
             RedisClusterCommands<byte[], byte[]> sync = connection.sync();
@@ -160,6 +211,27 @@ public class ClusterRedisClient implements RedisClient {
         try {
             RedisClusterCommands<byte[], byte[]> sync = connection.sync();
             return sync.setex(getKeySerializer().serialize(key), unit.toSeconds(time), getValueSerializer().serialize(value));
+        } catch (SerializationException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new RedisClientException(e.getMessage(), e);
+        }
+    }
+
+    @Override
+    public List<String> batchSet(List<KeyValue<String, Object>> keyValues, long time, TimeUnit unit) {
+        try {
+            RedisAdvancedClusterAsyncCommands<byte[], byte[]> async = connection.async();
+            List<RedisFuture<String>> futures = new ArrayList<>();
+            for (KeyValue<String, Object> keyValue : keyValues) {
+                String key = keyValue.getKey();
+                Object value = keyValue.getValue();
+                futures.add(async.setex(getKeySerializer().serialize(key), unit.toSeconds(time), getValueSerializer().serialize(value)));
+            }
+            return futures.stream()
+                .map(CompletionStage::toCompletableFuture)
+                .map(CompletableFuture::join)
+                .collect(Collectors.toList());
         } catch (SerializationException e) {
             throw e;
         } catch (Exception e) {
@@ -245,10 +317,52 @@ public class ClusterRedisClient implements RedisClient {
     }
 
     @Override
+    public List<Boolean> batchExpire(List<String> keys, long ttl, TimeUnit timeUnit) {
+        try {
+
+            RedisAdvancedClusterAsyncCommands<byte[], byte[]> async = connection.async();
+            List<RedisFuture<Boolean>> futures = new ArrayList<>();
+            for (String key : keys) {
+                futures.add(async.expire(getKeySerializer().serialize(key), timeUnit.toSeconds(ttl)));
+            }
+
+            return futures.stream()
+                .map(CompletionStage::toCompletableFuture)
+                .map(CompletableFuture::join)
+                .collect(Collectors.toList());
+        } catch (SerializationException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new RedisClientException(e.getMessage(), e);
+        }
+    }
+
+    @Override
     public Long getExpire(String key) {
         try {
             RedisClusterCommands<byte[], byte[]> sync = connection.sync();
             return sync.ttl(getKeySerializer().serialize(key));
+        } catch (SerializationException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new RedisClientException(e.getMessage(), e);
+        }
+    }
+
+    @Override
+    public List<Long> getExpireBatch(List<String> keys) {
+        try {
+            RedisAdvancedClusterAsyncCommands<byte[], byte[]> async = connection.async();
+            List<RedisFuture<Long>> futures = new ArrayList<>();
+            for (String key : keys) {
+                futures.add(async.ttl(getKeySerializer().serialize(key)));
+            }
+
+            return futures.stream()
+                .map(CompletionStage::toCompletableFuture)
+                .map(CompletableFuture::join)
+                .collect(Collectors.toList());
+
         } catch (SerializationException e) {
             throw e;
         } catch (Exception e) {

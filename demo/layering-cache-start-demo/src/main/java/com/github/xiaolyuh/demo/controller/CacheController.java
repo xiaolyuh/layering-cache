@@ -2,6 +2,7 @@ package com.github.xiaolyuh.demo.controller;
 
 import com.github.xiaolyuh.demo.entity.Person;
 import com.github.xiaolyuh.demo.service.PersonService;
+import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -23,6 +24,11 @@ public class CacheController {
     public Person cacheable(@RequestBody Person person) {
 
         return personService.findOne(person);
+    }
+
+    @RequestMapping("/batch/able")
+    public List<Person> batchCacheable(@RequestBody List<Person> personList) {
+        return personService.batch(personList);
     }
 
     @RequestMapping("/evit")

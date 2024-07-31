@@ -15,6 +15,8 @@ import com.github.xiaolyuh.redis.serializer.KryoRedisSerializer;
 import com.github.xiaolyuh.redis.serializer.ProtostuffRedisSerializer;
 import com.github.xiaolyuh.support.CacheMode;
 import com.github.xiaolyuh.util.GlobalConfig;
+import java.util.Arrays;
+import java.util.Map;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -48,6 +50,9 @@ public class CacheClusterAspectTest {
 
     @Autowired
     private CacheManager cacheManager;
+
+    @Autowired
+    private BatchTestService batchTestService;
 
     @Test
     public void testGetUserNameLongParam() {
@@ -1004,6 +1009,185 @@ public class CacheClusterAspectTest {
         user = testService.testNullArrayAndNullList(userId);
         Assert.assertNotNull(user.getLastName());
         Assert.assertNotNull(user.getLastNameList());
+    }
+
+
+    @Test
+    public void testGetBatch() {
+        Collection<Cache> caches = cacheManager.getCache("user:info");
+
+        for (Cache cache : caches) {
+            cache.clear();
+        }
+
+        User user0 = new User(0);
+        User user1 = new User(1);
+        User user2 = new User(2);
+        User user3 = new User(3);
+        List<User> users = Arrays.asList(user0,user1,user2,user3);
+
+        List<User> userByIds = batchTestService.getUserByIds(users);
+
+        Assert.assertEquals(2, userByIds.size());
+
+        caches = cacheManager.getCache("user:info");
+
+        for (Cache cache : caches) {
+
+            Map<Object, User> allPresent = cache.getAll(Arrays.asList("0", "1", "2", "3"), User.class);
+            Assert.assertEquals(2,allPresent.size());
+
+            User result = cache.get("0", User.class);
+            Assert.assertNotNull(result);
+
+            result = ((LayeringCache) cache).getFirstCache().get("0", User.class);
+            Assert.assertNotNull(result);
+
+            result = ((LayeringCache) cache).getSecondCache().get("0", User.class);
+            Assert.assertNotNull(result);
+
+            User result1 = cache.get("2", User.class);
+            Assert.assertNull(result1);
+
+            result = ((LayeringCache) cache).getFirstCache().get("2", User.class);
+            Assert.assertNull(result);
+
+            result = ((LayeringCache) cache).getSecondCache().get("2", User.class);
+            Assert.assertNull(result);
+        }
+    }
+
+    @Test
+    public void testGetBatchNullInput() {
+        List<User> users = new ArrayList<>();
+        List<User> userByIds = batchTestService.getUserByIds(users);
+        Assert.assertTrue(userByIds.isEmpty());
+    }
+
+    @Test
+    public void testGetBatchNone() {
+
+        Collection<Cache> caches = cacheManager.getCache("user:info");
+
+        for (Cache cache : caches) {
+            cache.clear();
+        }
+
+        User user0 = new User(0);
+        User user1 = new User(1);
+        User user2 = new User(2);
+        User user3 = new User(3);
+        List<User> users = Arrays.asList(user0,user1,user2,user3);
+        List<User> userByIds = batchTestService.getUserByIdsReturnNone(users);
+        caches = cacheManager.getCache("user:info");
+
+        Assert.assertEquals(0, userByIds.size());
+        for (Cache cache : caches) {
+
+            Map<Object, User> allPresent = cache.getAll(Arrays.asList("0", "1", "2", "3"), User.class);
+            Assert.assertEquals(0,allPresent.size());
+
+        }
+    }
+
+    @Test
+    public void testGetBatchDisableFirstCache() {
+        User user0 = new User(0);
+        User user1 = new User(1);
+        User user2 = new User(2);
+        User user3 = new User(3);
+        List<User> users = Arrays.asList(user0,user1,user2,user3);
+        List<User> userByIds = batchTestService.getUserByIdDisableFirstCache(users);
+        Collection<Cache> caches = cacheManager.getCache("user:info:01");
+
+        Assert.assertEquals(2, userByIds.size());
+        for (Cache cache : caches) {
+            Map<Object, User> allPresent = cache.getAll(Arrays.asList("0", "1", "2", "3"), User.class);
+            Assert.assertEquals(2,allPresent.size());
+
+            String key = "0";
+            User result = cache.get(key, User.class);
+            Assert.assertNotNull(result);
+
+            result = ((LayeringCache) cache).getFirstCache().get(key, User.class);
+            Assert.assertNotNull(result);
+
+            result = ((LayeringCache) cache).getSecondCache().get(key, User.class);
+            Assert.assertNull(result);
+        }
+    }
+
+    @Test
+    public void testGetBatchDisableSecondCache() {
+        User user0 = new User(0);
+        User user1 = new User(1);
+        User user2 = new User(2);
+        User user3 = new User(3);
+        List<User> users = Arrays.asList(user0,user1,user2,user3);
+        List<User> userByIds = batchTestService.getUserByIdDisableSecondCache(users);
+        Collection<Cache> caches = cacheManager.getCache("user:info:02");
+
+        Assert.assertEquals(2, userByIds.size());
+        for (Cache cache : caches) {
+            Map<Object, User> allPresent = cache.getAll(Arrays.asList("0", "1", "2", "3"), User.class);
+            Assert.assertEquals(2,allPresent.size());
+
+            String key = "0";
+            User result = cache.get(key, User.class);
+            Assert.assertNotNull(result);
+
+            result = ((LayeringCache) cache).getFirstCache().get(key, User.class);
+            Assert.assertNull(result);
+
+            result = ((LayeringCache) cache).getSecondCache().get(key, User.class);
+            Assert.assertNotNull(result);
+        }
+    }
+
+    /**
+     * 测试刷新二级缓存，同步更新一级缓存
+     */
+    @Test
+    public void testBatchRefreshSecondCacheSyncFistCache() {
+        User user0 = new User(0,0);
+        User user1 = new User(1,1);
+        User user2 = new User(2,2);
+        User user3 = new User(3,3);
+        List<User> users = Arrays.asList(user0,user1,user2,user3);
+        Long llen1 = redisClient.llen(GlobalConfig.getMessageRedisKey());
+        // 初始化缓存
+        List<User> userList0 = batchTestService.batchRefreshSecondCacheSyncFistCache(users);
+        sleep(4);
+        // 刷新二级缓存，数据没有变化
+        List<User> userList1 = batchTestService.batchRefreshSecondCacheSyncFistCache(users);
+
+        for (int i = 0; i < userList0.size(); i++) {
+            Assert.assertEquals(userList0.get(i).getAge(), userList1.get(i).getAge());
+        }
+        sleep(1);
+
+        Long llen2 = redisClient.llen(GlobalConfig.getMessageRedisKey());
+        Assert.assertEquals(llen1, llen2);
+
+        logger.info("============================================================================");
+
+        sleep(4);
+        for (int i = 0; i < users.size(); i++) {
+            users.get(i).setAge(18);
+        }
+        // 刷新二级缓存，数据发生变化，同步刷新一级缓存
+        userList0 = batchTestService.batchRefreshSecondCacheSyncFistCache(users);
+        sleep(1);
+        userList1 = batchTestService.batchRefreshSecondCacheSyncFistCache(users);
+
+        Assert.assertEquals(0,userList0.get(0).getAge());
+
+        for (int i = 0; i < userList1.size(); i++) {
+            Assert.assertEquals(18,userList1.get(i).getAge());
+        }
+
+        Long llen3 = redisClient.llen(GlobalConfig.getMessageRedisKey());
+        Assert.assertEquals((long) llen1, llen3 - users.size());
     }
 
     private void sleep(int time) {

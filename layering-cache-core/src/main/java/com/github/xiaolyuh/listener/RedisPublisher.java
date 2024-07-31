@@ -44,7 +44,7 @@ public class RedisPublisher {
         // pub/sub 推模式消息
         redisClient.publish(RedisMessageListener.CHANNEL, "m");
         if (logger.isDebugEnabled()) {
-            logger.debug("redis消息发布者向频道【{}】发布了【{}】消息", RedisMessageListener.CHANNEL, message.toString());
+            logger.debug("redis消息发布者向频道【{}】发布了【{}】消息", RedisMessageListener.CHANNEL, messageJson);
         }
     }
 }

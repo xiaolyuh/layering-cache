@@ -5,6 +5,12 @@ import com.github.xiaolyuh.redis.clinet.RedisClient;
 import com.github.xiaolyuh.setting.LayeringCacheSetting;
 import com.github.xiaolyuh.stats.CacheStats;
 import com.github.xiaolyuh.support.CacheMode;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -133,6 +139,91 @@ public class LayeringCache extends AbstractValueAdaptingCache {
     }
 
     @Override
+    @SuppressWarnings("all")
+    public  <K,V> Map<K, V> getAll(List<String> keys, Class<V> resultType) {
+        Map<K, V> values = new HashMap<>(keys.size());
+        // 开启一级缓存
+        if (!CacheMode.SECOND.equals(cacheMode)) {
+             values.putAll(firstCache.getAll(keys, resultType));
+            if (logger.isDebugEnabled()) {
+                logger.debug("查询一级缓存。 cacheName={} keys={},返回值是:{}", getName(), JSON.toJSONString(keys), JSON.toJSONString(values));
+            }
+            if(values.size() == keys.size() || CacheMode.FIRST.equals(cacheMode)){
+                return values;
+            }
+        }
+
+        // 开启二级缓存
+        // 找出一级缓存中没有的键
+        List<String> missingKeys = keys;
+        if(!CacheMode.SECOND.equals(cacheMode)){
+            missingKeys = keys.stream()
+                .filter(key -> !values.containsKey(key))
+                .collect(Collectors.toList());
+        }
+
+        values.putAll(secondCache.getAll(missingKeys, resultType));
+        // 开启一级缓存
+        if (!CacheMode.SECOND.equals(cacheMode)) {
+            for (String key : keys) {
+                firstCache.put(key,values.get(key));
+            }
+        }
+        if (logger.isDebugEnabled()) {
+            logger.debug("查询二级缓存,并将数据放到一级缓存。 cacheName={} keys={},返回值是:{}", getName(), JSON.toJSONString(keys), JSON.toJSONString(values));
+        }
+        return values;
+    }
+
+    @Override
+    @SuppressWarnings("all")
+    public <K,V> Map<K, V> getAll(List<String> keys, Class<V> resultType, Function<String[], Object> valueLoader) {
+        // 开启一级缓存
+        if (CacheMode.FIRST.equals(cacheMode)) {
+            Map<K, V> values = firstCache.getAll(keys, resultType, valueLoader);
+            if (logger.isDebugEnabled()) {
+                logger.debug("查询一级缓存。 key={}:{},返回值是:{}", getName(), keys, JSON.toJSONString(values));
+            }
+            return values;
+        }
+        // 开启二级缓存
+        Map<K, V> values = new HashMap<>(keys.size());
+        List<String> missingKeys = keys;
+
+        if (!CacheMode.SECOND.equals(cacheMode)) {
+            values.putAll(firstCache.getAll(keys, resultType));
+            missingKeys = keys.stream()
+                .filter(key -> !values.containsKey(key))
+                .collect(Collectors.toList());
+        }
+
+        if(!missingKeys.isEmpty()){
+            Map<K, V> missKeysValues = secondCache.getAll(missingKeys, resultType, valueLoader);
+
+            // 开启一级缓存
+            if (logger.isDebugEnabled()) {
+                logger.debug("查询二级缓存,并将数据放到一级缓存。 key={}:{},返回值是:{}", getName(), keys, JSON.toJSONString(missKeysValues));
+            }
+            if (!CacheMode.SECOND.equals(cacheMode)) {
+                for (Entry<K, V> entry : missKeysValues.entrySet()) {
+                    firstCache.put((String) entry.getKey(),entry.getValue());
+                }
+            }
+
+            values.putAll(missKeysValues);
+        }
+        if(isAllowNullValues()){
+            List<K> nullValuesKeys = values.entrySet().stream().filter(kvEntry -> {
+                return fromStoreValue(kvEntry.getValue()) == null;
+            }).map(Entry::getKey).collect(Collectors.toList());
+            for (K nullValuesKey : nullValuesKeys) {
+                values.remove(nullValuesKey);
+            }
+        }
+        return values;
+    }
+
+    @Override
     public void put(String key, Object value) {
         // 只开启一级缓存
         if (CacheMode.FIRST.equals(cacheMode)) {
@@ -169,6 +260,20 @@ public class LayeringCache extends AbstractValueAdaptingCache {
         if (!CacheMode.SECOND.equals(cacheMode)) {
             // 删除一级缓存
             deleteClusterFirstCacheByKey(key, redisClient);
+        }
+    }
+
+    @Override
+    public void evictAll(List<String> keys) {
+        if (!CacheMode.FIRST.equals(cacheMode)) {
+            // 开启二级缓存、删除的时候要先删除二级缓存再删除一级缓存，否则有并发问题
+            secondCache.evictAll(keys);
+        }
+        if (!CacheMode.SECOND.equals(cacheMode)) {
+            // 删除一级缓存
+            for (String key : keys) {
+                deleteClusterFirstCacheByKey(key, redisClient);
+            }
         }
     }
 

@@ -1,6 +1,14 @@
 package com.github.xiaolyuh.demo.service;
 
+import com.alibaba.fastjson.JSON;
 import com.github.xiaolyuh.demo.entity.Person;
+import com.github.xiaolyuh.demo.utils.OkHttpClientUtil;
+import java.io.IOException;
+import java.util.Arrays;
+import java.util.List;
+import okhttp3.FormBody;
+import okhttp3.MediaType;
+import okhttp3.RequestBody;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -54,6 +62,23 @@ public class PersonServiceTest {
         personService.findOne(p);
         Person person = personService.findOne(p);
         Assert.assertEquals(person.getName(), "name2");
+    }
+
+
+    @Test
+//    @Ignore
+    public void batch() throws IOException {
+
+        Person person0 = new Person(100, "name1", 12, "address1");
+        Person person1 = new Person(1, "name1", 12, "address1");
+        Person person2 = new Person(1000, "name1", 12, "address1");
+        Person person3 = new Person(2, "name1", 12, "address1");
+        Person person4 = new Person(1001, "name1", 12, "address1");
+
+        List<Person> personList = Arrays.asList(person0, person1, person2, person3, person4);
+
+        List<Person> batch = personService.batch(personList);
+        Assert.assertEquals(batch.size(), 3);
     }
 
 

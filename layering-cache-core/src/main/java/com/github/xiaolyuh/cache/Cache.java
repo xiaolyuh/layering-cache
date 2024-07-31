@@ -3,7 +3,10 @@ package com.github.xiaolyuh.cache;
 import com.github.xiaolyuh.manager.CacheManager;
 import com.github.xiaolyuh.stats.CacheStats;
 
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.Callable;
+import java.util.function.Function;
 
 /**
  * 缓存的顶级接口
@@ -48,6 +51,25 @@ public interface Cache {
     <T> T get(String key, Class<T> resultType, Callable<T> valueLoader);
 
     /**
+     * 根据KEY返回缓存中对应的值，并将其返回类型转换成对应类型。只返回缓存中存在的KEY-VALUE对
+     *
+     * @param keys        缓存keys
+     * @param resultType 返回值类型
+     * @return 缓存key对应的值
+     */
+    <K,V> Map<K, V> getAll(List<String> keys, Class<V> resultType);
+
+    /**
+     * 根据KEY返回缓存中对应的值，并将其返回类型转换成对应类型，如果对应key不存在则调用valueLoader加载数据
+     *
+     * @param keys        缓存keys
+     * @param resultType  返回值类型
+     * @param valueLoader 加载缓存的回调方法
+     * @return 缓存key对应的值
+     */
+    <K,V> Map<K, V> getAll(List<String> keys, Class<V> resultType, Function<String[],Object> valueLoader);
+
+    /**
      * 将对应key-value放到缓存，如果key原来有值就直接覆盖
      *
      * @param key   缓存key
@@ -89,6 +111,13 @@ public interface Cache {
      * @param key 缓存key
      */
     void evict(String key);
+
+    /**
+     * 在缓存中删除对应的keys
+     *
+     * @param keys 缓存keys
+     */
+    void evictAll(List<String> keys);
 
     /**
      * 清楚缓存

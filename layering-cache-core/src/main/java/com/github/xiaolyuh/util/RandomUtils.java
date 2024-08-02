@@ -11,7 +11,8 @@ public class RandomUtils {
 
 
     /**
-     *   生成带有随机浮动的预加载时间
+     * 生成带有随机浮动的预加载时间
+     *
      * @param basePreloadTime basePreloadTime
      * @return 带有随机浮动的预加载时间
      */

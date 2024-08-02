@@ -12,13 +12,11 @@ import com.github.xiaolyuh.support.NullValue;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
+import java.util.concurrent.Callable;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.concurrent.Callable;
 
 /**
  * 基于Caffeine实现的一级缓存
@@ -90,7 +88,7 @@ public class CaffeineCache extends AbstractValueAdaptingCache {
 
     @Override
     @SuppressWarnings("all")
-    public <K,V> Map<K, V> getAll(List<String> keys, Class<V> resultType) {
+    public <K, V> Map<K, V> getAll(List<String> keys, Class<V> resultType) {
         if (logger.isDebugEnabled()) {
             logger.debug("caffeine缓存 keys={}:{} 获取缓存", getName(), JSON.toJSONString(keys));
         }
@@ -100,20 +98,20 @@ public class CaffeineCache extends AbstractValueAdaptingCache {
         }
 
         if (this.cache instanceof LoadingCache) {
-            Map<K,V> cacheValues =((LoadingCache) this.cache).getAll(keys);
+            Map<K, V> cacheValues = ((LoadingCache) this.cache).getAll(keys);
             return cacheValues;
         }
 
         Map<Object, Object> allPresent = cache.getAllPresent(keys);
         if (logger.isDebugEnabled()) {
-            logger.debug("caffeine缓存 keys={}:{} 获取缓存,结果是：{}", getName(), JSON.toJSONString(keys),JSON.toJSONString(allPresent));
+            logger.debug("caffeine缓存 keys={}:{} 获取缓存,结果是：{}", getName(), JSON.toJSONString(keys), JSON.toJSONString(allPresent));
         }
-        return (Map<K,V>) new HashMap<>(allPresent);
+        return (Map<K, V>) new HashMap<>(allPresent);
     }
 
     @Override
     @SuppressWarnings("unchecked")
-    public <K,V> Map<K, V> getAll(List<String> keys, Class<V> resultType, Function< String[],Object> valueLoader) {
+    public <K, V> Map<K, V> getAll(List<String> keys, Class<V> resultType, Function<String[], Object> valueLoader) {
         if (logger.isDebugEnabled()) {
             logger.debug("caffeine缓存 keys={}:{} 获取缓存,如果没有命中就走库加载缓存", getName(), JSON.toJSONString(keys));
         }
@@ -127,8 +125,8 @@ public class CaffeineCache extends AbstractValueAdaptingCache {
 
         // 找出缓存中没有的键
         List<String> missingKeys = keys.stream()
-            .filter(key -> !cacheValues.containsKey(key))
-            .collect(Collectors.toList());
+                .filter(key -> !cacheValues.containsKey(key))
+                .collect(Collectors.toList());
 
         // 加载 获取这些缺失的值
         if (!missingKeys.isEmpty()) {
@@ -141,7 +139,7 @@ public class CaffeineCache extends AbstractValueAdaptingCache {
             List<Object> loadValues = (List<Object>) valueLoader.apply(missingKeys.toArray(new String[0]));
 
             if (logger.isDebugEnabled()) {
-                logger.debug("caffeine缓存 cacheName={}  missingKeys{} 从库加载缓存 {}",getName(), JSON.toJSONString(missingKeys), JSON.toJSONString(loadValues));
+                logger.debug("caffeine缓存 cacheName={}  missingKeys{} 从库加载缓存 {}", getName(), JSON.toJSONString(missingKeys), JSON.toJSONString(loadValues));
             }
 
             if (isStats()) {
@@ -151,8 +149,8 @@ public class CaffeineCache extends AbstractValueAdaptingCache {
                 if (loadValues.get(i) != null) {
                     cacheValues.put(missingKeys.get(i), loadValues.get(i));
                     cache.put(missingKeys.get(i), loadValues.get(i));
-                }else if(isAllowNullValues()){
-                    //如果允许NULL值，则缓存NullValue
+                } else if (isAllowNullValues()) {
+                    // 如果允许NULL值，则缓存NullValue
                     cacheValues.put(missingKeys.get(i), NullValue.INSTANCE);
                     cache.put(missingKeys.get(i), NullValue.INSTANCE);
 
@@ -160,7 +158,7 @@ public class CaffeineCache extends AbstractValueAdaptingCache {
             }
         }
 
-        return (Map<K, V>)cacheValues;
+        return (Map<K, V>) cacheValues;
     }
 
     @Override

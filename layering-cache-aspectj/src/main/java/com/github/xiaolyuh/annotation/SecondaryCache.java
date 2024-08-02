@@ -43,6 +43,7 @@ public @interface SecondaryCache {
     /**
      * 是否强制刷新（直接执行被缓存方法），默认是false
      * 不建议在批量缓存式开启强制刷新
+     *
      * @return boolean
      */
     boolean forceRefresh() default false;

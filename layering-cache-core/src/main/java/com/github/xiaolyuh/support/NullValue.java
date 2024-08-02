@@ -17,7 +17,6 @@
 package com.github.xiaolyuh.support;
 
 import com.github.xiaolyuh.cache.AbstractValueAdaptingCache;
-
 import java.io.Serializable;
 
 /**

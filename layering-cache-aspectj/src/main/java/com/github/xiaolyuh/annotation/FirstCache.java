@@ -1,7 +1,6 @@
 package com.github.xiaolyuh.annotation;
 
 import com.github.xiaolyuh.support.ExpireMode;
-
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Inherited;

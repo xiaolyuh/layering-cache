@@ -2,10 +2,7 @@ package com.github.xiaolyuh.manager;
 
 import com.github.xiaolyuh.cache.Cache;
 import com.github.xiaolyuh.setting.LayeringCacheSetting;
-import com.github.xiaolyuh.stats.CacheStatsInfo;
-
 import java.util.Collection;
-import java.util.List;
 
 /**
  * 缓存管理器

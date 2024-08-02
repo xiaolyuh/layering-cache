@@ -68,7 +68,7 @@ public @interface CacheEvict {
      * @return boolean
      */
     boolean allEntries() default false;
-    
+
     /**
      * 是否异步删除缓存中所有数据
      *

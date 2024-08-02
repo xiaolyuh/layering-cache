@@ -10,10 +10,6 @@ import com.github.xiaolyuh.support.LayeringCacheRedisLock;
 import com.github.xiaolyuh.support.NullValue;
 import com.github.xiaolyuh.util.RandomUtils;
 import com.github.xiaolyuh.util.ThreadTaskUtils;
-import java.util.Objects;
-import java.util.Set;
-import java.util.concurrent.Callable;
-import java.util.concurrent.TimeUnit;
 import io.lettuce.core.KeyValue;
 import io.lettuce.core.Value;
 import java.util.ArrayList;
@@ -21,6 +17,10 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
+import java.util.concurrent.Callable;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
@@ -170,7 +170,7 @@ public class RedisCache extends AbstractValueAdaptingCache {
 
     @Override
     @SuppressWarnings("unchecked")
-    public <K,V> Map<K, V> getAll(List<String> keys, Class<V> resultType) {
+    public <K, V> Map<K, V> getAll(List<String> keys, Class<V> resultType) {
         if (isStats()) {
             getCacheStats().addCacheRequestCount(keys.size());
         }
@@ -180,13 +180,13 @@ public class RedisCache extends AbstractValueAdaptingCache {
             logger.debug("redis缓存 keys= {} 查询redis缓存", JSON.toJSONString(redisKeys));
         }
         List<KeyValue<String, Object>> all = redisClient.getAll(redisKeys, resultType);
-        return (Map<K, V> )all.stream().filter(Value::hasValue)
-            .collect(Collectors.toMap(KeyValue::getKey, Value::getValue));
+        return (Map<K, V>) all.stream().filter(Value::hasValue)
+                .collect(Collectors.toMap(KeyValue::getKey, Value::getValue));
     }
 
     @Override
     @SuppressWarnings("unchecked")
-    public <K,V> Map<K, V> getAll(List<String> keys, Class<V> resultType, Function< String[], Object> valueLoader) {
+    public <K, V> Map<K, V> getAll(List<String> keys, Class<V> resultType, Function<String[], Object> valueLoader) {
         if (isStats()) {
             getCacheStats().addCacheRequestCount(keys.size());
         }
@@ -197,9 +197,9 @@ public class RedisCache extends AbstractValueAdaptingCache {
 
         List<RedisCacheKey> redisCacheKeys = keys.stream().map(this::getRedisCacheKey).collect(Collectors.toList());
 
-        //redisKey ->  RedisCacheKey
+        // redisKey ->  RedisCacheKey
         Map<String, RedisCacheKey> mapping = redisCacheKeys.stream().collect(Collectors
-            .toMap(RedisCacheKey::getKey, Function.identity(), (oldValue, newValue) -> newValue));
+                .toMap(RedisCacheKey::getKey, Function.identity(), (oldValue, newValue) -> newValue));
 
         List<String> redisKeys = redisCacheKeys.stream().map(RedisCacheKey::getKey).collect(Collectors.toList());
         // 先获取Redis缓存
@@ -212,17 +212,17 @@ public class RedisCache extends AbstractValueAdaptingCache {
 
         for (KeyValue<String, Object> keyValue : all) {
             String key = keyValue.getKey();
-            if(!keyValue.hasValue() && !redisClient.hasKey(key) ){
+            if (!keyValue.hasValue() && !redisClient.hasKey(key)) {
                 missingCacheKeys.add(mapping.get(key));
                 continue;
             }
-            cacheValues.put((String) mapping.get(key).getKeyElement(),keyValue.hasValue() ? keyValue.getValue() : null);
-            //待刷新缓存
+            cacheValues.put((String) mapping.get(key).getKeyElement(), keyValue.hasValue() ? keyValue.getValue() : null);
+            // 待刷新缓存
             refreshCacheKeys.add(mapping.get(key));
         }
 
-        //刷新缓存
-        batchRefreshCache(refreshCacheKeys,resultType,valueLoader,cacheValues);
+        // 刷新缓存
+        batchRefreshCache(refreshCacheKeys, resultType, valueLoader, cacheValues);
 
         // 加载 获取这些没有命中缓存的值
         if (!missingCacheKeys.isEmpty()) {
@@ -230,17 +230,17 @@ public class RedisCache extends AbstractValueAdaptingCache {
                 logger.debug("redis缓存没有命中keys= {} ，从数据库获取数据", JSON.toJSONString(missingCacheKeys));
             }
 
-            List<Object> loadValues = batchLoadAndPutValues(valueLoader, missingCacheKeys,true);
+            List<Object> loadValues = batchLoadAndPutValues(valueLoader, missingCacheKeys, true);
             for (int i = 0; i < missingCacheKeys.size(); i++) {
                 if (loadValues.get(i) != null) {
                     cacheValues.put((String) missingCacheKeys.get(i).getKeyElement(), loadValues.get(i));
-                }else if(isAllowNullValues()){
+                } else if (isAllowNullValues()) {
                     cacheValues.put((String) missingCacheKeys.get(i).getKeyElement(), null);
                 }
             }
         }
 
-        return (Map<K, V>)cacheValues;
+        return (Map<K, V>) cacheValues;
     }
 
 
@@ -380,17 +380,17 @@ public class RedisCache extends AbstractValueAdaptingCache {
         if (isLoad && isStats()) {
             getCacheStats().addCachedMethodRequestCount(1);
         }
-        String[] keys = cacheKeys.stream().map(cacheKey -> (String)cacheKey.getKeyElement()).toArray(String[]::new);
+        String[] keys = cacheKeys.stream().map(cacheKey -> (String) cacheKey.getKeyElement()).toArray(String[]::new);
         List<Object> loadValues = (List<Object>) valueLoader.apply(keys);
 
         if (logger.isDebugEnabled()) {
-            logger.debug("redis缓存 cacheName={}  cacheKeys={} 从库加载缓存 {}",getName(), JSON.toJSONString(cacheKeys), JSON.toJSONString(loadValues));
+            logger.debug("redis缓存 cacheName={}  cacheKeys={} 从库加载缓存 {}", getName(), JSON.toJSONString(cacheKeys), JSON.toJSONString(loadValues));
         }
 
         if (isLoad && isStats()) {
             getCacheStats().addCachedMethodRequestTime(System.currentTimeMillis() - start);
         }
-        putValues(cacheKeys,loadValues);
+        putValues(cacheKeys, loadValues);
         return loadValues;
     }
 
@@ -437,7 +437,7 @@ public class RedisCache extends AbstractValueAdaptingCache {
 
             // 允许缓存NULL值
             if (isAllowNullValues() && result instanceof NullValue) {
-                nullKeyValues.add(KeyValue.just(key.getKey(),NullValue.INSTANCE));
+                nullKeyValues.add(KeyValue.just(key.getKey(), NullValue.INSTANCE));
                 continue;
             }
             keyValues.add(KeyValue.just(key.getKey(), result));
@@ -478,20 +478,20 @@ public class RedisCache extends AbstractValueAdaptingCache {
     /**
      * 批量刷新缓存数据
      */
-    private <T> void batchRefreshCache(List<RedisCacheKey> redisCacheKeys, Class<T> resultType, Function< String[], Object> valueLoader, Map<String, Object> values) {
-        if(redisCacheKeys.isEmpty()){
+    private <T> void batchRefreshCache(List<RedisCacheKey> redisCacheKeys, Class<T> resultType, Function<String[], Object> valueLoader, Map<String, Object> values) {
+        if (redisCacheKeys.isEmpty()) {
             return;
         }
 
-        //批量获取过期时间，判断是否需要刷新
-        List<Long>  expires = getExpires(redisCacheKeys);
+        // 批量获取过期时间，判断是否需要刷新
+        List<Long> expires = getExpires(redisCacheKeys);
         List<RedisCacheKey> refreshCacheKeys = new ArrayList<>();
         for (int i = 0; i < redisCacheKeys.size(); i++) {
             RedisCacheKey cacheKey = redisCacheKeys.get(i);
             boolean flag = isAllowNullValues() && (values.get((String) cacheKey.getKeyElement()) == null);
-            cacheKey.preloadTime(RandomUtils.getRandomPreloadTime(flag ? (preloadTime/ magnification) : (preloadTime)));
-            boolean isRefresh = isRefresh(cacheKey.getPreloadTime(),expires.get(i));
-            if(isRefresh){
+            cacheKey.preloadTime(RandomUtils.getRandomPreloadTime(flag ? (preloadTime / magnification) : (preloadTime)));
+            boolean isRefresh = isRefresh(cacheKey.getPreloadTime(), expires.get(i));
+            if (isRefresh) {
                 refreshCacheKeys.add(cacheKey);
             }
         }
@@ -508,9 +508,7 @@ public class RedisCache extends AbstractValueAdaptingCache {
             }
             batchForceRefresh(redisCacheKeys, resultType, valueLoader);
         }
-}
-
-
+    }
 
 
     /**
@@ -533,13 +531,14 @@ public class RedisCache extends AbstractValueAdaptingCache {
     }
 
     /**
-     *     批量软刷新
+     * 批量软刷新
+     *
      * @param redisCacheKeys redisCacheKey列表 {@link RedisCacheKey}
      */
     private void batchSoftRefresh(List<RedisCacheKey> redisCacheKeys) {
         try {
             List<String> keys = redisCacheKeys.stream().map(RedisCacheKey::getKey).collect(Collectors.toList());
-            redisClient.batchExpire(keys,this.expiration,TimeUnit.MILLISECONDS);
+            redisClient.batchExpire(keys, this.expiration, TimeUnit.MILLISECONDS);
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
         }
@@ -584,10 +583,10 @@ public class RedisCache extends AbstractValueAdaptingCache {
      * 批量方法的硬刷新（执行被缓存的方法）
      *
      * @param redisCacheKeys {@link RedisCacheKey}
-     * @param valueLoader   数据加载器
+     * @param valueLoader    数据加载器
      */
-    private <T> void batchForceRefresh(List<RedisCacheKey> redisCacheKeys, Class<T> resultType, Function< String[], Object> valueLoader) {
-        if(redisCacheKeys.isEmpty()){
+    private <T> void batchForceRefresh(List<RedisCacheKey> redisCacheKeys, Class<T> resultType, Function<String[], Object> valueLoader) {
+        if (redisCacheKeys.isEmpty()) {
             return;
         }
         // 尽量少的去开启线程，因为线程池是有限的
@@ -597,16 +596,16 @@ public class RedisCache extends AbstractValueAdaptingCache {
             try {
                 if (redisLock.lock()) {
                     // 获取锁之后再判断一下过期时间，看是否需要加载数据
-                    List<Long>  expires = getExpires(redisCacheKeys);
+                    List<Long> expires = getExpires(redisCacheKeys);
                     List<RedisCacheKey> refreshCacheKeys = new ArrayList<>();
                     for (int i = 0; i < redisCacheKeys.size(); i++) {
                         RedisCacheKey cacheKey = redisCacheKeys.get(i);
-                        boolean isRefresh = isRefresh(cacheKey.getPreloadTime(),expires.get(i));
-                        if(isRefresh){
+                        boolean isRefresh = isRefresh(cacheKey.getPreloadTime(), expires.get(i));
+                        if (isRefresh) {
                             refreshCacheKeys.add(cacheKey);
                         }
                     }
-                    if(refreshCacheKeys.isEmpty()){
+                    if (refreshCacheKeys.isEmpty()) {
                         return;
                     }
 
@@ -616,12 +615,12 @@ public class RedisCache extends AbstractValueAdaptingCache {
 
                     for (int i = 0; i < oldValues.size(); i++) {
                         KeyValue<String, Object> oldValue = oldValues.get(i);
-                        Object oldDate =  oldValue.hasValue() ? oldValue.getValue() : null ;
-                        Object newDate =  values.get(i);
+                        Object oldDate = oldValue.hasValue() ? oldValue.getValue() : null;
+                        Object newDate = values.get(i);
                         // 比较新老数据是否相等，如果不相等就删除一级缓存
                         if (!Objects.equals(oldDate, newDate) && !JSON.toJSONString(oldDate).equals(JSON.toJSONString(newDate))) {
-                            if(logger.isDebugEnabled()){
-                                logger.debug("二级缓存数据发生变更，同步刷新一级缓存,oldDate={},newDate={}",JSON.toJSONString(oldDate),JSON.toJSONString(newDate));
+                            if (logger.isDebugEnabled()) {
+                                logger.debug("二级缓存数据发生变更，同步刷新一级缓存,oldDate={},newDate={}", JSON.toJSONString(oldDate), JSON.toJSONString(newDate));
                             }
 
                             deleteClusterFirstCacheByKey((String) refreshCacheKeys.get(i).getKeyElement(), redisClient);
@@ -637,7 +636,8 @@ public class RedisCache extends AbstractValueAdaptingCache {
     }
 
     /**
-     *   批量获取剩余生存时间
+     * 批量获取剩余生存时间
+     *
      * @param redisCacheKeys
      * @return
      */
@@ -667,12 +667,13 @@ public class RedisCache extends AbstractValueAdaptingCache {
 
 
     /**
-     *  判断是否需要刷新缓存
-     * @param preloadTime    预加载时间（经过计算后的时间）
-     * @param ttl  过期时间
+     * 判断是否需要刷新缓存
+     *
+     * @param preloadTime 预加载时间（经过计算后的时间）
+     * @param ttl         过期时间
      * @return
      */
-    private boolean isRefresh( long preloadTime, Long ttl) {
+    private boolean isRefresh(long preloadTime, Long ttl) {
         // -2表示key不存在
         if (ttl == null || ttl == -2) {
             return true;

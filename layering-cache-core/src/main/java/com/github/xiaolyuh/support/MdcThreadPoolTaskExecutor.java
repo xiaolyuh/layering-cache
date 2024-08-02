@@ -1,9 +1,8 @@
 package com.github.xiaolyuh.support;
 
+import java.util.Map;
 import org.slf4j.MDC;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
-
-import java.util.Map;
 
 /**
  * 这是{@link ThreadPoolTaskExecutor}的一个简单替换，可以在每个任务之前设置子线程的MDC数据。

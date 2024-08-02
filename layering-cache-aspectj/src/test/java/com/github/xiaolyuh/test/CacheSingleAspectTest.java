@@ -16,8 +16,17 @@ import com.github.xiaolyuh.redis.serializer.ProtostuffRedisSerializer;
 import com.github.xiaolyuh.support.CacheMode;
 import com.github.xiaolyuh.util.GlobalConfig;
 import com.sun.management.OperatingSystemMXBean;
+import java.lang.management.ManagementFactory;
+import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.Date;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.TimeUnit;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -25,19 +34,8 @@ import org.junit.runner.RunWith;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.expression.spel.SpelEvaluationException;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-
-import java.lang.management.ManagementFactory;
-import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Date;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Set;
-import java.util.concurrent.TimeUnit;
 
 
 // SpringJUnit4ClassRunner再Junit环境下提供Spring TestContext Framework的功能。
@@ -153,6 +151,7 @@ public class CacheSingleAspectTest {
         user = testService.getUser(user, user.getAge());
         Assert.assertNotNull(user);
     }
+
     @Test
     public void testGetNullUser() {
         long userId = 115;
@@ -999,10 +998,10 @@ public class CacheSingleAspectTest {
     private String systemInfo() {
         OperatingSystemMXBean osmxb = (OperatingSystemMXBean) ManagementFactory.getOperatingSystemMXBean();
 
-        //获取CPU
+        // 获取CPU
         double cpuLoad = osmxb.getSystemLoadAverage();
         int percentCpuLoad = (int) (cpuLoad * 100);
-        //获取内存
+        // 获取内存
         double totalvirtualMemory = osmxb.getSystemCpuLoad();
         double freePhysicalMemorySize = osmxb.getFreePhysicalMemorySize();
         double value = freePhysicalMemorySize / totalvirtualMemory;
@@ -1047,7 +1046,7 @@ public class CacheSingleAspectTest {
         User user1 = new User(1);
         User user2 = new User(2);
         User user3 = new User(3);
-        List<User> users = Arrays.asList(user0,user1,user2,user3);
+        List<User> users = Arrays.asList(user0, user1, user2, user3);
 
         List<User> userByIds = batchTestService.getUserByIds(users);
 
@@ -1058,7 +1057,7 @@ public class CacheSingleAspectTest {
         for (Cache cache : caches) {
 
             Map<Object, User> allPresent = cache.getAll(Arrays.asList("0", "1", "2", "3"), User.class);
-            Assert.assertEquals(2,allPresent.size());
+            Assert.assertEquals(2, allPresent.size());
 
             User result = cache.get("0", User.class);
             Assert.assertNotNull(result);
@@ -1081,7 +1080,6 @@ public class CacheSingleAspectTest {
     }
 
 
-
     @Test
     public void testGetBatchNullInput() {
         List<User> users = new ArrayList<>();
@@ -1102,7 +1100,7 @@ public class CacheSingleAspectTest {
         User user1 = new User(1);
         User user2 = new User(2);
         User user3 = new User(3);
-        List<User> users = Arrays.asList(user0,user1,user2,user3);
+        List<User> users = Arrays.asList(user0, user1, user2, user3);
         List<User> userByIds = batchTestService.getUserByIdsReturnNone(users);
         caches = cacheManager.getCache("user:info");
 
@@ -1110,7 +1108,7 @@ public class CacheSingleAspectTest {
         for (Cache cache : caches) {
 
             Map<Object, User> allPresent = cache.getAll(Arrays.asList("0", "1", "2", "3"), User.class);
-            Assert.assertEquals(0,allPresent.size());
+            Assert.assertEquals(0, allPresent.size());
 
         }
     }
@@ -1121,14 +1119,14 @@ public class CacheSingleAspectTest {
         User user1 = new User(1);
         User user2 = new User(2);
         User user3 = new User(3);
-        List<User> users = Arrays.asList(user0,user1,user2,user3);
+        List<User> users = Arrays.asList(user0, user1, user2, user3);
         List<User> userByIds = batchTestService.getUserByIdDisableFirstCache(users);
         Collection<Cache> caches = cacheManager.getCache("user:info:01");
 
         Assert.assertEquals(2, userByIds.size());
         for (Cache cache : caches) {
             Map<Object, User> allPresent = cache.getAll(Arrays.asList("0", "1", "2", "3"), User.class);
-            Assert.assertEquals(2,allPresent.size());
+            Assert.assertEquals(2, allPresent.size());
 
             String key = "0";
             User result = cache.get(key, User.class);
@@ -1148,14 +1146,14 @@ public class CacheSingleAspectTest {
         User user1 = new User(1);
         User user2 = new User(2);
         User user3 = new User(3);
-        List<User> users = Arrays.asList(user0,user1,user2,user3);
+        List<User> users = Arrays.asList(user0, user1, user2, user3);
         List<User> userByIds = batchTestService.getUserByIdDisableSecondCache(users);
         Collection<Cache> caches = cacheManager.getCache("user:info:02");
 
         Assert.assertEquals(2, userByIds.size());
         for (Cache cache : caches) {
             Map<Object, User> allPresent = cache.getAll(Arrays.asList("0", "1", "2", "3"), User.class);
-            Assert.assertEquals(2,allPresent.size());
+            Assert.assertEquals(2, allPresent.size());
 
             String key = "0";
             User result = cache.get(key, User.class);
@@ -1174,11 +1172,11 @@ public class CacheSingleAspectTest {
      */
     @Test
     public void testBatchRefreshSecondCacheSyncFistCache() {
-        User user0 = new User(0,0);
-        User user1 = new User(1,1);
-        User user2 = new User(2,2);
-        User user3 = new User(3,3);
-        List<User> users = Arrays.asList(user0,user1,user2,user3);
+        User user0 = new User(0, 0);
+        User user1 = new User(1, 1);
+        User user2 = new User(2, 2);
+        User user3 = new User(3, 3);
+        List<User> users = Arrays.asList(user0, user1, user2, user3);
         Long llen1 = redisClient.llen(GlobalConfig.getMessageRedisKey());
         // 初始化缓存
         List<User> userList0 = batchTestService.batchRefreshSecondCacheSyncFistCache(users);
@@ -1205,10 +1203,10 @@ public class CacheSingleAspectTest {
         sleep(1);
         userList1 = batchTestService.batchRefreshSecondCacheSyncFistCache(users);
 
-        Assert.assertEquals(0,userList0.get(0).getAge());
+        Assert.assertEquals(0, userList0.get(0).getAge());
 
         for (int i = 0; i < userList1.size(); i++) {
-            Assert.assertEquals(18,userList1.get(i).getAge());
+            Assert.assertEquals(18, userList1.get(i).getAge());
         }
 
         Long llen3 = redisClient.llen(GlobalConfig.getMessageRedisKey());

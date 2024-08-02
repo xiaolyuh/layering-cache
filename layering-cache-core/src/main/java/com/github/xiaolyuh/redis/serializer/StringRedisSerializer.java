@@ -1,9 +1,8 @@
 package com.github.xiaolyuh.redis.serializer;
 
-import org.springframework.util.Assert;
-
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import org.springframework.util.Assert;
 
 /**
  * 必须重写序列化器，否则@Cacheable注解的key会报类型转换错误

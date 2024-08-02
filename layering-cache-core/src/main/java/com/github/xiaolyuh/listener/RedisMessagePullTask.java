@@ -3,13 +3,12 @@ package com.github.xiaolyuh.listener;
 import com.github.xiaolyuh.manager.AbstractCacheManager;
 import com.github.xiaolyuh.util.BeanFactory;
 import com.github.xiaolyuh.util.NamedThreadFactory;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.util.Calendar;
 import java.util.Random;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * redis消息拉模式

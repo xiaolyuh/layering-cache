@@ -1,14 +1,13 @@
 package com.github.xiaolyuh.annotation;
 
 import com.github.xiaolyuh.support.CacheMode;
-import org.springframework.core.annotation.AliasFor;
-
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Inherited;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
+import org.springframework.core.annotation.AliasFor;
 
 /**
  * 表示调用的方法（或类中的所有方法）的结果是可以被缓存的。
@@ -67,6 +66,7 @@ public @interface Cacheable {
 
     /**
      * 生成缓存的条件，默认空全部缓存。支持SpEL表达式
+     *
      * @return 条件表达式
      */
     String condition() default "";

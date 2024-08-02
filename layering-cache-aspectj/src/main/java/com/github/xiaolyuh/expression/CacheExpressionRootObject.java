@@ -16,9 +16,8 @@
 
 package com.github.xiaolyuh.expression;
 
-import org.springframework.util.Assert;
-
 import java.lang.reflect.Method;
+import org.springframework.util.Assert;
 
 /**
  * Class describing the root object used during the expression evaluation.

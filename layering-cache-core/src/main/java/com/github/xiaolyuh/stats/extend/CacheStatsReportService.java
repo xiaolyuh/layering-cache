@@ -1,7 +1,6 @@
 package com.github.xiaolyuh.stats.extend;
 
 import com.github.xiaolyuh.stats.CacheStatsInfo;
-
 import java.util.List;
 
 /**

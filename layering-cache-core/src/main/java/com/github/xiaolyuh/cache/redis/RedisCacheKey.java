@@ -2,10 +2,8 @@ package com.github.xiaolyuh.cache.redis;
 
 import com.github.xiaolyuh.redis.serializer.RedisSerializer;
 import com.github.xiaolyuh.redis.serializer.StringRedisSerializer;
-import org.springframework.util.Assert;
-import org.springframework.util.StringUtils;
-
 import java.util.Arrays;
+import org.springframework.util.Assert;
 
 /**
  * redis key 生成
@@ -42,7 +40,7 @@ public class RedisCacheKey {
     /**
      * 缓存预加载时间
      */
-    private  long preloadTime;
+    private long preloadTime;
 
     /**
      * @param keyElement 缓存key

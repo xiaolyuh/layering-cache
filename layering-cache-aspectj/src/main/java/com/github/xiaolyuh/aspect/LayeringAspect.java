@@ -19,12 +19,16 @@ import com.github.xiaolyuh.support.KeyGenerator;
 import com.github.xiaolyuh.support.SimpleKeyGenerator;
 import com.github.xiaolyuh.util.ThreadTaskUtils;
 import com.github.xiaolyuh.util.ToStringUtils;
+import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.concurrent.Callable;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import org.aspectj.lang.ProceedingJoinPoint;
@@ -43,11 +47,6 @@ import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
-
-import java.lang.reflect.Method;
-import java.util.Collection;
-import java.util.Objects;
-import java.util.concurrent.Callable;
 
 /**
  * 缓存拦截，用于注册方法信息
@@ -122,18 +121,18 @@ public class LayeringAspect {
         // 获取注解
         BatchCacheable batchCacheable = AnnotationUtils.findAnnotation(method, BatchCacheable.class);
         assert batchCacheable != null;
-        //检查注解的方法返回值是否为List
-        Assert.isTrue(List.class.isAssignableFrom(method.getReturnType()),BATCH_CACHEABLE_RETURN_ERROR_MESSAGE);
-        //获取缓存key
-        List<String> keys =generateKeys(batchCacheable.keys(), method, joinPoint.getArgs(), joinPoint.getTarget());
+        // 检查注解的方法返回值是否为List
+        Assert.isTrue(List.class.isAssignableFrom(method.getReturnType()), BATCH_CACHEABLE_RETURN_ERROR_MESSAGE);
+        // 获取缓存key
+        List<String> keys = generateKeys(batchCacheable.keys(), method, joinPoint.getArgs(), joinPoint.getTarget());
         try {
             // 执行查询缓存方法
-            return executeBatchCacheable(getBatchCacheFunctionInvoker(joinPoint,method,batchCacheable,keys), batchCacheable,keys ,method, joinPoint.getArgs(), joinPoint.getTarget());
+            return executeBatchCacheable(getBatchCacheFunctionInvoker(joinPoint, method, batchCacheable, keys), batchCacheable, keys, method, joinPoint.getArgs(), joinPoint.getTarget());
         } catch (SerializationException e) {
             // 如果是序列化异常,则是换了序列化器的情况，需要先删除原有缓存,在执行缓存方法
             String[] cacheNames = batchCacheable.cacheNames();
             deleteBatch(cacheNames, batchCacheable.keys(), method, joinPoint.getArgs(), joinPoint.getTarget());
-            return executeBatchCacheable(getBatchCacheFunctionInvoker(joinPoint,method,batchCacheable,keys), batchCacheable,keys ,method, joinPoint.getArgs(), joinPoint.getTarget());
+            return executeBatchCacheable(getBatchCacheFunctionInvoker(joinPoint, method, batchCacheable, keys), batchCacheable, keys, method, joinPoint.getArgs(), joinPoint.getTarget());
         }
     }
 
@@ -254,14 +253,14 @@ public class LayeringAspect {
     /**
      * 执行BatchCacheable切面
      *
-     * @param valueLoader 加载缓存的回调方法
-     * @param batchCacheable   {@link BatchCacheable}
-     * @param method      {@link Method}
-     * @param args        注解方法参数
-     * @param target      target
+     * @param valueLoader    加载缓存的回调方法
+     * @param batchCacheable {@link BatchCacheable}
+     * @param method         {@link Method}
+     * @param args           注解方法参数
+     * @param target         target
      * @return {@link Object}
      */
-    private Object executeBatchCacheable(Function< String[],Object> valueLoader, BatchCacheable batchCacheable, List<String> keys, Method method, Object[] args, Object target) throws Exception {
+    private Object executeBatchCacheable(Function<String[], Object> valueLoader, BatchCacheable batchCacheable, List<String> keys, Method method, Object[] args, Object target) throws Exception {
 
         // 解析SpEL表达式获取cacheName
         String[] cacheNames = batchCacheable.cacheNames();
@@ -277,28 +276,28 @@ public class LayeringAspect {
         FirstCache firstCache = batchCacheable.firstCache();
         SecondaryCache secondaryCache = batchCacheable.secondaryCache();
         FirstCacheSetting firstCacheSetting = new FirstCacheSetting(firstCache.initialCapacity(), firstCache.maximumSize(),
-            firstCache.expireTime(), firstCache.timeUnit(), firstCache.expireMode());
+                firstCache.expireTime(), firstCache.timeUnit(), firstCache.expireMode());
 
         SecondaryCacheSetting secondaryCacheSetting = new SecondaryCacheSetting(secondaryCache.expireTime(),
-            secondaryCache.preloadTime(), secondaryCache.timeUnit(), secondaryCache.forceRefresh(),
-            true, secondaryCache.magnification());
+                secondaryCache.preloadTime(), secondaryCache.timeUnit(), secondaryCache.forceRefresh(),
+                true, secondaryCache.magnification());
 
         LayeringCacheSetting layeringCacheSetting = new LayeringCacheSetting(firstCacheSetting, secondaryCacheSetting,
-            batchCacheable.depict(), batchCacheable.cacheMode());
+                batchCacheable.depict(), batchCacheable.cacheMode());
 
         // 通过cacheName和缓存配置获取Cache
         Cache cache = cacheManager.getCache(cacheName, layeringCacheSetting);
 
 
-        //获取返回值泛型
+        // 获取返回值泛型
         Class<?> genericReturnType = getListGenericType(method);
 
         // 通Cache获取值
         Map<String, ?> valuesMap = cache.getAll(keys, genericReturnType, valueLoader);
         return keys.stream()
-            .map(valuesMap::get)
-            .filter(Objects::nonNull)
-            .collect(Collectors.toList());
+                .map(valuesMap::get)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
     }
 
 
@@ -403,7 +402,7 @@ public class LayeringAspect {
      * 删除执行批量缓存名称上的指定keys
      *
      * @param cacheNames 缓存名称
-     * @param keysSpEL    key的SpEL表达式
+     * @param keysSpEL   key的SpEL表达式
      * @param method     {@link Method}
      * @param args       参数列表
      * @param target     目标类
@@ -416,7 +415,7 @@ public class LayeringAspect {
             if (CollectionUtils.isEmpty(caches)) {
                 // 如果没有找到Cache就新建一个默认的
                 Cache cache = cacheManager.getCache(cacheName,
-                    new LayeringCacheSetting(new FirstCacheSetting(), new SecondaryCacheSetting(), "默认缓存配置（删除时生成）", CacheMode.ALL));
+                        new LayeringCacheSetting(new FirstCacheSetting(), new SecondaryCacheSetting(), "默认缓存配置（删除时生成）", CacheMode.ALL));
                 cache.evictAll(keys);
             } else {
                 for (Cache cache : caches) {
@@ -465,7 +464,7 @@ public class LayeringAspect {
     }
 
     private Callable getCacheOperationInvoker(ProceedingJoinPoint joinPoint) {
-        return ()-> {
+        return () -> {
             try {
                 return joinPoint.proceed();
             } catch (Throwable ex) {
@@ -475,23 +474,23 @@ public class LayeringAspect {
     }
 
     @SuppressWarnings("unchecked")
-    private Function< String[], Object> getBatchCacheFunctionInvoker(ProceedingJoinPoint joinPoint, Method method, BatchCacheable cacheable, List<String> keys) {
+    private Function<String[], Object> getBatchCacheFunctionInvoker(ProceedingJoinPoint joinPoint, Method method, BatchCacheable cacheable, List<String> keys) {
         return (missingKeys) -> {
             try {
                 Object[] args = joinPoint.getArgs();
 
-                if(missingKeys.length != 0){
+                if (missingKeys.length != 0) {
                     for (int i = 0; i < args.length; i++) {
                         if (args[i] instanceof List) {
                             List<?> listArg = (List<?>) args[i];
-                            //构建Key和arg的映射,用于过滤出未命中缓存的入参
-                            HashMap<String,Object> keyArgMap = new HashMap<>(keys.size());
+                            // 构建Key和arg的映射,用于过滤出未命中缓存的入参
+                            HashMap<String, Object> keyArgMap = new HashMap<>(keys.size());
                             for (int k = 0; k < listArg.size(); k++) {
-                                keyArgMap.put(keys.get(k),listArg.get(k));
+                                keyArgMap.put(keys.get(k), listArg.get(k));
                             }
                             List<?> modifiedArgList = Arrays.stream(missingKeys)
-                                .map(keyArgMap::get)
-                                .collect(Collectors.toList());
+                                    .map(keyArgMap::get)
+                                    .collect(Collectors.toList());
                             // 只修改第一个List 类型的参数
                             args[i] = modifiedArgList;
                             break;
@@ -500,32 +499,32 @@ public class LayeringAspect {
                 }
                 Object ret = joinPoint.proceed(args);
                 String returnKeyEL = cacheable.keys();
-                //将值按Key顺序返回
-                if(ret instanceof  List){
+                // 将值按Key顺序返回
+                if (ret instanceof List) {
                     List<?> retList = (List<?>) ret;
                     Class<?> targetClass = AopProxyUtils.ultimateTargetClass(joinPoint.getTarget());
 
                     // 创建一个Context 用于解析返回值的缓存keys
                     StandardEvaluationContext context = new StandardEvaluationContext();
 
-                    //为了复用从入参取keys的EL表达式，retList放入context时需要取出EL表达式中的变量名（#(name).![id]）
+                    // 为了复用从入参取keys的EL表达式，retList放入context时需要取出EL表达式中的变量名（#(name).![id]）
                     String name = returnKeyEL.substring(1, !returnKeyEL.contains(".") ? returnKeyEL.length() : returnKeyEL.indexOf("."));
-                    context.setVariable(name,retList);
+                    context.setVariable(name, retList);
 
                     AnnotatedElementKey methodCacheKey = new AnnotatedElementKey(method, targetClass);
-                    List<String> returnKeys = ((List<Object>)evaluator.keys(returnKeyEL, methodCacheKey, context))
-                        .stream().map(ToStringUtils::toString).collect(Collectors.toList());
+                    List<String> returnKeys = ((List<Object>) evaluator.keys(returnKeyEL, methodCacheKey, context))
+                            .stream().map(ToStringUtils::toString).collect(Collectors.toList());
 
-                    HashMap<String,Object> returnKeyValueMap = new HashMap<>(keys.size());
+                    HashMap<String, Object> returnKeyValueMap = new HashMap<>(keys.size());
                     for (int i = 0; i < returnKeys.size(); i++) {
-                        returnKeyValueMap.put(returnKeys.get(i),retList.get(i));
+                        returnKeyValueMap.put(returnKeys.get(i), retList.get(i));
                     }
 
                     return Arrays.stream(missingKeys).map(returnKeyValueMap::get).collect(Collectors.toList());
                 }
                 throw new IllegalStateException("@BatchCacheable 注解只能用于返回值为List的方法时才能进行方法缓存");
             } catch (Throwable ex) {
-                throw new RuntimeException(ex) ;
+                throw new RuntimeException(ex);
             }
         };
     }
@@ -562,14 +561,14 @@ public class LayeringAspect {
         // 获取注解上的key属性值
         Class<?> targetClass = AopProxyUtils.ultimateTargetClass(target);
         EvaluationContext evaluationContext = evaluator.createEvaluationContext(method, args, target,
-            targetClass, CacheOperationExpressionEvaluator.NO_RESULT);
+                targetClass, CacheOperationExpressionEvaluator.NO_RESULT);
 
         AnnotatedElementKey methodCacheKey = new AnnotatedElementKey(method, targetClass);
 
         Object keysObject = evaluator.keys(keysSpEl, methodCacheKey, evaluationContext);
-        Assert.isTrue( keysObject instanceof  List,BATCH_CACHEABLE_ERROR_MESSAGE);
+        Assert.isTrue(keysObject instanceof List, BATCH_CACHEABLE_ERROR_MESSAGE);
         return ((List<Object>) keysObject)
-            .stream().map(ToStringUtils::toString).collect(Collectors.toList());
+                .stream().map(ToStringUtils::toString).collect(Collectors.toList());
     }
 
     /**
@@ -607,7 +606,7 @@ public class LayeringAspect {
             }
         }
 
-        throw  new IllegalArgumentException(BATCH_CACHEABLE_RETURN_GENERIC_TYPE_ERROR_MESSAGE);
+        throw new IllegalArgumentException(BATCH_CACHEABLE_RETURN_GENERIC_TYPE_ERROR_MESSAGE);
     }
 
 }
@@ -618,7 +617,7 @@ class EmptyObject {
     private EmptyObject() {
     }
 
-    //获取唯一可用的对象
+    // 获取唯一可用的对象
     public static EmptyObject getInstance() {
         return EMPTY_OBJECT;
     }

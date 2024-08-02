@@ -9,12 +9,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.concurrent.Callable;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.concurrent.Callable;
 
 /**
  * 多级缓存
@@ -69,7 +68,7 @@ public class LayeringCache extends AbstractValueAdaptingCache {
      */
     public LayeringCache(RedisClient redisClient, AbstractValueAdaptingCache firstCache,
                          AbstractValueAdaptingCache secondCache, CacheMode cacheMode, boolean stats, String name, LayeringCacheSetting layeringCacheSetting) {
-        super(stats, name,cacheMode);
+        super(stats, name, cacheMode);
         this.redisClient = redisClient;
         this.firstCache = firstCache;
         this.secondCache = secondCache;
@@ -140,15 +139,15 @@ public class LayeringCache extends AbstractValueAdaptingCache {
 
     @Override
     @SuppressWarnings("all")
-    public  <K,V> Map<K, V> getAll(List<String> keys, Class<V> resultType) {
+    public <K, V> Map<K, V> getAll(List<String> keys, Class<V> resultType) {
         Map<K, V> values = new HashMap<>(keys.size());
         // 开启一级缓存
         if (!CacheMode.SECOND.equals(cacheMode)) {
-             values.putAll(firstCache.getAll(keys, resultType));
+            values.putAll(firstCache.getAll(keys, resultType));
             if (logger.isDebugEnabled()) {
                 logger.debug("查询一级缓存。 cacheName={} keys={},返回值是:{}", getName(), JSON.toJSONString(keys), JSON.toJSONString(values));
             }
-            if(values.size() == keys.size() || CacheMode.FIRST.equals(cacheMode)){
+            if (values.size() == keys.size() || CacheMode.FIRST.equals(cacheMode)) {
                 return values;
             }
         }
@@ -156,17 +155,17 @@ public class LayeringCache extends AbstractValueAdaptingCache {
         // 开启二级缓存
         // 找出一级缓存中没有的键
         List<String> missingKeys = keys;
-        if(!CacheMode.SECOND.equals(cacheMode)){
+        if (!CacheMode.SECOND.equals(cacheMode)) {
             missingKeys = keys.stream()
-                .filter(key -> !values.containsKey(key))
-                .collect(Collectors.toList());
+                    .filter(key -> !values.containsKey(key))
+                    .collect(Collectors.toList());
         }
 
         values.putAll(secondCache.getAll(missingKeys, resultType));
         // 开启一级缓存
         if (!CacheMode.SECOND.equals(cacheMode)) {
             for (String key : keys) {
-                firstCache.put(key,values.get(key));
+                firstCache.put(key, values.get(key));
             }
         }
         if (logger.isDebugEnabled()) {
@@ -177,7 +176,7 @@ public class LayeringCache extends AbstractValueAdaptingCache {
 
     @Override
     @SuppressWarnings("all")
-    public <K,V> Map<K, V> getAll(List<String> keys, Class<V> resultType, Function<String[], Object> valueLoader) {
+    public <K, V> Map<K, V> getAll(List<String> keys, Class<V> resultType, Function<String[], Object> valueLoader) {
         // 开启一级缓存
         if (CacheMode.FIRST.equals(cacheMode)) {
             Map<K, V> values = firstCache.getAll(keys, resultType, valueLoader);
@@ -193,11 +192,11 @@ public class LayeringCache extends AbstractValueAdaptingCache {
         if (!CacheMode.SECOND.equals(cacheMode)) {
             values.putAll(firstCache.getAll(keys, resultType));
             missingKeys = keys.stream()
-                .filter(key -> !values.containsKey(key))
-                .collect(Collectors.toList());
+                    .filter(key -> !values.containsKey(key))
+                    .collect(Collectors.toList());
         }
 
-        if(!missingKeys.isEmpty()){
+        if (!missingKeys.isEmpty()) {
             Map<K, V> missKeysValues = secondCache.getAll(missingKeys, resultType, valueLoader);
 
             // 开启一级缓存
@@ -206,13 +205,13 @@ public class LayeringCache extends AbstractValueAdaptingCache {
             }
             if (!CacheMode.SECOND.equals(cacheMode)) {
                 for (Entry<K, V> entry : missKeysValues.entrySet()) {
-                    firstCache.put((String) entry.getKey(),entry.getValue());
+                    firstCache.put((String) entry.getKey(), entry.getValue());
                 }
             }
 
             values.putAll(missKeysValues);
         }
-        if(isAllowNullValues()){
+        if (isAllowNullValues()) {
             List<K> nullValuesKeys = values.entrySet().stream().filter(kvEntry -> {
                 return fromStoreValue(kvEntry.getValue()) == null;
             }).map(Entry::getKey).collect(Collectors.toList());

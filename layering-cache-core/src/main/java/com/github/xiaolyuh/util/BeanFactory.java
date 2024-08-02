@@ -1,12 +1,12 @@
 package com.github.xiaolyuh.util;
 
+import java.util.concurrent.ConcurrentHashMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.concurrent.ConcurrentHashMap;
-
 /**
  * Bean 工厂类
+ *
  * @author yuhao.wang3
  */
 public class BeanFactory {

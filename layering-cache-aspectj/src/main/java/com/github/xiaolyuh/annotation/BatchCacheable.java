@@ -50,10 +50,11 @@ public @interface BatchCacheable {
      *
      * @return String
      */
-    String keys() ;
+    String keys();
 
     /**
      * 生成缓存的条件，默认空全部缓存。支持SpEL表达式
+     *
      * @return
      */
     String condition() default "";

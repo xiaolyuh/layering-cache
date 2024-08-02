@@ -1,7 +1,6 @@
 package com.github.xiaolyuh.redis.serializer;
 
 import com.github.xiaolyuh.support.NullValue;
-
 import java.util.Objects;
 
 /**

@@ -16,11 +16,10 @@
 
 package com.github.xiaolyuh.support;
 
-import org.springframework.util.Assert;
-import org.springframework.util.StringUtils;
-
 import java.io.Serializable;
 import java.util.Arrays;
+import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 
 /**
  * A simple key as returned from the {@link SimpleKeyGenerator}.

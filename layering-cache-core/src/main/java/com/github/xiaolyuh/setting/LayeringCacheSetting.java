@@ -2,7 +2,6 @@ package com.github.xiaolyuh.setting;
 
 import com.alibaba.fastjson.annotation.JSONField;
 import com.github.xiaolyuh.support.CacheMode;
-
 import java.io.Serializable;
 
 /**

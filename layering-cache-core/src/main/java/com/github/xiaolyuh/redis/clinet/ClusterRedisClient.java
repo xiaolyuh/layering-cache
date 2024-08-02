@@ -16,8 +16,6 @@ import io.lettuce.core.ScanArgs;
 import io.lettuce.core.ScanIterator;
 import io.lettuce.core.ScriptOutputType;
 import io.lettuce.core.SetArgs;
-import io.lettuce.core.api.async.RedisAsyncCommands;
-import io.lettuce.core.api.sync.RedisCommands;
 import io.lettuce.core.cluster.ClusterClientOptions;
 import io.lettuce.core.cluster.ClusterTopologyRefreshOptions;
 import io.lettuce.core.cluster.RedisClusterClient;
@@ -29,14 +27,6 @@ import io.lettuce.core.dynamic.RedisCommandFactory;
 import io.lettuce.core.internal.HostAndPort;
 import io.lettuce.core.pubsub.StatefulRedisPubSubConnection;
 import io.lettuce.core.pubsub.api.sync.RedisPubSubCommands;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CompletionStage;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.util.CollectionUtils;
-
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -46,11 +36,16 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionStage;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.util.CollectionUtils;
 
 /**
  * 集群版redis缓存
@@ -152,19 +147,19 @@ public class ClusterRedisClient implements RedisClient {
     }
 
     @Override
-    public <T> List<KeyValue<String,Object>> getAll(List<String> keys, Class<T> resultType) {
+    public <T> List<KeyValue<String, Object>> getAll(List<String> keys, Class<T> resultType) {
         try {
             RedisClusterCommands<byte[], byte[]> sync = connection.sync();
             List<byte[]> serializedKeys = keys.stream()
-                .map(keySerializer::serialize)
-                .collect(Collectors.toList());
+                    .map(keySerializer::serialize)
+                    .collect(Collectors.toList());
 
             List<KeyValue<byte[], byte[]>> keyValuePairs = sync.mget(serializedKeys.toArray(new byte[0][0]));
 
             return keyValuePairs.stream()
-                .map(keyValue -> KeyValue.fromNullable(getKeySerializer().deserialize(keyValue.getKey(), String.class),
-                    keyValue.hasValue() ? (Object) getValueSerializer().deserialize(keyValue.getValue(), resultType) : null))
-                .collect(Collectors.toList());
+                    .map(keyValue -> KeyValue.fromNullable(getKeySerializer().deserialize(keyValue.getKey(), String.class),
+                            keyValue.hasValue() ? (Object) getValueSerializer().deserialize(keyValue.getValue(), resultType) : null))
+                    .collect(Collectors.toList());
         } catch (SerializationException e) {
             throw e;
         } catch (Exception e) {
@@ -173,19 +168,19 @@ public class ClusterRedisClient implements RedisClient {
     }
 
     @Override
-    public <T> List<KeyValue<String,Object>> getAll(List<String> keys, Class<T> resultType, RedisSerializer valueRedisSerializer) {
+    public <T> List<KeyValue<String, Object>> getAll(List<String> keys, Class<T> resultType, RedisSerializer valueRedisSerializer) {
         try {
             RedisClusterCommands<byte[], byte[]> sync = connection.sync();
             List<byte[]> serializedKeys = keys.stream()
-                .map(keySerializer::serialize)
-                .collect(Collectors.toList());
+                    .map(keySerializer::serialize)
+                    .collect(Collectors.toList());
 
             List<KeyValue<byte[], byte[]>> keyValuePairs = sync.mget(serializedKeys.toArray(new byte[0][0]));
 
             return keyValuePairs.stream()
-                .map(keyValue -> KeyValue.fromNullable(getKeySerializer().deserialize(keyValue.getKey(), String.class),
-                    keyValue.hasValue() ? (Object) valueRedisSerializer.deserialize(keyValue.getValue(), resultType) : null))
-                .collect(Collectors.toList());
+                    .map(keyValue -> KeyValue.fromNullable(getKeySerializer().deserialize(keyValue.getKey(), String.class),
+                            keyValue.hasValue() ? (Object) valueRedisSerializer.deserialize(keyValue.getValue(), resultType) : null))
+                    .collect(Collectors.toList());
         } catch (SerializationException e) {
             throw e;
         } catch (Exception e) {
@@ -229,9 +224,9 @@ public class ClusterRedisClient implements RedisClient {
                 futures.add(async.setex(getKeySerializer().serialize(key), unit.toSeconds(time), getValueSerializer().serialize(value)));
             }
             return futures.stream()
-                .map(CompletionStage::toCompletableFuture)
-                .map(CompletableFuture::join)
-                .collect(Collectors.toList());
+                    .map(CompletionStage::toCompletableFuture)
+                    .map(CompletableFuture::join)
+                    .collect(Collectors.toList());
         } catch (SerializationException e) {
             throw e;
         } catch (Exception e) {
@@ -327,9 +322,9 @@ public class ClusterRedisClient implements RedisClient {
             }
 
             return futures.stream()
-                .map(CompletionStage::toCompletableFuture)
-                .map(CompletableFuture::join)
-                .collect(Collectors.toList());
+                    .map(CompletionStage::toCompletableFuture)
+                    .map(CompletableFuture::join)
+                    .collect(Collectors.toList());
         } catch (SerializationException e) {
             throw e;
         } catch (Exception e) {
@@ -359,9 +354,9 @@ public class ClusterRedisClient implements RedisClient {
             }
 
             return futures.stream()
-                .map(CompletionStage::toCompletableFuture)
-                .map(CompletableFuture::join)
-                .collect(Collectors.toList());
+                    .map(CompletionStage::toCompletableFuture)
+                    .map(CompletableFuture::join)
+                    .collect(Collectors.toList());
 
         } catch (SerializationException e) {
             throw e;

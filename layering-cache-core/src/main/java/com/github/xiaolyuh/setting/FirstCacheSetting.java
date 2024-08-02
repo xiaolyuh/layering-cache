@@ -1,7 +1,6 @@
 package com.github.xiaolyuh.setting;
 
 import com.github.xiaolyuh.support.ExpireMode;
-
 import java.io.Serializable;
 import java.util.concurrent.TimeUnit;
 

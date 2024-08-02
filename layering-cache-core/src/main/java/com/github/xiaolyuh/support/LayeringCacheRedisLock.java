@@ -1,15 +1,14 @@
 package com.github.xiaolyuh.support;
 
 import com.github.xiaolyuh.redis.clinet.RedisClient;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.util.Assert;
-import org.springframework.util.StringUtils;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 import java.util.UUID;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 
 /**
  * Redis分布式锁
@@ -39,29 +38,23 @@ import java.util.UUID;
  */
 public class LayeringCacheRedisLock {
 
-    private static Logger logger = LoggerFactory.getLogger(LayeringCacheRedisLock.class);
-
-    private RedisClient redisClient;
-
     /**
      * 调用set后的返回值
      */
     private static final String OK = "OK";
-
     /**
      * 默认请求锁的超时时间(ms 毫秒)
      */
     private static final long TIME_OUT = 100;
-
     /**
      * 默认锁的有效时间(s)
      */
     private static final int EXPIRE = 60;
-
     /**
      * 解锁的lua脚本
      */
     private static final String UNLOCK_LUA;
+    private static Logger logger = LoggerFactory.getLogger(LayeringCacheRedisLock.class);
 
     static {
         UNLOCK_LUA = "if redis.call(\"get\",KEYS[1]) == ARGV[1] "
@@ -72,37 +65,32 @@ public class LayeringCacheRedisLock {
                 + "end ";
     }
 
+    private final Random random = new Random();
+    private RedisClient redisClient;
     /**
      * 锁标志对应的key
      */
     private String lockKey;
-
     /**
      * 记录到日志的锁标志对应的key
      */
     private String lockKeyLog = "";
-
     /**
      * 锁对应的值
      */
     private String lockValue;
-
     /**
      * 锁的有效时间(s)
      */
     private int expireTime = EXPIRE;
-
     /**
      * 请求锁的超时时间(ms)
      */
     private long timeOut = TIME_OUT;
-
     /**
      * 锁标记
      */
     private volatile boolean locked = false;
-
-    private final Random random = new Random();
 
     /**
      * 使用默认的锁过期时间和请求锁的超时时间
@@ -184,7 +172,7 @@ public class LayeringCacheRedisLock {
      */
     public boolean lock() {
         this.lockValue = UUID.randomUUID().toString();
-        //不存在则添加 且设置过期时间（单位ms）
+        // 不存在则添加 且设置过期时间（单位ms）
         locked = setNxEx(lockKey, lockValue, expireTime);
         return locked;
     }
@@ -197,7 +185,7 @@ public class LayeringCacheRedisLock {
     public boolean lockBlock() {
         this.lockValue = UUID.randomUUID().toString();
         while (true) {
-            //不存在则添加 且设置过期时间（单位ms）
+            // 不存在则添加 且设置过期时间（单位ms）
             locked = setNxEx(lockKey, lockValue, expireTime);
             if (locked) {
                 return locked;

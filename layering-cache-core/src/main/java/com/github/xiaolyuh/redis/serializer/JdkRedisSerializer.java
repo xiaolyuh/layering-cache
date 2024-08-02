@@ -1,7 +1,6 @@
 package com.github.xiaolyuh.redis.serializer;
 
 import com.alibaba.fastjson.JSON;
-
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.ObjectInputStream;

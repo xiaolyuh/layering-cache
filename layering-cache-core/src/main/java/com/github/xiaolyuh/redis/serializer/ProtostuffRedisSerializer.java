@@ -6,7 +6,6 @@ import io.protostuff.ProtostuffIOUtil;
 import io.protostuff.runtime.DefaultIdStrategy;
 import io.protostuff.runtime.IdStrategy;
 import io.protostuff.runtime.RuntimeSchema;
-
 import java.util.Arrays;
 
 /**
@@ -15,9 +14,6 @@ import java.util.Arrays;
  * @author yuhao.wang
  */
 public class ProtostuffRedisSerializer extends AbstractRedisSerializer {
-    IdStrategy strategy = new DefaultIdStrategy(IdStrategy.DEFAULT_FLAGS | IdStrategy.COLLECTION_SCHEMA_ON_REPEATED_FIELDS, null, 0);
-    RuntimeSchema<Wrapper> schema = RuntimeSchema.createFrom(Wrapper.class, strategy);
-
     static {
         System.getProperties().setProperty("protostuff.runtime.always_use_sun_reflection_factory", "true");
         System.getProperties().setProperty("protostuff.runtime.preserve_null_elements", "true");
@@ -25,6 +21,9 @@ public class ProtostuffRedisSerializer extends AbstractRedisSerializer {
         System.getProperties().setProperty("protostuff.runtime.morph_map_interfaces", "true");
         System.getProperties().setProperty("protostuff.runtime.morph_non_final_pojos", "true");
     }
+
+    IdStrategy strategy = new DefaultIdStrategy(IdStrategy.DEFAULT_FLAGS | IdStrategy.COLLECTION_SCHEMA_ON_REPEATED_FIELDS, null, 0);
+    RuntimeSchema<Wrapper> schema = RuntimeSchema.createFrom(Wrapper.class, strategy);
 
     @Override
     public <T> byte[] serialize(T value) throws SerializationException {

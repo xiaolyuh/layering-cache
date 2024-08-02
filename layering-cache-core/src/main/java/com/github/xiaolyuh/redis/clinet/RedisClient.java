@@ -3,7 +3,6 @@ package com.github.xiaolyuh.redis.clinet;
 import com.github.xiaolyuh.listener.RedisMessageListener;
 import com.github.xiaolyuh.redis.serializer.RedisSerializer;
 import com.github.xiaolyuh.util.StringUtils;
-
 import io.lettuce.core.KeyValue;
 import io.lettuce.core.ScriptOutputType;
 import java.util.List;
@@ -61,23 +60,23 @@ public interface RedisClient {
     /**
      * 通过key获取储存在redis中的value,自动转对象
      *
-     * @param keys        keys
+     * @param keys       keys
      * @param resultType 返回值类型对应的Class对象
      * @param <T>        返回值类型
      * @return 返回一个包含键值对的列表，其中键是String类型，值是Object类型
      */
-     <T> List<KeyValue<String,Object>> getAll(List<String> keys, Class<T> resultType);
+    <T> List<KeyValue<String, Object>> getAll(List<String> keys, Class<T> resultType);
 
     /**
      * 通过key获取储存在redis中的value,自动转对象
      *
-     * @param keys                  key
+     * @param keys                 key
      * @param resultType           返回值类型对应的Class对象
      * @param valueRedisSerializer 指定序列化器
      * @param <T>                  返回值类型
      * @return 返回一个包含键值对的列表，其中键是String类型，值是Object类型
      */
-     <T> List<KeyValue<String,Object>> getAll(List<String> keys, Class<T> resultType,RedisSerializer valueRedisSerializer);
+    <T> List<KeyValue<String, Object>> getAll(List<String> keys, Class<T> resultType, RedisSerializer valueRedisSerializer);
 
     /**
      * <p>
@@ -111,15 +110,14 @@ public interface RedisClient {
 
 
     /**
-     *
      * 批量向redis存入key和value,如果key已经存在 则覆盖
      *
-     * @param keyValues  {@link KeyValue}
-     * @param time  时间
-     * @param unit  时间单位
+     * @param keyValues {@link KeyValue}
+     * @param time      时间
+     * @param unit      时间单位
      * @return 成功 返回OK 失败返回 0
      */
-    List<String> batchSet(List<KeyValue<String,Object>> keyValues, long time, TimeUnit unit);
+    List<String> batchSet(List<KeyValue<String, Object>> keyValues, long time, TimeUnit unit);
 
     /**
      * <p>
@@ -195,12 +193,12 @@ public interface RedisClient {
 
     /**
      * <p>
-     *
+     * <p>
      * 批量给 keys 设置生存时间，当 keys 过期时(生存时间为 0 )，它会被自动删除。
      * </p>
      *
-     * @param keys      keys
-     * @param ttl  过期时间
+     * @param keys     keys
+     * @param ttl      过期时间
      * @param timeUnit 时间单位
      * @return 成功返回1 如果存在 和 发生异常 返回 0
      */

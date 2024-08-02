@@ -1,7 +1,6 @@
 package com.github.xiaolyuh.stats;
 
 import com.github.xiaolyuh.setting.LayeringCacheSetting;
-
 import java.io.Serializable;
 
 /**

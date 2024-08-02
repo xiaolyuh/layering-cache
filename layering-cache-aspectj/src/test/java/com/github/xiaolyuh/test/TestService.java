@@ -8,10 +8,6 @@ import com.github.xiaolyuh.annotation.FirstCache;
 import com.github.xiaolyuh.annotation.SecondaryCache;
 import com.github.xiaolyuh.domain.User;
 import com.github.xiaolyuh.support.CacheMode;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.stereotype.Service;
-
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Date;
@@ -21,6 +17,9 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Service;
 
 @Service
 public class TestService {
@@ -531,8 +530,8 @@ public class TestService {
     }
 
     @Cacheable(value = "user:info", key = "#userId", condition = "#userId>110",
-        secondaryCache = @SecondaryCache(expireTime = 10, preloadTime = 3,
-            forceRefresh = true, timeUnit = TimeUnit.SECONDS))
+            secondaryCache = @SecondaryCache(expireTime = 10, preloadTime = 3,
+                    forceRefresh = true, timeUnit = TimeUnit.SECONDS))
     public User getUserByIdCondition(long userId) {
         logger.debug("测试正常配置的缓存方法，参数是基本类型");
         User user = new User();

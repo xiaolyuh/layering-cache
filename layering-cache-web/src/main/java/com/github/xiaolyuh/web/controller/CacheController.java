@@ -56,7 +56,7 @@ public class CacheController {
 
     private void refreshList(String redisClient, String cacheName) {
         String key = redisClient + cacheName;
-        ThreadTaskUtils.run(() -> {
+        ThreadTaskUtils.refreshCacheRun(() -> {
             CacheStatsInfoVo statsInfoVo = cache.get(key);
             if (Objects.isNull(statsInfoVo)) {
                 cache.put(key, getList(redisClient, cacheName));

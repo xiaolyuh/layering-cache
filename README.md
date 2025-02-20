@@ -75,12 +75,12 @@ github 地址：https://github.com/xiaolyuh/layering-cache
 # 捐赠
 项目的发展离不开你的支持，请作者喝杯咖啡吧！
 
-![微信-支付宝](https://img-blog.csdnimg.cn/20200218152559645.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3hpYW9seXVoMTIz,size_16,color_FFFFFF,t_70)
+![微信-支付宝](https://github.com/xiaolyuh/layering-cache/blob/master/images/pay.jpg)
 
 # 技术支持
 添加微信记得备注 ```layering-cache```。
 
-![微信](https://img-blog.csdnimg.cn/2020122516245862.png)
+![微信](https://github.com/xiaolyuh/layering-cache/blob/master/images/wx.jpg)
 
 # 特别感谢
 感谢何一睿同学贡献的```@BatchCacheable```批量缓存注解
